@@ -186,47 +186,46 @@ Old Generation
 
 
 
-## -------------------------------------------------------
-## 到这里
-## -------------------------------------------------------
-
-
-
 The implementation for the Old Generation memory space is much more complex. Old Generation is usually significantly larger and is occupied by objects that are less likely to be garbage.
 
-老的代内存空间的实现要复杂得多。旧一代通常明显越来越少的对象所占据的可能是垃圾。
+老年代内存空间的GC实现要复杂得多。老年代通常会越来越大，其中的对象可能是垃圾的概率也越来越小。
 
 
 
 GC in the Old Generation happens less frequently than in the Young Generation. Also, since most objects are expected to be alive in the Old Generation, there is no Mark and Copy happening. Instead, the objects are moved around to minimize fragmentation. The algorithms cleaning the Old space are generally built on different foundations. In principle, the steps taken go through the following:
 
-GC在旧一代比年轻一代的发生频率。同时,因为大多数对象预计将活在旧的一代,没有发生马克和副本。相反,对象是移动以最小化内存碎片。清理旧空间的算法通常是建立在不同的基础。原则上,采取通过以下的步骤:
+老年代GC发生的频率比年轻代小很多。同时, 因为在老年代中的大多数对象都是存活的, 所以就没有标记和复制(Mark and Copy)。相反,对象会被移动以实现内存碎片最小化。清理老年代空间的算法通常是建立在不同的基础上的。原则上,会采取以下这些步骤:
 
 
 
-Mark reachable objects by setting the marked bit next to all objects accessible through GC roots
+- Mark reachable objects by setting the marked bit next to all objects accessible through GC roots
 
+- Delete all unreachable objects
 
-Delete all unreachable objects
+- Compact the content of old space by copying the live objects contiguously to the beginning of the Old space
 
-Compact the content of old space by copying the live objects contiguously to the beginning of the Old space
+- 通过标志位(marked bit) 标记所有通过 GC roots 可访问的对象.
 
-马克可访问的对象通过设置标志位旁边的所有对象通过GC根来访问
+- 删除所有不可达对象
 
-删除所有不可达对象
-
-
-紧凑的旧空间的内容复制活动对象连续旧空间的开始
+- 压缩老年代空间中的内容，将所有存活对象连续地复制到老年代空间开始的地方。
 
 
 As you can see from the description, GC in Old Generation has to deal with explicit compacting to avoid excessive fragmentation.
 
-正如你所看到的描述,在老一辈GC处理显式压实,以避免过度的碎片。
+正如你所看到的描述, 老年代GC必须明确地进行压缩,以避免过度的碎片。
 
 
 PermGen
 
-永久代
+永久代(PermGen)
+
+
+
+## -------------------------------------------------------
+## 到这里
+## -------------------------------------------------------
+
 
 
 Prior to Java 8 there existed a special space called the ‘Permanent Generation’. This is where the metadata such as classes would go. Also, some additional things like internalized strings were kept in Permgen. It actually used to create a lot of trouble to Java developers, since it is quite hard to predict how much space all of that would require. Result of these failed predictions took the form of java.lang.OutOfMemoryError: Permgen space. Unless the cause of such OutOfMemoryError was an actual memory leak, the way to fix this problem was to simply increase the permgen size similar to the following example setting the maximum allowed permgen size to 256 MB: 
@@ -298,7 +297,7 @@ Minor GC is always triggered when the JVM is unable to allocate space for a new 
 
 During a Minor GC event, Tenured Generation is effectively ignored. References from Tenured Generation to Young Generation are considered to be GC roots. References from Young Generation to Tenured Generation are simply ignored during the mark phase.
 
-小GC事件期间,终身代实际上是忽视了。引用从终身代年轻一代被认为是GC根。引用从年轻一代终身代标记阶段完全被忽视。
+小GC事件期间,终身代实际上是忽视了。引用从终身代年轻代被认为是GC根。引用从年轻代终身代标记阶段完全被忽视。
 
 
 Against common belief, Minor GC does trigger stop-the-world pauses, suspending the application threads. For most applications, the length of the pauses is negligible latency-wise if most of the objects in the Eden can be considered garbage and are never copied to Survivor/Old spaces. If the opposite is true and most of the newborn objects are not eligible for collection, Minor GC pauses start taking considerably more time.
@@ -308,7 +307,7 @@ Against common belief, Minor GC does trigger stop-the-world pauses, suspending t
 
 So defining Minor GC is easy – Minor GC cleans the Young Generation.
 
-所以定义小GC是容易的——小GC清洁年轻一代。
+所以定义小GC是容易的——小GC清洁年轻代。
 
 
 Major GC vs Full GC
@@ -411,7 +410,7 @@ java -XX:+PrintGCDetails -XX:+UseConcMarkSweepGC eu.plumbr.demo.GarbageProducer
 
 Based on this information we can see that after 12 Minor GC runs ‘something different’ indeed started happening. But instead of two Full GC runs, this ‘different thing’ was in reality just a single GC running in Old generation and consisting of different phases:
 
-根据这些信息我们可以看到,经过12小GC运行确实不同的事情发生。而是两个完整GC运行时,这种“不同”实际上只是一个GC运行在旧一代和组成不同的阶段:
+根据这些信息我们可以看到,经过12小GC运行确实不同的事情发生。而是两个完整GC运行时,这种“不同”实际上只是一个GC运行在老年代和组成不同的阶段:
 
 
 Initial Mark phase, spanning for 0.0041705 seconds or approximately 4ms. This phase is a stop-the-world event stopping all application threads for initial marking.
