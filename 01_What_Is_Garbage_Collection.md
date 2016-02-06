@@ -229,5 +229,5 @@ In this handbook, we will explain how Garbage Collection works in the JVM and ho
 
 
 
-[What Is Garbage Collection?](https://plumbr.eu/handbook/what-is-garbage-collection)
+原文链接: [What Is Garbage Collection?](https://plumbr.eu/handbook/what-is-garbage-collection)
 
