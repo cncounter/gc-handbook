@@ -222,24 +222,26 @@ PermGen
 
 
 
+Prior to Java 8 there existed a special space called the ‘Permanent Generation’. This is where the metadata such as classes would go. Also, some additional things like internalized strings were kept in Permgen. It actually used to create a lot of trouble to Java developers, since it is quite hard to predict how much space all of that would require. Result of these failed predictions took the form of java.lang.OutOfMemoryError: Permgen space. Unless the cause of such OutOfMemoryError was an actual memory leak, the way to fix this problem was to simply increase the permgen size similar to the following example setting the maximum allowed permgen size to 256 MB: 
+
+在Java 8之前存在一个特殊的空间,叫做“永久代”(Permanent Generation)。这是元数据(metadata)存放的区域,如 class 信息等。此外,其他一些额外的信息也存放在这个区域中, 例如内部化的字符串(internalized strings)等。实际上这给Java开发者造成了很多麻烦,因为很难预测到底需要占用多少空间。这些失败的预测导致的就是 `java.lang.OutOfMemoryError: Permgen space`这种形式的错误。除非导致 OutOfMemoryError 的原因确实是内存泄漏,否则就只需要增加 permgen 的大小，例如下面的示例就是设置 permgen 最大允许的空间为 256 MB:
+
+
+	java -XX:MaxPermSize=256m com.mycompany.MyApplication
+
+
+
+
 ## -------------------------------------------------------
 ## 到这里
 ## -------------------------------------------------------
 
 
-
-Prior to Java 8 there existed a special space called the ‘Permanent Generation’. This is where the metadata such as classes would go. Also, some additional things like internalized strings were kept in Permgen. It actually used to create a lot of trouble to Java developers, since it is quite hard to predict how much space all of that would require. Result of these failed predictions took the form of java.lang.OutOfMemoryError: Permgen space. Unless the cause of such OutOfMemoryError was an actual memory leak, the way to fix this problem was to simply increase the permgen size similar to the following example setting the maximum allowed permgen size to 256 MB: 
-
-Java 8之前存在一个特殊的空间称为“永久的一代”。这是哪类等元数据可以实现。此外,一些额外的内部化字符串被保存在Permgen之类的东西。实际上用于创建Java开发人员的很多麻烦,因为它是很难预测所有需要多少空间。这些失败的结果预测了. lang的形式。OutOfMemoryError:Permgen空间。除非这种OutOfMemoryError是一个实际的内存泄漏的原因,解决这个问题的方法是简单地增加permgen大小类似于下面的示例设置最大允许permgen大小为256 MB:
-
-
-java -XX:MaxPermSize=256m com.mycompany.MyApplication
-
-
-
 Metaspace
 
-元空间
+元数据区(Metaspace)
+
+
 
 As predicting the need for metadata was a complex and inconvenient exercise, the Permanent Generation was removed in Java 8 in favor of the Metaspace. From this point on, most of the miscellaneous things were moved to regular Java heap.
 
