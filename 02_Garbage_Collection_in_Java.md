@@ -315,109 +315,105 @@ Major GC vs Full GC
 
 
 
-
-## -------------------------------------------------------
-## 到这里
-## -------------------------------------------------------
-
-
-
 It should be noted that there are no formal definitions for those terms – neither in the JVM specification nor in the Garbage Collection research papers. But on the first glance, building these definitions on top of what we know to be true about Minor GC cleaning Young space should be simple:
 
-应该注意的是,没有正式的定义这些术语——无论是在JVM规范还是在垃圾收集研究论文。第一眼,之上构建这些定义我们所知道的是真实的小GC清洁小空间应该是简单的:
+值得一提的是, 这些术语并没有正式的定义 —— 无论是在JVM规范还是在GC相关的论文中。我们知道,  Minor GC是清理年轻代空间的，对应的 Major GC 定义应该也是很简单的:
 
 
 Major GC is cleaning the Old space.
 
-主要的GC是打扫旧空间。
+主要GC(Major GC) 清理的是老年代空间(Old space)。
 
 
 Full GC is cleaning the entire Heap – both Young and Old spaces.
 
-完整GC清洗整个堆,无论是年轻的或年老的空间。
+完整GC(Full GC)清理的是整个堆, 包括年轻代和老年代空间。
 
 
 Unfortunately it is a bit more complex and confusing. To start with – many Major GCs are triggered by Minor GCs, so separating the two is impossible in many cases. On the other hand – modern garbage collection algorithms like G1 perform partial garbage cleaning so, again, using the term ‘cleaning’ is only partially correct.
 
-不幸的是这是一个更加复杂和混乱。开始——许多主要GCs由小GCs,所以分离两个在很多情况下是不可能的。另一方面,现代垃圾收集算法像G1执行部分垃圾清理,再一次,使用术语“清洗”只是部分正确的。
+杯具的是又有更复杂和混乱的了。很多 Major GC 是由 Minor GC触发的, 所以在很多情况下分离这两者是不可能的。另一方面, 像G1这样的现代垃圾收集算法执行的是部分垃圾清理, 所以，额，使用术语“cleaning”并不是完全的准确。
 
 
 
 This leads us to the point where instead of worrying about whether the GC is called Major or Full GC, you should focus on finding out whether the GC at hand stopped all the application threads or was able to progress concurrently with the application threads.
 
-这引导我们,而不是担心是否GC被称为主要或全部GC,你应该专注于找出是否手头的GC停止了所有应用程序并发线程或能够进展与应用程序线程。
+这也教育我们,不要再去操心是应该叫 Major GC 呢还是应该叫 Full GC, 你应该考虑的是 这次GC 是停止所有线程呢还是与其他线程一起执行的呢。
 
 
 This confusion is even built right into the JVM standard tools. What I mean by that is best explained via an example. Let us compare the output of two different tools tracing the GC on a JVM running with Concurrent Mark and Sweep collector (-XX:+UseConcMarkSweepGC)
 
 
-这种混淆甚至到JVM标准构建工具。我的意思是最好通过一个例子来解释。让我们比较两个不同的工具的输出跟踪GC在JVM运行并发标记和清扫收集器(- xx:+ UseConcMarkSweepGC)
+这种混淆甚至根植于标准的JVM工具中。我的意思是最好通过实例来说明。让我们来比较跟踪使用 同一个JVM中GC信息的两个不同工具的输出吧。这个JVM使用的是**并发标记和清除收集器*（Concurrent Mark and Sweep collector，`-XX:+UseConcMarkSweepGC`).
 
 
 
 First attempt is to get the insight via the jstat output:
 
-第一次尝试通过jstat获得洞察力输出:
+首先我们来看 `jstat` 的输出:
 
 
-my-precious: me$ jstat -gc -t 4235 1s
+> `jstat -gc -t 4235 1s`
 
 
 
-Time S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT   
- 5.7 34048.0 34048.0  0.0   34048.0 272640.0 194699.7 1756416.0   181419.9  18304.0 17865.1 2688.0 2497.6      3    0.275   0      0.000    0.275
- 6.7 34048.0 34048.0 34048.0  0.0   272640.0 247555.4 1756416.0   263447.9  18816.0 18123.3 2688.0 2523.1      4    0.359   0      0.000    0.359
- 7.7 34048.0 34048.0  0.0   34048.0 272640.0 257729.3 1756416.0   345109.8  19072.0 18396.6 2688.0 2550.3      5    0.451   0      0.000    0.451
- 8.7 34048.0 34048.0 34048.0 34048.0 272640.0 272640.0 1756416.0  444982.5  19456.0 18681.3 2816.0 2575.8      7    0.550   0      0.000    0.550
- 9.7 34048.0 34048.0 34046.7  0.0   272640.0 16777.0  1756416.0   587906.3  20096.0 19235.1 2944.0 2631.8      8    0.720   0      0.000    0.720
-10.7 34048.0 34048.0  0.0   34046.2 272640.0 80171.6  1756416.0   664913.4  20352.0 19495.9 2944.0 2657.4      9    0.810   0      0.000    0.810
-11.7 34048.0 34048.0 34048.0  0.0   272640.0 129480.8 1756416.0   745100.2  20608.0 19704.5 2944.0 2678.4     10    0.896   0      0.000    0.896
-12.7 34048.0 34048.0  0.0   34046.6 272640.0 164070.7 1756416.0   822073.7  20992.0 19937.1 3072.0 2702.8     11    0.978   0      0.000    0.978
-13.7 34048.0 34048.0 34048.0  0.0   272640.0 211949.9 1756416.0   897364.4  21248.0 20179.6 3072.0 2728.1     12    1.087   1      0.004    1.091
-14.7 34048.0 34048.0  0.0   34047.1 272640.0 245801.5 1756416.0   597362.6  21504.0 20390.6 3072.0 2750.3     13    1.183   2      0.050    1.233
-15.7 34048.0 34048.0  0.0   34048.0 272640.0 21474.1  1756416.0   757347.0  22012.0 20792.0 3200.0 2791.0     15    1.336   2      0.050    1.386
-16.7 34048.0 34048.0 34047.0  0.0   272640.0 48378.0  1756416.0   838594.4  22268.0 21003.5 3200.0 2813.2     16    1.433   2      0.050    1.484
+	Time S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT   
+	 5.7 34048.0 34048.0  0.0   34048.0 272640.0 194699.7 1756416.0   181419.9  18304.0 17865.1 2688.0 2497.6      3    0.275   0      0.000    0.275
+	 6.7 34048.0 34048.0 34048.0  0.0   272640.0 247555.4 1756416.0   263447.9  18816.0 18123.3 2688.0 2523.1      4    0.359   0      0.000    0.359
+	 7.7 34048.0 34048.0  0.0   34048.0 272640.0 257729.3 1756416.0   345109.8  19072.0 18396.6 2688.0 2550.3      5    0.451   0      0.000    0.451
+	 8.7 34048.0 34048.0 34048.0 34048.0 272640.0 272640.0 1756416.0  444982.5  19456.0 18681.3 2816.0 2575.8      7    0.550   0      0.000    0.550
+	 9.7 34048.0 34048.0 34046.7  0.0   272640.0 16777.0  1756416.0   587906.3  20096.0 19235.1 2944.0 2631.8      8    0.720   0      0.000    0.720
+	10.7 34048.0 34048.0  0.0   34046.2 272640.0 80171.6  1756416.0   664913.4  20352.0 19495.9 2944.0 2657.4      9    0.810   0      0.000    0.810
+	11.7 34048.0 34048.0 34048.0  0.0   272640.0 129480.8 1756416.0   745100.2  20608.0 19704.5 2944.0 2678.4     10    0.896   0      0.000    0.896
+	12.7 34048.0 34048.0  0.0   34046.6 272640.0 164070.7 1756416.0   822073.7  20992.0 19937.1 3072.0 2702.8     11    0.978   0      0.000    0.978
+	13.7 34048.0 34048.0 34048.0  0.0   272640.0 211949.9 1756416.0   897364.4  21248.0 20179.6 3072.0 2728.1     12    1.087   1      0.004    1.091
+	14.7 34048.0 34048.0  0.0   34047.1 272640.0 245801.5 1756416.0   597362.6  21504.0 20390.6 3072.0 2750.3     13    1.183   2      0.050    1.233
+	15.7 34048.0 34048.0  0.0   34048.0 272640.0 21474.1  1756416.0   757347.0  22012.0 20792.0 3200.0 2791.0     15    1.336   2      0.050    1.386
+	16.7 34048.0 34048.0 34047.0  0.0   272640.0 48378.0  1756416.0   838594.4  22268.0 21003.5 3200.0 2813.2     16    1.433   2      0.050    1.484
+
 
 
 
 This snippet is extracted from the first 17 seconds after the JVM was launched. Based on this information we could conclude that after 12 Minor GC runs two Full GC runs were performed, spanning 50ms in total. You would get the same confirmation via GUI-based tools, such as the jconsole or jvisualvm.
 
-这个片段是提取后的第一个17秒JVM启动。根据这些信息我们可以得出这样的结论:经过12小GC运行两个完整GC运行进行,跨越50微秒。你会得到相同的确认通过基于gui的工具,如jconsole或jvisualvm。
+这个片段是从JVM启动后的第17秒开始截取的。根据这些信息我们可以得出这样的结论: 经过12次 Minor GC之后执行了2次Full GC, 总计耗时 50ms。通过基于GUI的工具也会得出相同的结论, 比如 jconsole 或者 jvisualvm (或者最新的 jmc)。
 
 
 Before nodding at this conclusion, let’s look at the output of the garbage collection logs gathered from the same JVM launch. Apparently -XX:+PrintGCDetails tells us a different and a more detailed story:
 
-在点头这个结论之前,让我们看看收集的垃圾收集日志的输出相同JVM启动。显然- xx:+ PrintGCDetails告诉我们一个不同的和更详细的故事:
+在同意这个结论之前, 让我们看看从同一个JVM进程收集到的GC日志。显然 `-XX:+PrintGCDetails` 讲述的是另外一个更详细的故事:
 
 
-java -XX:+PrintGCDetails -XX:+UseConcMarkSweepGC eu.plumbr.demo.GarbageProducer
+> `java -XX:+PrintGCDetails -XX:+UseConcMarkSweepGC eu.plumbr.demo.GarbageProducer`
 
-3.157: [GC (Allocation Failure) 3.157: [ParNew: 272640K->34048K(306688K), 0.0844702 secs] 272640K->69574K(2063104K), 0.0845560 secs] [Times: user=0.23 sys=0.03, real=0.09 secs] 
-4.092: [GC (Allocation Failure) 4.092: [ParNew: 306688K->34048K(306688K), 0.1013723 secs] 342214K->136584K(2063104K), 0.1014307 secs] [Times: user=0.25 sys=0.05, real=0.10 secs] 
-... cut for brevity ...
-
-11.292: [GC (Allocation Failure) 11.292: [ParNew: 306686K->34048K(306688K), 0.0857219 secs] 971599K->779148K(2063104K), 0.0857875 secs] [Times: user=0.26 sys=0.04, real=0.09 secs] 
-12.140: [GC (Allocation Failure) 12.140: [ParNew: 306688K->34046K(306688K), 0.0821774 secs] 1051788K->856120K(2063104K), 0.0822400 secs] [Times: user=0.25 sys=0.03, real=0.08 secs] 
-12.989: [GC (Allocation Failure) 12.989: [ParNew: 306686K->34048K(306688K), 0.1086667 secs] 1128760K->931412K(2063104K), 0.1087416 secs] [Times: user=0.24 sys=0.04, real=0.11 secs] 
-13.098: [GC (CMS Initial Mark) [1 CMS-initial-mark: 897364K(1756416K)] 936667K(2063104K), 0.0041705 secs] [Times: user=0.02 sys=0.00, real=0.00 secs] 
-13.102: [CMS-concurrent-mark-start]
-13.341: [CMS-concurrent-mark: 0.238/0.238 secs] [Times: user=0.36 sys=0.01, real=0.24 secs] 
-13.341: [CMS-concurrent-preclean-start]
-13.350: [CMS-concurrent-preclean: 0.009/0.009 secs] [Times: user=0.03 sys=0.00, real=0.01 secs] 
-13.350: [CMS-concurrent-abortable-preclean-start]
-13.878: [GC (Allocation Failure) 13.878: [ParNew: 306688K->34047K(306688K), 0.0960456 secs] 1204052K->1010638K(2063104K), 0.0961542 secs] [Times: user=0.29 sys=0.04, real=0.09 secs] 
-14.366: [CMS-concurrent-abortable-preclean: 0.917/1.016 secs] [Times: user=2.22 sys=0.07, real=1.01 secs] 
-14.366: [GC (CMS Final Remark) [YG occupancy: 182593 K (306688 K)]14.366: [Rescan (parallel) , 0.0291598 secs]14.395: [weak refs processing, 0.0000232 secs]14.395: [class unloading, 0.0117661 secs]14.407: [scrub symbol table, 0.0015323 secs]14.409: [scrub string table, 0.0003221 secs][1 CMS-remark: 976591K(1756416K)] 1159184K(2063104K), 0.0462010 secs] [Times: user=0.14 sys=0.00, real=0.05 secs] 
-14.412: [CMS-concurrent-sweep-start]
-14.633: [CMS-concurrent-sweep: 0.221/0.221 secs] [Times: user=0.37 sys=0.00, real=0.22 secs] 
-14.633: [CMS-concurrent-reset-start]
-14.636: [CMS-concurrent-reset: 0.002/0.002 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+	3.157: [GC (Allocation Failure) 3.157: [ParNew: 272640K->34048K(306688K), 0.0844702 secs] 272640K->69574K(2063104K), 0.0845560 secs] [Times: user=0.23 sys=0.03, real=0.09 secs] 
+	4.092: [GC (Allocation Failure) 4.092: [ParNew: 306688K->34048K(306688K), 0.1013723 secs] 342214K->136584K(2063104K), 0.1014307 secs] [Times: user=0.25 sys=0.05, real=0.10 secs] 
+	... cut for brevity ...
+	
+	11.292: [GC (Allocation Failure) 11.292: [ParNew: 306686K->34048K(306688K), 0.0857219 secs] 971599K->779148K(2063104K), 0.0857875 secs] [Times: user=0.26 sys=0.04, real=0.09 secs] 
+	12.140: [GC (Allocation Failure) 12.140: [ParNew: 306688K->34046K(306688K), 0.0821774 secs] 1051788K->856120K(2063104K), 0.0822400 secs] [Times: user=0.25 sys=0.03, real=0.08 secs] 
+	12.989: [GC (Allocation Failure) 12.989: [ParNew: 306686K->34048K(306688K), 0.1086667 secs] 1128760K->931412K(2063104K), 0.1087416 secs] [Times: user=0.24 sys=0.04, real=0.11 secs] 
+	13.098: [GC (CMS Initial Mark) [1 CMS-initial-mark: 897364K(1756416K)] 936667K(2063104K), 0.0041705 secs] [Times: user=0.02 sys=0.00, real=0.00 secs] 
+	13.102: [CMS-concurrent-mark-start]
+	13.341: [CMS-concurrent-mark: 0.238/0.238 secs] [Times: user=0.36 sys=0.01, real=0.24 secs] 
+	13.341: [CMS-concurrent-preclean-start]
+	13.350: [CMS-concurrent-preclean: 0.009/0.009 secs] [Times: user=0.03 sys=0.00, real=0.01 secs] 
+	13.350: [CMS-concurrent-abortable-preclean-start]
+	13.878: [GC (Allocation Failure) 13.878: [ParNew: 306688K->34047K(306688K), 0.0960456 secs] 1204052K->1010638K(2063104K), 0.0961542 secs] [Times: user=0.29 sys=0.04, real=0.09 secs] 
+	14.366: [CMS-concurrent-abortable-preclean: 0.917/1.016 secs] [Times: user=2.22 sys=0.07, real=1.01 secs] 
+	14.366: [GC (CMS Final Remark) [YG occupancy: 182593 K (306688 K)]14.366: [Rescan (parallel) , 0.0291598 secs]14.395: [weak refs processing, 0.0000232 secs]14.395: [class unloading, 0.0117661 secs]14.407: [scrub symbol table, 0.0015323 secs]14.409: [scrub string table, 0.0003221 secs][1 CMS-remark: 976591K(1756416K)] 1159184K(2063104K), 0.0462010 secs] [Times: user=0.14 sys=0.00, real=0.05 secs] 
+	14.412: [CMS-concurrent-sweep-start]
+	14.633: [CMS-concurrent-sweep: 0.221/0.221 secs] [Times: user=0.37 sys=0.00, real=0.22 secs] 
+	14.633: [CMS-concurrent-reset-start]
+	14.636: [CMS-concurrent-reset: 0.002/0.002 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
 
 
 
 Based on this information we can see that after 12 Minor GC runs ‘something different’ indeed started happening. But instead of two Full GC runs, this ‘different thing’ was in reality just a single GC running in Old generation and consisting of different phases:
 
-根据这些信息我们可以看到,经过12小GC运行确实不同的事情发生。而是两个完整GC运行时,这种“不同”实际上只是一个GC运行在老年代和组成不同的阶段:
+根据这些信息我们可以看到,在12 次 Minor GC之后发生了一些 "不同的事情"。不是两个 Full GC, 而是只在老年代执行了单次 GC, 并且由多个不同的阶段组成:
+
+
 
 
 Initial Mark phase, spanning for 0.0041705 seconds or approximately 4ms. This phase is a stop-the-world event stopping all application threads for initial marking.
@@ -427,28 +423,29 @@ Initial Mark phase, spanning for 0.0041705 seconds or approximately 4ms. This ph
 
 Markup and Preclean phases. were executed concurrently with the application threads.
 
-标记和Preclean阶段。与应用程序并发执行线程。
+标记和预清理阶段(Markup and Preclean)。是和应用程序线程并发执行的。
 
 
 Final Remark phase, spanning for 0.0462010 seconds or approximately 46ms. This phase is again stop-the-world event.
 
-最后评价阶段,跨越大约0.0462010秒46女士。这一阶段再次停止一切活动。
+最终评价阶段(Final Remark), 持续大约 0.0462010秒, 约 46ms。这一阶段又是一次全线停工事件(stop-the-world event)。
+
 
 
 Sweep operation was executed concurrently, without stopping the application threads.
 
-扫描操作并发执行,没有停止应用程序线程。
+清除操作是并发执行的, 没有停止应用程序线程。
 
 
 So what we see from the actual garbage collection logs is that, instead of two Full GC operations, just one Major GC cleaning Old space was actually executed.
 
-所以我们看到实际的垃圾收集日志,而不是两个完整GC操作,只是一个主要GC清洗旧空间实际上是执行。
+所以我们从实际的垃圾收集日志看到, 并不是两个 Full GC操作,实际上只执行了一次清理老年代空间的 Major GC 。
 
 
 If you were after latency then the data revealed by jstat would have led you towards correct decisions. It correctly listed the two stop-the-world events totaling 50ms affecting the latency for all the active threads at that very moment. But if you were trying to optimize for throughput, you would have been misguided – listing just the stop-the-world initial mark and final remark phases, the jstat output completely hides the concurrent work being done.
 
 
-如果你延迟后的数据显示jstat会引导你走向正确的决定。它正确地列出了两个停止一切事件总计50毫秒的延迟影响所有活动线程的那一刻。但是如果你试图优化吞吐量,你会一直在误导——清单只是停止一切初始马克和最终评价阶段,jstat输出完全隐藏了并发工作被做。
+如果程序有延迟，那么使用 jstat 显示的数据也能让你得出正确的结果。它正确地列出了两次  stop-the-world 事件总计 50 ms。所有活动线程在那一刻受到了影响发生延迟。但如果你需要优化吞吐量, 你就会被误导 —— 清单只显示了 stop-the-world 的初始标记阶段和最终评价阶段, 而 jstat 的输出完全隐藏了其他并发执行的GC过程。
 
 
 原文链接: [Garbage Collection in Java](https://plumbr.eu/handbook/garbage-collection-in-java)
