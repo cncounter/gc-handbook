@@ -231,12 +231,6 @@ Prior to Java 8 there existed a special space called the ‘Permanent Generation
 
 
 
-
-## -------------------------------------------------------
-## 到这里
-## -------------------------------------------------------
-
-
 Metaspace
 
 元数据区(Metaspace)
@@ -245,26 +239,34 @@ Metaspace
 
 As predicting the need for metadata was a complex and inconvenient exercise, the Permanent Generation was removed in Java 8 in favor of the Metaspace. From this point on, most of the miscellaneous things were moved to regular Java heap.
 
-预测需要元数据是一个复杂的和不方便运动,永久的一代是在Java 8赞成Metaspace中删除。从这一点上,大多数的杂七杂八的东西都搬到普通Java堆。
+预测元数据需要多大的空间是一个很复杂的事, 所以在Java 8之中删除了永久代(Permanent Generation)，改用了 Metaspace。从此以后, 很多杂七杂八的东西都被移动到了常规的Java堆里面。
 
 
 The class definitions, however, are now loaded into something called Metaspace. It is located in the native memory and does not interfere with the regular heap objects. By default, Metaspace size is only limited by the amount of native memory available to the Java process. This saves developers from a situation when adding just one more class to the application results in the java.lang.OutOfMemoryError: Permgen space. Notice that having such seemingly unlimited space does not ship without costs – letting the Metaspace to grow uncontrollably you can introduce heavy swapping and/or reach native allocation failures instead.
 
-类定义,然而,现在加载到Metaspace。它位于本机内存,不干扰正常堆对象。默认情况下,Metaspace本机内存的大小是由数量有限的可用的Java进程。这节省了开发人员的情况只是一个类添加到应用程序导致. lang。OutOfMemoryError:Permgen空间。注意到有这样看似无限的空间不船没有成本——让Metaspace增长失控你可以介绍沉重的交换和/或达到本地分配失败。
+当然，类定义(class definitions)现在会被加载到 Metaspace 里面。它位于本地内存(native memory),不再影响到常规的对象。默认情况下, Metaspace的大小只由Java进程可用的本地内存大小限制。这让程序员不再因为加载了几个类就导致 `java.lang.OutOfMemoryError: Permgen space. ` 这种问题。注意, 这种看似无限的空间也不是没有成本—— 如果 Metaspace 增长失控则可能会导致很严重的内存交换(swapping) 或者 引起本地内存分配失败。
 
 
 In case you still wish to protect yourself for such occasions you can limit the growth of Metaspace similar to following, limiting Metaspace size to 256 MB:
 
-如果你仍然希望保护自己在这样的场合可以限制Metaspace相似的增长后,限制Metaspace大小为256 MB:
+如果你仍然希望在这样的场合保护机器，那可以使用下面这样的方式来限制 Metaspace 的增长, 如 256 MB:
 
 
-java -XX:MaxMetaspaceSize=256m com.mycompany.MyApplication
+	java -XX:MaxMetaspaceSize=256m com.mycompany.MyApplication
 
 
 
 Minor GC vs Major GC vs Full GC
 
-小主要GC和GC和GC
+对比: Minor GC vs Major GC vs Full GC
+
+> Minor GC(次要GC,小型GC) - 主要GC(Major GC) - 以及全量GC(Full GC)
+
+
+
+## -------------------------------------------------------
+## 到这里
+## -------------------------------------------------------
 
 
 The Garbage Collection events cleaning out different parts inside heap memory are often called Minor, Major and Full GC events. In this section we cover the differences between these events. Along the way we can hopefully see that this distinction is actually not too relevant.
@@ -284,7 +286,7 @@ But as the terms Minor, Major and Full GC are widely used and without a proper d
 
 Minor GC
 
-小GC
+次要GC
 
 
 Collecting garbage from the Young space is called Minor GC. This definition is both clear and uniformly understood. But there are still some interesting takeaways you should be aware of when dealing with Minor Garbage Collection events:
