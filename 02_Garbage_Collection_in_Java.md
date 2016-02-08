@@ -260,28 +260,23 @@ Minor GC vs Major GC vs Full GC
 
 对比: Minor GC vs Major GC vs Full GC
 
-> Minor GC(次要GC,小型GC) - 主要GC(Major GC) - 以及全量GC(Full GC)
+> Minor GC(次要GC,小型GC) - 主要GC(Major GC) - 以及完全GC(Full GC)
 
-
-
-## -------------------------------------------------------
-## 到这里
-## -------------------------------------------------------
 
 
 The Garbage Collection events cleaning out different parts inside heap memory are often called Minor, Major and Full GC events. In this section we cover the differences between these events. Along the way we can hopefully see that this distinction is actually not too relevant.
 
-垃圾收集事件清理内部不同部分堆内存通常被称为小,主要和完整GC事件。在本节中,我们介绍这些事件之间的区别。一路上我们可以希望看到这种区别是不太相关。
+清理堆内存中不同部分的垃圾收集事件(Garbage Collection events)通常称为: 次要GC(Minor GC) - 主要GC(Major GC) - 和完全GC(Full GC) 事件。本节介绍这些事件的区别。在此过程 我们可以看到这些区别并不是完全相关。
 
 
 What typically is relevant is whether the application meets its SLAs, and to see that you monitor your application for latency or throughput. And only then are GC events linked to the results. What is important about these events is whether they stopped the application and how long it took.
 
-通常是相关的应用程序是否满足sla,并看到你监视应用程序延迟和吞吐量。也只有到那时GC事件与结果。什么是重要的对这些事件是他们是否停止应用程序,用了多长时间。
+而且你可以通过监控程序的延迟和吞吐量看到, 是否满足SLA(Service Level Agreement，服务水平协议)和这个是有关系的。也只有那时候GC事件才关联到其结果。重要的是这些事件是否停止整个程序,以及耗费多长时间。
 
 
 But as the terms Minor, Major and Full GC are widely used and without a proper definition, let us look into the topic in a bit more detail.
 
-但作为次要条款,主要和完整GC被广泛使用,没有一个适当的定义,让我们更详细地研究这个话题。
+虽然 Minor, Major and Full GC 这些术语被广泛应用, 也没有标准的定义, 但我们还是来深入地了解一下这个话题吧。
 
 
 Minor GC
@@ -291,32 +286,40 @@ Minor GC
 
 Collecting garbage from the Young space is called Minor GC. This definition is both clear and uniformly understood. But there are still some interesting takeaways you should be aware of when dealing with Minor Garbage Collection events:
 
-收集垃圾从年轻的空间被称为小GC。这个定义既清晰又统一理解。但是仍有一些有趣的外卖你应该意识到在处理小垃圾收集事件:
+收集年轻代内存空间的事件叫做次要GC。这个定义既清晰又得到广泛共识。但在处理次要GC事件时有一些是有趣的事情你应该了解一下:
 
 
 Minor GC is always triggered when the JVM is unable to allocate space for a new object, e.g. Eden is getting full. So the higher the allocation rate, the more frequently Minor GC occurs.
 
-小GC总是触发当JVM无法为新对象分配空间,如伊甸园越来越完整。所以分配率越高,越频繁发生轻微的GC。
+Minor GC总是在JVM无法为新对象分配内存空间时触发,如 Eden 区占满。所以新对象分配频率越高, Minor GC 就越频繁。
 
 
 During a Minor GC event, Tenured Generation is effectively ignored. References from Tenured Generation to Young Generation are considered to be GC roots. References from Young Generation to Tenured Generation are simply ignored during the mark phase.
 
-小GC事件期间,终身代实际上是忽视了。引用从终身代年轻代被认为是GC根。引用从年轻代终身代标记阶段完全被忽视。
+Minor GC 事件实际上忽略老年代。从老年代指向年轻代的引用都被认为是GC Root。从年轻代指向老年代的引用在标记阶段被完全忽略。
 
 
 Against common belief, Minor GC does trigger stop-the-world pauses, suspending the application threads. For most applications, the length of the pauses is negligible latency-wise if most of the objects in the Eden can be considered garbage and are never copied to Survivor/Old spaces. If the opposite is true and most of the newborn objects are not eligible for collection, Minor GC pauses start taking considerably more time.
 
-对付共同的信念,小GC并触发停止一切暂停,暂停应用程序线程。对于大多数应用程序,暂停的长度是可以忽略的latency-wise如果伊甸园中大部分的对象可以被认为是垃圾,从来没有被复制到幸存者/旧空间。如果正好相反,大多数新生的对象是没有资格获得收集、小GC暂停开始花更多时间。
+与一般的认识相反, Minor GC 每次都会触发全线停顿(stop-the-world ), 暂停所有的应用程序线程。对大多数程序而言, 如果 Eden 区的对象基本上都是垃圾, 也不怎么拷贝到存活区/老年代的话，那么暂停时长是可以忽略的。如果情况不是这样, 大多数新创建对象不被垃圾回收清理掉, 那么 Minor GC的停顿就会花费更多时间。
 
 
 So defining Minor GC is easy – Minor GC cleans the Young Generation.
 
-所以定义小GC是容易的——小GC清洁年轻代。
+所以 Minor GC 的定义很简单 —— Minor GC 清理的是年轻代。
 
 
 Major GC vs Full GC
 
-主要GC和GC
+对比: Major GC vs Full GC
+
+
+
+
+## -------------------------------------------------------
+## 到这里
+## -------------------------------------------------------
+
 
 
 It should be noted that there are no formal definitions for those terms – neither in the JVM specification nor in the Garbage Collection research papers. But on the first glance, building these definitions on top of what we know to be true about Minor GC cleaning Young space should be simple:
