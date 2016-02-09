@@ -10,7 +10,7 @@ The introduction to Mark and Sweep Garbage Collection is a mostly theoretical on
 
 Fragmenting and Compacting
 
-碎片与压缩(Fragmenting and Compacting)
+碎片整理(Fragmenting and Compacting)
 
 
 
@@ -208,12 +208,12 @@ GC in the Old Generation happens less frequently than in the Young Generation. A
 
 - 删除所有不可达对象
 
-- 压缩老年代空间中的内容，将所有存活对象连续地复制到老年代空间开始的地方。
+- 整理老年代空间中的内容，将所有存活对象连续地复制到老年代空间开始的地方。
 
 
 As you can see from the description, GC in Old Generation has to deal with explicit compacting to avoid excessive fragmentation.
 
-正如你所看到的描述, 老年代GC必须明确地进行压缩,以避免过度的碎片。
+正如你所看到的描述, 老年代GC必须明确地进行整理,以避免碎片过多。
 
 
 PermGen
