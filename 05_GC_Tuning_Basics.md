@@ -1,17 +1,10 @@
 # 5. GC 调优(基础篇)
 
 
-
-
 Tuning garbage collection is no different from any other performance-tuning activity. It is easy to fall into the trap of randomly tweaking one of the 200 GC-related JVM parameters or to start changing random parts of your application code. Instead, following a simple process will guarantee that you are actually moving towards the right target while being transparent about the progress:
 
 
-
-
-微调垃圾收集是没有不同于其他性能调优的活动。很容易掉进陷阱,随机调整200 GC-related JVM参数或开始改变应用程序代码的随机部分。相反,遵循一个简单的过程将保证你实际上是朝着正确的目标而透明的进展:
-
-
-
+GC调优(Tuning Garbage Collection)和其他性能调优行为并没有什么不同。一般人可能会陷入 200 多个 GC相关的JVM参数中, 漫无目的随便调整某个参数或者随便改变程序的一部分代码。但只要遵循一些简单的步骤，就能保证你朝着正确的目标前进:
 
 1. State your performance goals
 1. Run tests
@@ -19,20 +12,22 @@ Tuning garbage collection is no different from any other performance-tuning acti
 1. Compare the results with the goals
 1. If goals are not met, make a change and go back to running tests
 
+<br/>
+
+1. 列出性能目标(State your performance goals)
+2. 执行测试(Run tests)
+3. 衡量结果(Measure the results)
+4. 与目标进行对比(Compare the results with the goals)
+5. 如果没有达到目标, 修改配置, 然后继续测试(go back to running tests)
 
 
-1.陈述你的性能目标
-1.运行测试
-1.测量结果
-1.比较结果的目标
-1.如果目标没有达到,做出改变和运行测试
 
 
 
 So, as the first step we need to set clear performance goals in regards of Garbage Collection. The goals fall into three categories, which are common to all performance monitoring and management topics:
 
 
-所以,作为第一步,我们需要制定明确的绩效目标方面的垃圾收集。目标分为三类,即常见的所有性能监控和管理主题:
+所以,第一步我们需要制定明确的性能目标(关于GC方面的)。目标分为三类, 对所有性能监控和管理主题都是通用的:
 
 
 
@@ -42,16 +37,20 @@ So, as the first step we need to set clear performance goals in regards of Garba
 
 
 
-
 After explaining the concepts in general, we will demonstrate how to apply these goals in the context of Garbage Collection. If you are already familiar with the concepts of latency, throughput and capacity, you may decide to skip the next section.
 
 
-在解释的概念,我们将演示如何应用这些目标在垃圾收集的背景下。如果您已经熟悉的概念延迟、吞吐量和能力,你可以决定跳过下一节。
+在解释概念之后,我们将演示如何在垃圾收集的情景下应用这些目标。如果您延迟、吞吐量和处理能力的概念很熟悉, 则可以决定跳过下一小节。
+
 
 
 ## 核心概念
 
 
+
+
+##
+##
 
 
 
