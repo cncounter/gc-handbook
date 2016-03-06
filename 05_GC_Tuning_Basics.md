@@ -175,25 +175,18 @@ GC的延迟指标是由通用的延迟需求得出的。通用的延迟需求通
 
 
 
-
-##
-##
-##
-##
-
-
 When facing performance goals similar to the above, we would need to make sure that the duration of GC pauses during the transaction does not contribute too much to violating the requirements. “Too much” is application-specific and needs to take into account other factors contributing to latency including round-trips to external data sources, lock contention issues and other safe points among these.
 
 
-当面对性能目标与上述类似,我们需要确保GC暂停时间的事务不贡献太多违反要求。“太多”是特定于应用程序的,需要考虑到其他因素导致延迟包括往返外部数据源,锁争用在这些问题和其他安全点。
-
+在面对与上述类似的性能目标时, 我们需要确保GC不要在事务中占用太多的暂停时间，以免满足不了需求。“不要占用太多” 的意思是各个系统都是不一样的,需要考虑到其他因素,包括外部数据源往返时间(round-trips),锁竞争问题(lock contention)或者是其他安全点。
 
 
 
 Let us assume our performance requirements state that 90% of the transactions to the application need to complete under 1,000 ms and no transaction can exceed 10,000 ms. Out of those generic latency requirements let us again assume that GC pauses cannot contribute more than 10%. From this, we can conclude that 90% of GC pauses have to complete under 100 ms, and no GC pause can exceed 1,000 ms. For simplicity’s sake let us ignore in this example multiple pauses that can occur during the same transaction.
 
 
-让我们假设我们的性能需求状态,90%的应用程序需要完成的事务在1000 ms和事务不能超过10000的女士一般延迟需求让我们再次假设GC暂停不能贡献超过10%。由此,我们可以得出结论,90%的GC暂停完成在100 ms,女士没有GC暂停能超过1000为简单起见我们忽略可能发生在这个例子中多个停顿在同一事务。
+假设我们的性能需求为: 90%的事务要在1000 ms内完成,任何一个事务都不能超过10秒。 一般延迟需求让我们再次假设GC暂停的占比不能超过10%。由此,我们可以得出结论, 90%的GC暂停需要在100 ms以内完成, 不能有GC停顿超过 1000ms 的情况。为简单起见, 让我们忽略在同一事务发生多次停顿的可能性。
+
 
 
 
@@ -201,7 +194,7 @@ Having formalized the requirement, the next step is to measure pause durations. 
 
 
 
-正式的要求,下一步是衡量暂停时间。有许多工具工作,覆盖这一章更详细地工具,但在本节中,我们使用GC日志,即GC暂停期间。所需的信息存在于不同的日志片段让我们看一看哪些部分的日期/时间数据实际上是相关的,使用下面的例子:
+有了正式的需求,下一步就是衡量暂停时间。有许多工具可以使用, 在接下来的工具篇中会详细介绍, 但在本节中,我们通过GC日志, 看看GC暂停的时间。所需的信息存在于不同的日志片段中, 让我们看看下面这个例子中日期/时间相关的数据:
 
 
 
@@ -216,29 +209,36 @@ Having formalized the requirement, the next step is to measure pause durations. 
 
 
 
-
-
 The example above expresses a single GC pause triggered at 13:34:16 on June 4, 2015, just 2,578 ms after the JVM was started.
 
 
-上面的例子表示一个GC暂停触发13:34:16 6月4日,2015年,后2578毫秒JVM启动。
+上面的例子表示单次GC暂停, 在 `2015-06-04T13:34:16` 这个时刻触发. 也即JVM启动之后的 `2,578 ms`。
 
 
 
 The event stopped the application threads for 0.0713174 seconds. Even though it took 210 ms of CPU times on multiple cores, the important number for us to measure is the total stop time for application threads, which in this case, where parallel GC was used on a multi-core machine, is equal to a bit more than 70 ms. This specific GC pause is thus well under the required 100 ms threshold and fulfils both requirements.
 
 
-0.0713174秒的事件停止应用程序线程。虽然花了210 ms的多核CPU时间,我们测量的重要的数字是总应用程序线程停止时间,在这种情况下,在多核机器上并行使用GC,等于70多一点这个特定的GC暂停女士因此远低于所需的100 ms阈值和满足需求。
+事件让程序线程暂停了0.0713174秒。虽然在多核CPU上花费的总时间为 210 ms, 但对我们的测量最重要的数字是程序线程暂停的总时间, 在这里，因为是在多核机器上使用并行GC, 所以大约是 `70ms` 多一点。因此此次GC的暂停时间远低于所要求的100 ms阈值，因此满足需求。
 
 
 Extracting information similar to the example above from all GC pauses, we can aggregate the numbers and see whether or not we are violating the set requirements for any of the pause events triggered.
 
 
-提取信息从GC暂停所有类似于上面的例子,我们可以总数量,看看我们是否违反任何的设置要求暂停事件触发。
+类似上面的例子, 从所有GC暂停中提取出相关的信息, 汇总之后就可以得知是否满足暂停事件的要求。
 
 
 
-### Throughput
+
+
+
+##
+##
+##
+##
+
+
+### 吞吐量(Throughput)
 
 
 
