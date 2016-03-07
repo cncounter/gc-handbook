@@ -307,7 +307,7 @@ Extracting the information similar to the above from the GC logs across the test
 
 Capacity requirements put additional constraints on the environment where the throughput and latency goals can be met. These requirements might be expressed either in terms of computing resources or in cold hard cash. The ways in which such requirements can be described can, for example, take the following form:
 
-容量(Capacity)需求是对吞吐量和延迟指标达成的环境进行的额外约束。这些需求可能会因为计算资源或者资金的原因而被压缩。例如下面这些形式的要求:
+容量(Capacity)需求是对吞吐量和延迟指标达成的环境进行的额外约束。这些需求可能会因为计算资源或者资金的原因而被压缩。例如下面这样的要求:
 
 
 
@@ -329,13 +329,6 @@ Thus, capacity has to be taken into account when fulfilling the latency and thro
 因此, 在满足延迟和吞吐量需求的基础上必须考虑容量问题。如果有无限的计算能力,任何延迟和吞吐量目标都能够达成,然而在现实世界中预算(budget)和其他约束限制了可用的资源。
 
 
-
-
-##
-##
-##
-##
-
 ## 相关示例(Example)
 
 
@@ -344,13 +337,13 @@ Thus, capacity has to be taken into account when fulfilling the latency and thro
 Now that we have covered the three dimensions of performance tuning, we can start investigating setting and hitting GC performance goals in practice.
 
 
-现在我们已经介绍了性能调优的三维空间,我们可以开始调查设置和GC性能目标在实践中。
+介绍完性能调优的三个维度之后,我们在实践中进行配置以达成GC性能目标。
 
 
 For this purpose, let us take a look at an example code:
 
 
-为此,让我们看一个示例代码:
+为此,让我们看一段示例代码:
 
 
 
@@ -401,14 +394,14 @@ For this purpose, let us take a look at an example code:
 The code submits two jobs to run every 100 ms. Each job emulates objects with a specific lifespan: it creates objects, lets them leave for a predetermined amount of time and then forgets about them, allowing GC to reclaim the memory.
 
 
-代码提交两份工作运行每100每个工作模拟对象与一个特定的寿命女士:它创建对象,让他们去预定的时间,然后忘记,允许GC回收内存。
+这段代码每100毫秒提交两个作业(job)来调度执行。每个作业都模拟特定的生命周期: 创建对象,在预定的时间后释放,接着就不管了, 以允许GC回收内存。
 
 
 
 When running the example with GC logging turned on with the following parameters:
 
 
-当运行这个例子与GC日志记录打开以下参数:
+在运行这个示例程序时，通过以下参数打开GC日志记录:
 
 
 
@@ -418,7 +411,7 @@ When running the example with GC logging turned on with the following parameters
 we immediately see the impact of GC in the log files, similarly to the following:
 
 
-我们立即看到的影响GC日志文件,类似于以下几点:
+在日志文件中我们可以看到对GC的影响,类似下面这样:
 
 
 
@@ -450,7 +443,7 @@ we immediately see the impact of GC in the log files, similarly to the following
 Based on the information in the log we can start improving the situation with three different goals in mind:
 
 
-基于日志中的信息我们可以改善这种情况有三个不同的目标:
+基于日志中的信息, 我们可以通过三个不同的目标来改善这种情况:
 
 
 
@@ -458,11 +451,11 @@ Based on the information in the log we can start improving the situation with th
 1. Making sure the total time during which application threads are stopped does not exceed a predetermined threshold
 1. Reducing infrastructure costs while making sure we can still achieve reasonable latency and/or throughput targets
 
+<br/>
 
-
-1。确保最坏的GC暂停不超过预定的阈值
-1。确保在哪些应用程序线程停止的总时间不超过预定的阈值
-1。降低基础设施成本,同时确保我们仍然可以实现合理的延迟和/或吞吐量目标
+1. 确保最坏情况下GC暂停实际不超过预定的阀值
+1. 确保在总的运行时间中,线程暂停的实际不超过预定的阀值
+1. 降低设备成本, 同时确保仍然可以实现合理的延迟和吞吐量目标
 
 
 
@@ -470,17 +463,17 @@ Based on the information in the log we can start improving the situation with th
 For this, the code above was run for 10 minutes on three different configurations providing three very different results summarized in the following table:
 
 
-为此,上面的代码运行10分钟在三个不同的配置提供三个非常不同的结果总结在下表中:
+为此,将上面的代码在三种不同的配置下运行10分钟, 提供了三个不同的结果, 汇总如下:
 
 
 
 <table class="data compact">
 	<thead>
 		<tr>
-			<th><b>Heap</b></th>
-			<th><b>GC Algorithm</b></th>
-			<th><b>Useful work</b></th>
-			<th><b>Longest pause</b></th>
+			<th><b>堆(Heap)</b></th>
+			<th><b>GC算法(GC Algorithm)</b></th>
+			<th><b>有效时间比(Useful work)</b></th>
+			<th><b>最长停顿时间(Longest pause)</b></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -509,12 +502,11 @@ For this, the code above was run for 10 minutes on three different configuration
 
 
 
-
 The experiment ran the same code with different GC algorithms and different heap sizes to measure the duration of Garbage Collection pauses with regards to latency and throughput. Details of the experiments and an interpretation of the results are given in the following chapters.
 
 
 
-实验运行相同的代码不同的GC算法和不同的堆大小来衡量垃圾收集暂停期间关于延迟和吞吐量。实验的细节和结果的解释在以下章节。
+实验通过不同的GC算法和不同的堆大小来运行相同的代码, 以衡量GC暂停时间与延迟、吞吐量的关系。实验的细节和结果将在后面的章节进行解释。
 
 
 
@@ -522,8 +514,15 @@ The experiment ran the same code with different GC algorithms and different heap
 Note that in order to keep the example as simple as possible only a limited amount of input parameters were changed, for example the experiments do not test on different number of cores or with a different heap layout.
 
 
+注意,为了保持尽可能简单, 示例中只改变了很小的输入参数, 而实验没有在不同的CPU数量或不同的堆布局下进行测试。
 
-注意,为了保持尽可能简单的例子只有数量有限的输入参数改变,例如实验不测试在不同的内核数或不同堆布局。
+
+
+
+##
+##
+##
+##
 
 
 ### Tuning for Latency
