@@ -11,10 +11,10 @@ Before you can optimize your JVM for more efficient garbage collection, you need
 While observing GC behavior there is raw data provided by the JVM runtime. In addition, there are derived metrics that can be calculated based on that raw data. The raw data, for instance, contains:
 
 
-current occupancy of memory pools,
-capacity of memory pools,
-durations of individual GC pauses,
-duration of the different phases of those pauses.
+- current occupancy of memory pools,
+- capacity of memory pools,
+- durations of individual GC pauses,
+- duration of the different phases of those pauses.
 
 
 
@@ -22,7 +22,7 @@ The derived metrics include, for example, the allocation and promotion rates of 
 
 
 
-JMX API
+## JMX API
 
 
 
@@ -38,7 +38,7 @@ All the JMX clients run as a separate application connecting to the target JVM. 
 
 
 
-java -Dcom.sun.management.jmxremote.port=5432 com.yourcompanyYourApp
+	java -Dcom.sun.management.jmxremote.port=5432 com.yourcompanyYourApp
 
 
 
@@ -70,31 +70,13 @@ For each collector the JMX API exposes the following information:
 
 
 
-CollectionCount – the total number of times this collector has run in this JVM,
-
-
-
-CollectionTime – the accumulated duration of the collector running time. The time is the sum of the wall-clock time of all GC events,
-
-
-
-LastGcInfo – detailed information about the last garbage collection event. This information contains the duration of that event, and the start and end time of the event along with the usage of different memory pools before and after the last collection,
-
-
-
-MemoryPoolNames – names of the memory pools that this collector manages,
-
-
-
-Name – the name of the garbage collector
-
-
-
-ObjectName – the name of this MBean, as dictated by JMX specifications,
-
-
-
-Valid – shows whether this collector is valid in this JVM. I personally have never seen anything but “true” in here
+- CollectionCount – the total number of times this collector has run in this JVM,
+- CollectionTime – the accumulated duration of the collector running time. The time is the sum of the wall-clock time of all GC events,
+- LastGcInfo – detailed information about the last garbage collection event. This information contains the duration of that event, and the start and end time of the event along with the usage of different memory pools before and after the last collection,
+- MemoryPoolNames – names of the memory pools that this collector manages,
+- Name – the name of the garbage collector
+- ObjectName – the name of this MBean, as dictated by JMX specifications,
+- Valid – shows whether this collector is valid in this JVM. I personally have never seen anything but “true” in here
 
 
 
@@ -102,7 +84,7 @@ In my experience this information is not enough to make any conclusions about th
 
 
 
-JVisualVM
+## JVisualVM
 
 
 
@@ -133,35 +115,37 @@ Below is the distribution of objects ages that currently reside in the Young gen
 
 
 When compared with pure JMX tools, the VisualGC add-on to JVisualVM does offer slightly better insight to the JVM, so when you have only these two tools in your toolkit, pick the VisualGC plug-in. If you can use any other solutions referred to in this chapter, read on. Alternative options can give you more information and better insight. There is however a particular use-case discussed in the “Profilers” section where JVisualVM is suitable for – namely allocation profiling, so by no means we are demoting the tool in general, just for the particular use case.
-jstat
+
+
+## jstat
 
 
 
 The next tool to look at is also part of the standard JDK distribution. The tool is called “jstat” – a Java Virtual Machine statistics monitoring tool. This is a command line tool that can be used to get metrics from the running JVM. The JVM connected can again either be local or remote. A full list of metrics that jstat is capable of exposing can be obtained by running “jstat -option” from the command line. The most commonly used options are:
 
 
-+-----------------+---------------------------------------------------------------+
-|     Option      |                          Displays...                          |
-+-----------------+---------------------------------------------------------------+
-|class            | Statistics on the behavior of the class loader                |
-|compiler         | Statistics  on  the behavior of the HotSpot Just-In-Time com- |
-|                 | piler                                                         |
-|gc               | Statistics on the behavior of the garbage collected heap      |
-|gccapacity       | Statistics of the capacities of  the  generations  and  their |
-|                 | corresponding spaces.                                         |
-|gccause          | Summary  of  garbage collection statistics (same as -gcutil), |
-|                 | with the cause  of  the  last  and  current  (if  applicable) |
-|                 | garbage collection events.                                    |
-|gcnew            | Statistics of the behavior of the new generation.             |
-|gcnewcapacity    | Statistics of the sizes of the new generations and its corre- |
-|                 | sponding spaces.                                              |
-|gcold            | Statistics of the behavior of the old and  permanent  genera- |
-|                 | tions.                                                        |
-|gcoldcapacity    | Statistics of the sizes of the old generation.                |
-|gcpermcapacity   | Statistics of the sizes of the permanent generation.          |
-|gcutil           | Summary of garbage collection statistics.                     |
-|printcompilation | Summary of garbage collection statistics.                     |
-+-----------------+---------------------------------------------------------------+
+	+-----------------+---------------------------------------------------------------+
+	|     Option      |                          Displays...                          |
+	+-----------------+---------------------------------------------------------------+
+	|class            | Statistics on the behavior of the class loader                |
+	|compiler         | Statistics  on  the behavior of the HotSpot Just-In-Time com- |
+	|                 | piler                                                         |
+	|gc               | Statistics on the behavior of the garbage collected heap      |
+	|gccapacity       | Statistics of the capacities of  the  generations  and  their |
+	|                 | corresponding spaces.                                         |
+	|gccause          | Summary  of  garbage collection statistics (same as -gcutil), |
+	|                 | with the cause  of  the  last  and  current  (if  applicable) |
+	|                 | garbage collection events.                                    |
+	|gcnew            | Statistics of the behavior of the new generation.             |
+	|gcnewcapacity    | Statistics of the sizes of the new generations and its corre- |
+	|                 | sponding spaces.                                              |
+	|gcold            | Statistics of the behavior of the old and  permanent  genera- |
+	|                 | tions.                                                        |
+	|gcoldcapacity    | Statistics of the sizes of the old generation.                |
+	|gcpermcapacity   | Statistics of the sizes of the permanent generation.          |
+	|gcutil           | Summary of garbage collection statistics.                     |
+	|printcompilation | Summary of garbage collection statistics.                     |
+	+-----------------+---------------------------------------------------------------+
 
 
 
@@ -171,35 +155,26 @@ This tool is extremely useful for getting a quick overview of JVM health to see 
 
 
 
-Timestamp  S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT   
-200.0  	 8448.0 8448.0 8448.0  0.0   67712.0  67712.0   169344.0   169344.0  21248.0 20534.3 3072.0 2807.7     34    0.720  658   133.684  134.404
-201.0 	 8448.0 8448.0 8448.0  0.0   67712.0  67712.0   169344.0   169343.2  21248.0 20534.3 3072.0 2807.7     34    0.720  662   134.712  135.432
-202.0 	 8448.0 8448.0 8102.5  0.0   67712.0  67598.5   169344.0   169343.6  21248.0 20534.3 3072.0 2807.7     34    0.720  667   135.840  136.559
-203.0 	 8448.0 8448.0 8126.3  0.0   67712.0  67702.2   169344.0   169343.6  21248.0 20547.2 3072.0 2807.7     34    0.720  669   136.178  136.898
-204.0 	 8448.0 8448.0 8126.3  0.0   67712.0  67702.2   169344.0   169343.6  21248.0 20547.2 3072.0 2807.7     34    0.720  669   136.178  136.898
-205.0 	 8448.0 8448.0 8134.6  0.0   67712.0  67712.0   169344.0   169343.5  21248.0 20547.2 3072.0 2807.7     34    0.720  671   136.234  136.954
-206.0 	 8448.0 8448.0 8134.6  0.0   67712.0  67712.0   169344.0   169343.5  21248.0 20547.2 3072.0 2807.7     34    0.720  671   136.234  136.954
-207.0 	 8448.0 8448.0 8154.8  0.0   67712.0  67712.0   169344.0   169343.5  21248.0 20547.2 3072.0 2807.7     34    0.720  673   136.289  137.009
-208.0 	 8448.0 8448.0 8154.8  0.0   67712.0  67712.0   169344.0   169343.5  21248.0 20547.2 3072.0 2807.7     34    0.720  673   136.289  137.009
+	Timestamp  S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT   
+	200.0  	 8448.0 8448.0 8448.0  0.0   67712.0  67712.0   169344.0   169344.0  21248.0 20534.3 3072.0 2807.7     34    0.720  658   133.684  134.404
+	201.0 	 8448.0 8448.0 8448.0  0.0   67712.0  67712.0   169344.0   169343.2  21248.0 20534.3 3072.0 2807.7     34    0.720  662   134.712  135.432
+	202.0 	 8448.0 8448.0 8102.5  0.0   67712.0  67598.5   169344.0   169343.6  21248.0 20534.3 3072.0 2807.7     34    0.720  667   135.840  136.559
+	203.0 	 8448.0 8448.0 8126.3  0.0   67712.0  67702.2   169344.0   169343.6  21248.0 20547.2 3072.0 2807.7     34    0.720  669   136.178  136.898
+	204.0 	 8448.0 8448.0 8126.3  0.0   67712.0  67702.2   169344.0   169343.6  21248.0 20547.2 3072.0 2807.7     34    0.720  669   136.178  136.898
+	205.0 	 8448.0 8448.0 8134.6  0.0   67712.0  67712.0   169344.0   169343.5  21248.0 20547.2 3072.0 2807.7     34    0.720  671   136.234  136.954
+	206.0 	 8448.0 8448.0 8134.6  0.0   67712.0  67712.0   169344.0   169343.5  21248.0 20547.2 3072.0 2807.7     34    0.720  671   136.234  136.954
+	207.0 	 8448.0 8448.0 8154.8  0.0   67712.0  67712.0   169344.0   169343.5  21248.0 20547.2 3072.0 2807.7     34    0.720  673   136.289  137.009
+	208.0 	 8448.0 8448.0 8154.8  0.0   67712.0  67712.0   169344.0   169343.5  21248.0 20547.2 3072.0 2807.7     34    0.720  673   136.289  137.009
 
 
 
 Let us interpret the output above using the explanation given to output attributes in the jstat manpage. Using the knowledge acquired, we can see that:
 
 
-jstat connected to the JVM 200 seconds from the time this JVM was started. This information is present in the first column labeled “Timestamp”. As seen from the very same column, the jstat harvests information from the JVM once every second as specified in the “1s” argument given in the command.
-
-
-
-From the first line we can see that up to this point the young generation has been cleaned 34 times and the whole heap has been cleaned 658 times, as indicated by the “YGC” and “FGC” columns, respectively.
-
-
-
-The young generation garbage collector has been running for a total of 0.720 seconds, as indicated in the “YGCT” column.
-
-
-
-The total duration of the full GC has been 133.684 seconds, as indicated in the “FGCT” column. This should immediately catch our eye – we can see that out of the total 200 seconds the JVM has been running, 66% of the time has been spent in Full GC cycles.
+- jstat connected to the JVM 200 seconds from the time this JVM was started. This information is present in the first column labeled “Timestamp”. As seen from the very same column, the jstat harvests information from the JVM once every second as specified in the “1s” argument given in the command.
+- From the first line we can see that up to this point the young generation has been cleaned 34 times and the whole heap has been cleaned 658 times, as indicated by the “YGC” and “FGC” columns, respectively.
+- The young generation garbage collector has been running for a total of 0.720 seconds, as indicated in the “YGCT” column.
+- The total duration of the full GC has been 133.684 seconds, as indicated in the “FGCT” column. This should immediately catch our eye – we can see that out of the total 200 seconds the JVM has been running, 66% of the time has been spent in Full GC cycles.
 
 
 
@@ -207,16 +182,9 @@ The problem becomes even clearer when we look at the next line, harvesting infor
 
 
 
-Now we can see that there have been four more Full GCs running during the one second between the last time jstat printed out the data as indicated in the “FGC” column.
-
-
-
-These four GC pauses have taken almost the entire second – as seen in the difference in the “FGCT” column. Compared to the first row, the Full GC has been running for 928 milliseconds, or 92.8% of the total time.
-
-
-
-At the same time, as indicated by the “OC” and “OU” columns, we can see that from almost all of the old generation capacity of 169,344.0 KB (“OC“), after all the cleaning work that the four collection cycles tried to accomplish, 169,344.2 KB (“OU“) is still in use. Cleaning 800 bytes in 928 ms should not be considered a normal behavior.
-
+- Now we can see that there have been four more Full GCs running during the one second between the last time jstat printed out the data as indicated in the “FGC” column.
+- These four GC pauses have taken almost the entire second – as seen in the difference in the “FGCT” column. Compared to the first row, the Full GC has been running for 928 milliseconds, or 92.8% of the total time.
+- At the same time, as indicated by the “OC” and “OU” columns, we can see that from almost all of the old generation capacity of 169,344.0 KB (“OC“), after all the cleaning work that the four collection cycles tried to accomplish, 169,344.2 KB (“OU“) is still in use. Cleaning 800 bytes in 928 ms should not be considered a normal behavior.
 
 
 Only these two rows from the jstat output give us insight that something is terribly wrong with the application. Applying the same analytics to the next rows, we can confirm that the problem persists and is getting even worse.
@@ -233,19 +201,13 @@ As seen from the example, jstat output can quickly reveal symptoms about JVM hea
 
 
 
-Changes in the last column, “GCT”, when compared to the total runtime of the JVM in the “Timestamp” column, give information about the overhead of garbage collection. If you see that every second, the value in that column increases significantly in comparison to the total runtime, a high overhead is exposed. How much GC overhead is tolerable is application-specific and should be derived from the performance requirements you have at hand, but as a ground rule, anything more than 10% looks truly suspicious.
+- Changes in the last column, “GCT”, when compared to the total runtime of the JVM in the “Timestamp” column, give information about the overhead of garbage collection. If you see that every second, the value in that column increases significantly in comparison to the total runtime, a high overhead is exposed. How much GC overhead is tolerable is application-specific and should be derived from the performance requirements you have at hand, but as a ground rule, anything more than 10% looks truly suspicious.
+- Rapid changes in the “YGC” and “FGC” columns tracking the young and Full GC counts also tend to expose problems. Much too frequent GC pauses when piling up again affect the throughput via adding many stop-the-world pauses for application threads.
+- When you see that the old generation usage in the “OU” column is almost equal to the maximum capacity of the old generation in the “OC” column without a decrease after an increase in the “FGC” column count has signaled that old generation collection has occurred, you have exposed yet another symptom of poorly performing GC.
 
 
 
-Rapid changes in the “YGC” and “FGC” columns tracking the young and Full GC counts also tend to expose problems. Much too frequent GC pauses when piling up again affect the throughput via adding many stop-the-world pauses for application threads.
-
-
-
-When you see that the old generation usage in the “OU” column is almost equal to the maximum capacity of the old generation in the “OC” column without a decrease after an increase in the “FGC” column count has signaled that old generation collection has occurred, you have exposed yet another symptom of poorly performing GC.
-
-
-
-GC logs
+## GC logs
 
 
 
@@ -260,19 +222,19 @@ A garbage collector log is in plain text and can be either printed out by the JV
 The minimum that each JVM should be logging can be achieved by specifying the following in your startup scripts:
 
 
--XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:<filename>
+	-XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:<filename>
 
 
 
 This will instruct JVM to print every GC event to the log file and add the timestamp of each event to the log. The exact information exposed to the logs varies depending on the GC algorithm used. When using ParallelGC the output should look similar to the following:
 
 
-199.879: [Full GC (Ergonomics) [PSYoungGen: 64000K->63998K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1473386 secs] [Times: user=0.43 sys=0.01, real=0.15 secs]
-200.027: [Full GC (Ergonomics) [PSYoungGen: 64000K->63998K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1567794 secs] [Times: user=0.41 sys=0.00, real=0.16 secs]
-200.184: [Full GC (Ergonomics) [PSYoungGen: 64000K->63998K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1621946 secs] [Times: user=0.43 sys=0.00, real=0.16 secs]
-200.346: [Full GC (Ergonomics) [PSYoungGen: 64000K->63998K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1547695 secs] [Times: user=0.41 sys=0.00, real=0.15 secs]
-200.502: [Full GC (Ergonomics) [PSYoungGen: 64000K->63999K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1563071 secs] [Times: user=0.42 sys=0.01, real=0.16 secs]
-200.659: [Full GC (Ergonomics) [PSYoungGen: 64000K->63999K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1538778 secs] [Times: user=0.42 sys=0.00, real=0.16 secs]
+	199.879: [Full GC (Ergonomics) [PSYoungGen: 64000K->63998K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1473386 secs] [Times: user=0.43 sys=0.01, real=0.15 secs]
+	200.027: [Full GC (Ergonomics) [PSYoungGen: 64000K->63998K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1567794 secs] [Times: user=0.41 sys=0.00, real=0.16 secs]
+	200.184: [Full GC (Ergonomics) [PSYoungGen: 64000K->63998K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1621946 secs] [Times: user=0.43 sys=0.00, real=0.16 secs]
+	200.346: [Full GC (Ergonomics) [PSYoungGen: 64000K->63998K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1547695 secs] [Times: user=0.41 sys=0.00, real=0.15 secs]
+	200.502: [Full GC (Ergonomics) [PSYoungGen: 64000K->63999K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1563071 secs] [Times: user=0.42 sys=0.01, real=0.16 secs]
+	200.659: [Full GC (Ergonomics) [PSYoungGen: 64000K->63999K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1538778 secs] [Times: user=0.42 sys=0.00, real=0.16 secs]
 
 
 
@@ -282,19 +244,10 @@ These different formats are discussed in detail in the chapter “GC Algorithms:
 
 
 
-The log is extracted around 200 seconds after the JVM was started.
-
-
-
-During the 780 milliseconds present in the logs, the JVM paused five times for GC (we are excluding the 6th pause as it started, not ended on the timestamp present). All these pauses were full GC pauses.
-
-
-
-The total duration of these pauses was 777 milliseconds, or 99.6% of the total runtime.
-
-
-
-At the same time, as seen from the old generation capacity and consumption, almost all of the old generation capacity (169,472 kB) remains used (169,318 K) after the GC has repeatedly tried to free up some memory.
+- The log is extracted around 200 seconds after the JVM was started.
+- During the 780 milliseconds present in the logs, the JVM paused five times for GC (we are excluding the 6th pause as it started, not ended on the timestamp present). All these pauses were full GC pauses.
+- The total duration of these pauses was 777 milliseconds, or 99.6% of the total runtime.
+- At the same time, as seen from the old generation capacity and consumption, almost all of the old generation capacity (169,472 kB) remains used (169,318 K) after the GC has repeatedly tried to free up some memory.
 
 
 
@@ -308,15 +261,9 @@ As seen from the example, GC logs are valuable input to reveal symptoms about JV
 
 
 
-Too much GC overhead. When the total time for GC pauses is too long, the throughput of the application suffers. The limit is application-specific, but as a general rule anything over 10% already looks suspicious.
-
-
-
-Excessively long individual pauses. Whenever an individual pause starts taking too long, the latency of the application starts to suffer. When the latency requirements require the transactions in the application to complete under 1,000 ms, for example, you cannot tolerate any GC pauses taking more than 1,000 ms.
-
-
-
-Old generation consumption at the limits. Whenever the old generation remains close to being fully utilized even after several full GC cycles, you face a situation in which GC becomes the bottleneck, either due to under-provisioning resources or due to a memory leak. This symptom always triggers GC overhead to go through the roof as well.
+- Too much GC overhead. When the total time for GC pauses is too long, the throughput of the application suffers. The limit is application-specific, but as a general rule anything over 10% already looks suspicious.
+- Excessively long individual pauses. Whenever an individual pause starts taking too long, the latency of the application starts to suffer. When the latency requirements require the transactions in the application to complete under 1,000 ms, for example, you cannot tolerate any GC pauses taking more than 1,000 ms.
+- Old generation consumption at the limits. Whenever the old generation remains close to being fully utilized even after several full GC cycles, you face a situation in which GC becomes the bottleneck, either due to under-provisioning resources or due to a memory leak. This symptom always triggers GC overhead to go through the roof as well.
 
 
 
@@ -324,7 +271,7 @@ As we can see, GC logs can give us very detailed information about what is going
 
 
 
-GCViewer
+## GCViewer
 
 
 
@@ -408,15 +355,9 @@ As seen from the example, GCViewer can quickly visualize symptoms that tell us w
 
 
 
-Low throughput. When the throughput of the application decreases and falls under a tolerable level, the total time that the application spends doing useful work gets reduced. What is “tolerable” depends on your application and its usage scenario. One rule of thumb says that any value below 90% should draw your attention and may require GC optimization.
-
-
-
-Excessively long individual GC pauses. Whenever an individual pause starts taking too long, the latency of the application starts to suffer. When the latency requirements require the transactions in the application to complete under 1,000 ms, for example, you cannot tolerate any GC pauses taking more than 1,000 ms.
-
-
-
-High heap consumption. Whenever the old generation remains close to being fully utilized even after several full GC cycles, you face a situation where the application is at its limits, either due to under-provisioning resources or due to a memory leak. This symptom always has a significant impact on throughput as well.
+- Low throughput. When the throughput of the application decreases and falls under a tolerable level, the total time that the application spends doing useful work gets reduced. What is “tolerable” depends on your application and its usage scenario. One rule of thumb says that any value below 90% should draw your attention and may require GC optimization.
+- Excessively long individual GC pauses. Whenever an individual pause starts taking too long, the latency of the application starts to suffer. When the latency requirements require the transactions in the application to complete under 1,000 ms, for example, you cannot tolerate any GC pauses taking more than 1,000 ms.
+- High heap consumption. Whenever the old generation remains close to being fully utilized even after several full GC cycles, you face a situation where the application is at its limits, either due to under-provisioning resources or due to a memory leak. This symptom always has a significant impact on throughput as well.
 
 
 
@@ -424,7 +365,7 @@ As a general comment – visualizing GC logs is definitely something we recommen
 
 
 
-Profilers
+## Profilers
 
 
 
@@ -449,7 +390,9 @@ Allocation profiling gives you information about the places where your applicati
 
 
 In the following sections we will see three different allocation profilers in action: hprof, JVisualVM and AProf. There are plenty more different profilers out there to choose from, both commercial and free solutions, but the functionality and benefits of each are similar to the ones discussed in the following sections.
-hprof
+
+
+#### hprof
 
 
 
@@ -460,7 +403,7 @@ Bundled with the JDK distribution is hprof profiler. As it is present in all env
 To run your application with hprof, you need to modify the startup scripts of the JVM similarly to the following example:
 
 
-java -agentlib:hprof=heap=sites com.yourcompany.YourApplication
+	java -agentlib:hprof=heap=sites com.yourcompany.YourApplication
 
 
 
@@ -470,17 +413,17 @@ On application exit, it will dump the allocation information to a java.hprof.txt
 
 
 
-SITES BEGIN (ordered by live bytes) Tue Dec  8 11:16:15 2015
-          percent          live          alloc'ed  stack class
- rank   self  accum     bytes objs     bytes  objs trace name
-    1  64.43% 4.43%   8370336 20121  27513408 66138 302116 int[]
-    2  3.26% 88.49%    482976 20124   1587696 66154 302104 java.util.ArrayList
-    3  1.76% 88.74%    241704 20121   1587312 66138 302115 eu.plumbr.demo.largeheap.ClonableClass0006
-    ... cut for brevity ...
+	SITES BEGIN (ordered by live bytes) Tue Dec  8 11:16:15 2015
+	          percent          live          alloc'ed  stack class
+	 rank   self  accum     bytes objs     bytes  objs trace name
+	    1  64.43% 4.43%   8370336 20121  27513408 66138 302116 int[]
+	    2  3.26% 88.49%    482976 20124   1587696 66154 302104 java.util.ArrayList
+	    3  1.76% 88.74%    241704 20121   1587312 66138 302115 eu.plumbr.demo.largeheap.ClonableClass0006
+	    ... cut for brevity ...
 
 
 
-SITES END
+	SITES END
 
 
 
@@ -490,13 +433,13 @@ From the above, we can see the allocations ranked by the number of objects creat
 
 
 
-TRACE 302116:
-
-
-	eu.plumbr.demo.largeheap.ClonableClass0006.<init>(GeneratorClass.java:11)
-	sun.reflect.GeneratedConstructorAccessor7.newInstance(<Unknown Source>:Unknown line)
-	sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
-	java.lang.reflect.Constructor.newInstance(Constructor.java:422)
+	TRACE 302116:
+	
+	
+		eu.plumbr.demo.largeheap.ClonableClass0006.<init>(GeneratorClass.java:11)
+		sun.reflect.GeneratedConstructorAccessor7.newInstance(<Unknown Source>:Unknown line)
+		sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+		java.lang.reflect.Constructor.newInstance(Constructor.java:422)
 
 
 
@@ -504,7 +447,7 @@ Now, knowing that 64.43% of the objects were allocated as integer arrays in the 
 
 
 
-Java VisualVM
+#### Java VisualVM
 
 
 
@@ -518,19 +461,10 @@ Attaching JVisualVM to your JVM is done via GUI where you can attach the profile
 
 
 
-Open the “Profiler” tab and make sure that under the “Settings” checkbox you have enabled “Record allocations stack traces”.
-
-
-
-Click the “Memory” button to start memory profiling.
-
-
-
-Let your application run for some time to gather enough information about object allocations.
-
-
-
-Click the “Snapshot” button. This will give you a snapshot of the profiling information gathered.
+1. Open the “Profiler” tab and make sure that under the “Settings” checkbox you have enabled “Record allocations stack traces”.
+1. Click the “Memory” button to start memory profiling.
+1. Let your application run for some time to gather enough information about object allocations.
+1. Click the “Snapshot” button. This will give you a snapshot of the profiling information gathered.
 
 
 
@@ -562,7 +496,7 @@ Compared to hprof, JVisualVM makes the information a bit easier to process – f
 
 
 
-AProf
+#### AProf
 
 
 
@@ -573,37 +507,28 @@ Last, but not least, is AProf by Devexperts. AProf is a memory allocation profil
 To run your application with AProf, you need to modify the startup scripts of the JVM similarly to the following example:
 
 
-java -javaagent:/path-to/aprof.jar com.yourcompany.YourApplication
+	java -javaagent:/path-to/aprof.jar com.yourcompany.YourApplication
 
 
 
 Now, after restarting the application, an aprof.txt file will be created to the working directory. The file is updated once every minute and contains information similar to the following:
 
 
-========================================================================================================================
-
-
-
-TOTAL allocation dump for 91,289 ms (0h01m31s)
-
-
-
-Allocated 1,769,670,584 bytes in 24,868,088 objects of 425 classes in 2,127 locations
-========================================================================================================================
-
-
-
-
-Top allocation-inducing locations with the data types allocated from them
-------------------------------------------------------------------------------------------------------------------------
-eu.plumbr.demo.largeheap.ManyTargetsGarbageProducer.newRandomClassObject: 1,423,675,776 (80.44%) bytes in 17,113,721 (68.81%) objects (avg size 83 bytes)
-	int[]: 711,322,976 (40.19%) bytes in 1,709,911 (6.87%) objects (avg size 416 bytes)
-	char[]: 369,550,816 (20.88%) bytes in 5,132,759 (20.63%) objects (avg size 72 bytes)
-	java.lang.reflect.Constructor: 136,800,000 (7.73%) bytes in 1,710,000 (6.87%) objects (avg size 80 bytes)
-	java.lang.Object[]: 41,079,872 (2.32%) bytes in 1,710,712 (6.87%) objects (avg size 24 bytes)
-	java.lang.String: 41,063,496 (2.32%) bytes in 1,710,979 (6.88%) objects (avg size 24 bytes)
-	java.util.ArrayList: 41,050,680 (2.31%) bytes in 1,710,445 (6.87%) objects (avg size 24 bytes)
-          ... cut for brevity ... 
+	========================================================================================================================
+	TOTAL allocation dump for 91,289 ms (0h01m31s)
+	Allocated 1,769,670,584 bytes in 24,868,088 objects of 425 classes in 2,127 locations
+	========================================================================================================================
+	
+	Top allocation-inducing locations with the data types allocated from them
+	------------------------------------------------------------------------------------------------------------------------
+	eu.plumbr.demo.largeheap.ManyTargetsGarbageProducer.newRandomClassObject: 1,423,675,776 (80.44%) bytes in 17,113,721 (68.81%) objects (avg size 83 bytes)
+		int[]: 711,322,976 (40.19%) bytes in 1,709,911 (6.87%) objects (avg size 416 bytes)
+		char[]: 369,550,816 (20.88%) bytes in 5,132,759 (20.63%) objects (avg size 72 bytes)
+		java.lang.reflect.Constructor: 136,800,000 (7.73%) bytes in 1,710,000 (6.87%) objects (avg size 80 bytes)
+		java.lang.Object[]: 41,079,872 (2.32%) bytes in 1,710,712 (6.87%) objects (avg size 24 bytes)
+		java.lang.String: 41,063,496 (2.32%) bytes in 1,710,979 (6.88%) objects (avg size 24 bytes)
+		java.util.ArrayList: 41,050,680 (2.31%) bytes in 1,710,445 (6.87%) objects (avg size 24 bytes)
+	          ... cut for brevity ... 
 
 
 
@@ -617,14 +542,14 @@ Scrolling further down the file, you will discover a block with allocation trace
 
 
 
-Top allocated data types with reverse location traces
-------------------------------------------------------------------------------------------------------------------------
-int[]: 725,306,304 (40.98%) bytes in 1,954,234 (7.85%) objects (avg size 371 bytes)
-	eu.plumbr.demo.largeheap.ClonableClass0006.: 38,357,696 (2.16%) bytes in 92,206 (0.37%) objects (avg size 416 bytes)
-		java.lang.reflect.Constructor.newInstance: 38,357,696 (2.16%) bytes in 92,206 (0.37%) objects (avg size 416 bytes)
-			eu.plumbr.demo.largeheap.ManyTargetsGarbageProducer.newRandomClassObject: 38,357,280 (2.16%) bytes in 92,205 (0.37%) objects (avg size 416 bytes)
-			java.lang.reflect.Constructor.newInstance: 416 (0.00%) bytes in 1 (0.00%) objects (avg size 416 bytes)
-... cut for brevity ... 
+	Top allocated data types with reverse location traces
+	------------------------------------------------------------------------------------------------------------------------
+	int[]: 725,306,304 (40.98%) bytes in 1,954,234 (7.85%) objects (avg size 371 bytes)
+		eu.plumbr.demo.largeheap.ClonableClass0006.: 38,357,696 (2.16%) bytes in 92,206 (0.37%) objects (avg size 416 bytes)
+			java.lang.reflect.Constructor.newInstance: 38,357,696 (2.16%) bytes in 92,206 (0.37%) objects (avg size 416 bytes)
+				eu.plumbr.demo.largeheap.ManyTargetsGarbageProducer.newRandomClassObject: 38,357,280 (2.16%) bytes in 92,205 (0.37%) objects (avg size 416 bytes)
+				java.lang.reflect.Constructor.newInstance: 416 (0.00%) bytes in 1 (0.00%) objects (avg size 416 bytes)
+	... cut for brevity ... 
 
 
 
@@ -633,22 +558,6 @@ From the above we can see the allocations for int[] arrays, again zooming in to 
 
 
 So, like other solutions, AProf exposed information about allocation size and locations, making it possible to zoom in to the most memory-hungry parts of your application. However, in our opinion AProf is the most useful allocation profiler, as it focuses on just one thing and does it extremely well. In addition, this open-source tool is free and has the least overhead compared to alternatives.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
