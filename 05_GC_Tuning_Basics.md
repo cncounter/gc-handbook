@@ -225,17 +225,9 @@ The event stopped the application threads for 0.0713174 seconds. Even though it 
 Extracting information similar to the example above from all GC pauses, we can aggregate the numbers and see whether or not we are violating the set requirements for any of the pause events triggered.
 
 
-类似上面的例子, 从所有GC暂停中提取出相关的信息, 汇总之后就可以得知是否满足暂停事件的要求。
+像上面这样, 从所有GC日志中提取出暂停相关的数字信息, 汇总之后就可以得知是否满足需求。
 
 
-
-
-
-
-##
-##
-##
-##
 
 
 ### 吞吐量(Throughput)
@@ -247,7 +239,7 @@ Throughput requirements are different from latency requirements. The only simila
 
 
 
-从延迟需求吞吐量需求是不同的。唯一相似的吞吐量需求与延迟的事实是,这些需求需要来自通用的吞吐量要求。通用要求吞吐量可以类似如下:
+吞吐量和延迟有很大的不同。唯一相似的是两者都是根据通用的吞吐量需求而得来的。通用的吞吐量需求(Generic requirements for throughput) 类似下面这样:
 
 
 
@@ -256,9 +248,9 @@ Throughput requirements are different from latency requirements. The only simila
 - Weekly statistics for all customers have to be composed in no more than six hours each Sunday night between 12 PM and 6 AM
 
 
-- 解决方案必须能够处理1000000发票/天
-- 解决方案必须支持1000个经过身份验证的用户每调用一个函数,每五到十秒B或C
-- 每周统计所有客户必须由不超过6个小时每个周日晚上12点和6点之间
+- 解决方案必须能处理 100万 发票/天
+- 解决方案必须支持1000个认证用户在5-10秒内调用一个函数: A、B或C
+- 每周对所有客户的统计不能超过6个小时，时间为每周日晚上12点到次日6点之间
 
 
 
@@ -266,21 +258,21 @@ Throughput requirements are different from latency requirements. The only simila
 So, instead of setting requirements for a single operation, the requirements for throughput specify how many operations the system must process in a given time unit. Similar to the latency requirements, the GC tuning part now requires determining the total time that can be spent on GC during the time measured. How much is tolerable for the particular system is again application-specific, but as a rule of thumb, anything over 10% would look suspicious.
 
 
-因此,而不是单个操作的设置要求,吞吐量的要求指定多少操作系统必须处理在一个给定的时间单位。GC调优部分类似于延迟需求,现在需要确定的总时间,可以花在GC期间测量。可以承受多少的特定系统是特定于应用程序的,但作为一个经验法则,任何看起来可疑的10%以上。
+因此,吞吐量的需求不是针对单个操作的, 而是在给定的时间范围内系统必须处理完成多少次操作。类似于延迟需求, 现在GC调优需要确定花在GC期间的的总时间。每个系统可以接受多长的时间是不一样的,但作为最佳实践, GC占用的总时间一般都不能超过 10%。
 
 
 
 Let us now assume that the requirement at hand foresees that the system processes 1,000 transactions per minute. Let us also assume that the total duration of GC pauses during any minute cannot exceed six seconds (or 10%) of this time.
 
 
-现在让我们假设手头的需求预测,系统流程每分钟1000个事务。让我们还假设在任何一分钟的GC暂停的总持续时间不能超过6秒(或10%)。
+现在假设需求是,系统每分钟要处理 1000个事务。同时假设在每一分钟内, GC暂停的总时间不能超过6秒(即10%)。
 
 
 
 Having formalized the requirements, the next step would be to harvest the information we need. The source to be used in the example is again GC logs, from which we would get information similar to the following:
 
 
-有正式的需求,下一步将是获取我们需要的信息。源使用的例子是GC日志,从中我们可以得到类似于下面的信息:
+有了正式的需求,下一步就是获取需要的信息。使用的数据源依然是GC日志,从中我们可以看到类似下面这样的信息:
 
 
 
@@ -295,19 +287,26 @@ Having formalized the requirements, the next step would be to harvest the inform
 
 
 
-
 This time we are interested in user and system times instead of real time. In this case we should focus on 23 milliseconds (21 + 2 ms in user and system times) during which the particular GC pause kept CPUs busy. Even more important is the fact that the system was running on a multi-core machine, translating to the actual stop-the-world pause of 0.0713174 seconds, which is the number to be used in the following calculations.
 
 
-这一次我们感兴趣的用户和系统时间而不是实时的。在这种情况下我们应该专注于23日毫秒(21 + 2女士在用户和系统时间)在特定的GC暂停让cpu繁忙。更重要的是,系统是运行在多核机器上,翻译的实际停止一切停顿0.0713174秒,这是用于下列数量计算。
+这次我们感兴趣的用户耗时(user)和系统耗时(sys),不再关心实际耗时(real)。在这种情况下我们应该专注于23毫秒(user+sys = 21 + 2 ms), 这段时间中GC暂停使得 cpu 满负载。更重要的是,系统是运行在多核机器上的, 转换为实际的停顿时间(stop-the-world)是0.0713174秒, 下面的计算会用到这个数字。
 
 
 Extracting the information similar to the above from the GC logs across the test period, all that is left to be done is to verify the total duration of the stop-the-world pauses during each minute. In case the total duration of the pauses does not exceed 6,000ms or six seconds in any of these one-minute periods, we have fulfilled our requirement.
 
 
-提取从GC日志类似于上面的信息在测试期间,剩下要做的是验证的总持续时间每分钟期间停止一切停顿。以防的总持续时间停顿不超过6000毫秒或在任何一分钟6秒时间,满足我们的要求。
+从GC日志中提取出在测试期间的相应信息后, 剩下要做的就是验证每分钟内的GC停顿总时间。看看是否满足我们的要求: 任何一分钟的时间周期内总的停顿时间不超过6000毫秒(6秒)的时间,。
 
 
+
+
+
+
+##
+##
+##
+##
 
 ### 处理能力(Capacity)
 
