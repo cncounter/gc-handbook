@@ -301,7 +301,7 @@ Extracting the information similar to the above from the GC logs across the test
 
 
 
-### 容量(Capacity,生产量)
+### 容量(Capacity)
 
 
 
@@ -467,10 +467,10 @@ For this, the code above was run for 10 minutes on three different configuration
 
 
 
-<table class="data compact">
+<table>
 	<thead>
 		<tr>
-			<th><b>堆(Heap)</b></th>
+			<th><b>堆内存大小(Heap)</b></th>
 			<th><b>GC算法(GC Algorithm)</b></th>
 			<th><b>有效时间比(Useful work)</b></th>
 			<th><b>最长停顿时间(Longest pause)</b></th>
@@ -517,18 +517,7 @@ Note that in order to keep the example as simple as possible only a limited amou
 注意,为了保持尽可能简单, 示例中只改变了很小的输入参数, 而实验没有在不同的CPU数量或不同的堆布局下进行测试。
 
 
-
-
-##
-##
-##
-##
-
-
-### Tuning for Latency
-
-### 调优的延迟
-
+### 对延迟进行调优(Tuning for Latency)
 
 
 
@@ -536,24 +525,23 @@ Let us assume we have a requirement stating that all jobs must be processed in u
 
 
 
-让我们假设我们有一个需求说明所有工作必须在处理1000年女士知道实际的工作处理只需要100 ms可以简化和扣除延迟要求个人GC暂停。我们现在的需求状态,没有GC暂停可以停止超过900的应用程序线程女士回答这个问题是很容易的,一个只需要解析GC日志文件并找到最大暂停时间为一个单独的GC暂停。
+假设有一个需求说, 每个作业必须在1000 ms内处理。我们知道实际的作业处理只需要100 ms就可以了，简化后可以得出， 两者相减就是 GC暂停的延迟要求。现在需求说明如下: GC暂停不可以超过900ms。回答这个问题是很容易的,只需要解析GC日志文件并找到每个单独的GC暂停中最大的暂停时间即可。
 
 
 
 Looking again at the three configuration options used in the test:
 
 
-再看这三个配置选项用于测试:
+再看看上面测试用的三份配置:
 
 
-
-<table class="data compact">
+<table>
 	<thead>
 		<tr>
-			<th><b>Heap</b></th>
-			<th><b>GC Algorithm</b></th>
-			<th><b>Useful work</b></th>
-			<th><b>Longest pause</b></th>
+			<th><b>堆内存大小(Heap)</b></th>
+			<th><b>GC算法(GC Algorithm)</b></th>
+			<th><b>有效时间比(Useful work)</b></th>
+			<th><b>最长停顿时间(Longest pause)</b></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -582,7 +570,7 @@ Looking again at the three configuration options used in the test:
 we can see that there is one configuration that already matches this requirement. Running the code with:
 
 
-我们可以看到,有一个配置已经匹配的要求。运行代码:
+我们可以看到,其中有一个配置已经达到了此项要求。运行的参数为:
 
 
 
@@ -593,30 +581,30 @@ we can see that there is one configuration that already matches this requirement
 results in a maximum GC pause of 560 ms, which nicely passes the 900 ms threshold set for satisfying the latency requirement. If neither the throughput nor the capacity requirements are violated, we can conclude that we have fulfilled our GC tuning task and can finish the tuning exercise.
 
 
-导致的最大GC暂停560 ms,这很好地通过了900 ms阈值设置为满足延迟的要求。如果违反吞吐量和能力需求,我们可以得出结论,我们完成GC调优任务并能完成调优运动。
+结果中最大的GC停顿时间为 `560 ms`, 这很好地通过了为延迟设置的`900 ms`阀值的要求。如果不违反吞吐量和容量的要求,则可以得出结论,我们成功达成GC调优目标, 可以结束调优活动了。
 
 
 
-### Tuning for Throughput
 
-### 吞吐量调优
+### 吞吐量调优(Tuning for Throughput)
+
 
 
 
 Let us assume that we have a throughput goal to process 13,000,000 jobs/hour. The example configurations used again give us a configuration where the requirement is fulfilled:
 
 
-让我们假定我们有一个吞吐量目标/小时处理13000000个工作岗位。再次使用的示例配置给我们配置需求的实现:
+假定我们的吞吐量指标是处理作业: 1300万次/小时。再次使用上面的示例配置, 其中有一个配置满足我们的需求:
 
 
 
-<table class="data compact">
+<table>
 	<thead>
 		<tr>
-			<th><b>Heap</b></th>
-			<th><b>GC Algorithm</b></th>
-			<th><b>Useful work</b></th>
-			<th><b>Longest pause</b></th>
+			<th><b>堆内存大小(Heap)</b></th>
+			<th><b>GC算法(GC Algorithm)</b></th>
+			<th><b>有效时间比(Useful work)</b></th>
+			<th><b>最长停顿时间(Longest pause)</b></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -648,8 +636,7 @@ Let us assume that we have a throughput goal to process 13,000,000 jobs/hour. Th
 Running this configuration as:
 
 
-运行此配置为:
-
+执行此配置的参数为:
 
 
 	java -Xmx12g -XX:+UseParallelGC Producer
@@ -658,7 +645,7 @@ Running this configuration as:
 we can see that the CPUs are blocked by GC for 8.5% of the time, leaving 91.5% of the computing power for useful work. For simplicity’s sake we will ignore other safe points in the example. Now we have to take into account that:
 
 
-我们可以看到,cpu是8.5%的时间被GC,留下91.5%的计算能力有用的工作。为简单起见,我们将忽略其他安全点的例子。现在我们必须考虑:
+我们可以看到,有8.5%的CPU时间是被GC阻塞的,剩下的 `91.5%` 是有效的计算时间。为简单起见, 我们将忽略示例中的其他安全点。现在我们必须考虑:
 
 
 
@@ -667,30 +654,38 @@ we can see that the CPUs are blocked by GC for 8.5% of the time, leaving 91.5% o
 1. In one hour, a single core could thus process 3.6 M jobs
 1. We have four cores available, which could thus process 4 x 3.6 M = 14.4 M jobs in an hour
 
+<br/>
 
 
-1。100年的一个工作是处理由一个核心
-1。因此,在一分钟,可以处理60000个工作岗位的核心之一
-1。在一个小时,一个核心可能因此流程3.6个就业岗位
-1。我们有四个核心可用,因此过程4 x 3.6米= 14.4米的工作一个小时
+1. 单个核心需要 100毫秒 来处理一次作业
+1. 因此, 在一分钟内, 每个核心可以处理 60,000 次作业(**!!这里算法有问题**)
+1. 在一个小时内,一个核心可以处理 360万次作业
+1. 我们有四个可用的内核, 则每小时可以处理 4 x 3.6M = 1440万次作业
+
 
 
 
 With this amount of theoretical processing power we can make a simple calculation and conclude that during one hour we can in reality process 91.5% of the 14.4 M theoretical maximum resulting in 13,176,000 processed jobs/hour, fulfilling our requirement.
 
 
-这个数量的理论我们可以做一个简单的计算处理能力和得出结论,一个小时我们可以在现实过程中91.5%的理论最大导致13176000 14.4 /小时处理工作,实现我们的需求。
+通过这个理论上处理能力的数量，通过一个简单的计算我们可以得出结论, 每小时理论上可以处理的实际作业数为: 14.4 M *  91.5% = 13,176,000 次作业,实现了我们的需求。
 
 
 It is important to note that if we simultaneously needed to fulfill the latency requirements set in the previous section, we would be in trouble, as the worst-case latency for this case is close to two times of the previous configuration. This time the longest GC pause on record was blocking the application threads for 1,104 ms.
 
 
-同时需要注意的是,如果我们需要满足延迟需求设置在前一节中,我们就有麻烦了,最坏延迟对于这种情况以前配置的接近两倍。这一次GC暂停时间最长的记录是阻止应用程序线程为1104 ms。
+特别需要注意的是,如果还需要满足上一节中的延迟性需求, 那我们就有大麻烦了, 最坏情况下延迟时间是上一种配置的两倍左右。此次GC暂停时间最长的记录为1,104 ms。
 
 
-### Tuning for Capacity
 
-### 调优的能力
+
+##
+##
+##
+##
+
+
+### 对容量进行调优(Tuning for Capacity)
 
 
 
@@ -698,17 +693,17 @@ It is important to note that if we simultaneously needed to fulfill the latency 
 Let us assume we have to deploy our solution to the commodity-class hardware with up to four cores and 10 G RAM available. From this we can derive our capacity requirement that the maximum heap space for the application cannot exceed 8 GB. Having this requirement in place, we would need to turn to the third configuration on which the test was run:
 
 
-让我们假设我们必须将我们的解决方案部署到商品硬件与四核和10 G RAM可用。从这一点来看,我们可以得出我们的能力要求应用程序的最大的堆空间不能超过8 GB。有这个需求,我们需要求助于第三配置的测试运行:
+假设我们必须将解决方案部署到 企业级的硬件中(commodity-class hardware), 有`4`个核心以及 `10G` RAM可用。从这一点可以得出我们的容量要求是程序的最大的堆空间不能超过`8 GB`。有了这个需求, 我们需要根据第三套配置进行测试:
 
 
 
-<table class="data compact">
+<table>
 	<thead>
 		<tr>
-			<th><b>Heap</b></th>
-			<th><b>GC Algorithm</b></th>
-			<th><b>Useful work</b></th>
-			<th><b>Longest pause</b></th>
+			<th><b>堆内存大小(Heap)</b></th>
+			<th><b>GC算法(GC Algorithm)</b></th>
+			<th><b>有效时间比(Useful work)</b></th>
+			<th><b>最长停顿时间(Longest pause)</b></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -740,7 +735,7 @@ Let us assume we have to deploy our solution to the commodity-class hardware wit
 The application is able to run on this configuration as
 
 
-应用程序能够运行在这个配置
+程序可以通过如下配置运行:
 
 
 	java -Xmx8g -XX:+UseConcMarkSweepGC Producer
@@ -750,17 +745,18 @@ but both the latency and especially throughput numbers fall drastically:
 
 
 
-但是延迟和特别是吞吐量数字大幅下跌:
+但却伴随着延迟大幅上涨, 特别是吞吐量却大幅下跌:
 
 
 
 - GC now blocks CPUs from doing useful work a lot more, as this configuration only leaves 66.3% of the CPUs for useful work. As a result, this configuration would drop the throughput from the best-case-scenario of 13,176,000 jobs/hour to a meager 9,547,200 jobs/hour
 - Instead of 560 ms we are now facing 1,610 ms of added latency in the worst case
 
+<br/>
 
 
-现在- GC块cpu做有用的工作很多,这个配置只有66.3%的cpu有用的工作。因此,这个配置将吞吐量从13176000人/小时的最好的情况不足9547200人/小时
-——而不是560 ms我们现在面临1610毫秒的延迟在最坏的情况下补充道
+- 现在,GC阻塞了 CPU 做更多的有用功, 这个配置只有 `66.3%` 的有效CPU时间。因此,这个配置将吞吐量从最好的情况 13,176,000 作业/小时 下降到 不足 9,547,200次作业/小时.
+- 最坏情况延迟不是560 ms，现在面临的延迟是 1,610 ms 
 
 
 
@@ -770,7 +766,7 @@ Walking through the three dimensions it is indeed obvious that you cannot just o
 
 
 
-走在三维空间中确实明显,你不能优化的“业绩”,而是需要考虑三个不同维度,测量和调优延时和吞吐量,并考虑能力约束。
+通过三个维度,很明显,你不能只是优化你的“性能(performance)”, 而是应该从三个不同的维度进行考虑, 测量以及调优延迟和吞吐量,并需要考虑容量约束。
 
 
 
