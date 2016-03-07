@@ -33,14 +33,14 @@ So, as the first step we need to set clear performance goals in regards of Garba
 
 - 延迟(Latency)
 - 吞吐量(Throughput)
-- 处理能力(Capacity)
+- 容量(Capacity)
 
 
 
 After explaining the concepts in general, we will demonstrate how to apply these goals in the context of Garbage Collection. If you are already familiar with the concepts of latency, throughput and capacity, you may decide to skip the next section.
 
 
-在解释概念之后,我们将演示如何在垃圾收集的情景下应用这些目标。如果您延迟、吞吐量和处理能力的概念很熟悉, 则可以决定跳过下一小节。
+在解释概念之后,我们将演示如何在垃圾收集的情景下应用这些目标。如果您延迟、吞吐量和容量的概念很熟悉, 则可以决定跳过下一小节。
 
 
 
@@ -301,21 +301,13 @@ Extracting the information similar to the above from the GC logs across the test
 
 
 
-
-
-##
-##
-##
-##
-
-### 处理能力(Capacity)
-
+### 容量(Capacity,生产量)
 
 
 
 Capacity requirements put additional constraints on the environment where the throughput and latency goals can be met. These requirements might be expressed either in terms of computing resources or in cold hard cash. The ways in which such requirements can be described can, for example, take the following form:
 
-容量需求把额外的约束环境中实现目标的吞吐量和延迟。这些需求可能表达的计算资源或寒冷的现金。这样的要求可以被描述的方式,例如,采取以下形式:
+容量(Capacity)需求是对吞吐量和延迟指标达成的环境进行的额外约束。这些需求可能会因为计算资源或者资金的原因而被压缩。例如下面这些形式的要求:
 
 
 
@@ -325,17 +317,24 @@ Capacity requirements put additional constraints on the environment where the th
 
 
 
-——系统必须部署在Android设备少于512 MB的内存
-——系统必须部署在Amazon EC2实例所需的最大尺寸不得超过配置c3。超大(8 G,4芯)
-——运行系统的月度发票从Amazon EC2不得超过12000美元
+- 系统必须部署在小于512 MB内存的Android设备上
+- 系统必须部署在Amazon EC2实例上, 最大不得超过c3.xlarge (8 G, 4 cores)配置。
+- 运行系统的Amazon EC2月度账单不得超过 12000 美元
 
 
 
 Thus, capacity has to be taken into account when fulfilling the latency and throughput requirements. With unlimited computing power, any kind of latency and throughput targets could be met, yet in the real world the budget and other constraints have a tendency to set limits on the resources one can use.
 
 
-因此,能力时必须考虑满足延迟和吞吐量需求。与无限的计算能力,任何延迟和吞吐量目标能够实现,然而在现实世界中预算和其他约束倾向于限制一个可以使用的资源。
+因此, 在满足延迟和吞吐量需求的基础上必须考虑容量问题。如果有无限的计算能力,任何延迟和吞吐量目标都能够达成,然而在现实世界中预算(budget)和其他约束限制了可用的资源。
 
+
+
+
+##
+##
+##
+##
 
 ## 相关示例(Example)
 
