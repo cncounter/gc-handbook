@@ -1,20 +1,14 @@
 # 6. GC 调优(工具篇)
 
 
-
-
-
-
-
-
 Before you can optimize your JVM for more efficient garbage collection, you need to get information about its current behavior to understand the impact that GC has on your application and its perception by end users. There are multiple ways to observe the work of GC and in this chapter we will cover several different possibilities.
 
-之前您可以优化您的JVM的垃圾收集更有效率,你需要信息当前行为理解GC的影响对您的应用程序和终端用户的感知.有多种方法来观察GC的工作,在这一章里,我们将介绍几种不同的可能性。
+你需要明确了解当前的GC行为对应用系统和对用户感知有多大的影响,才能更好地优化JVM的GC效率. 有很多种方法来观察GC行为,在本章我们将介绍一些常用的工具。
 
 
 While observing GC behavior there is raw data provided by the JVM runtime. In addition, there are derived metrics that can be calculated based on that raw data. The raw data, for instance, contains:
 
-同时观察GC行为JVM运行时所提供的原始数据。此外,还有派生指标可以根据原始数据计算。原始数据,例如,包含:
+在JVM运行的同时,可以提供原始的GC行为数据。此外,可以根据原始数据生成各种指标。原始数据(raw data)包含:
 
 
 - current occupancy of memory pools,
@@ -22,20 +16,20 @@ While observing GC behavior there is raw data provided by the JVM runtime. In ad
 - durations of individual GC pauses,
 - duration of the different phases of those pauses.
 
-——当前占用的内存池,
--容量的内存池,
-——个人GC暂停时间,
--持续时间的不同阶段的停顿。
+<br/>
+
+- 当前内存池的使用情况,
+- 各个内存池的容量,
+- 每个GC暂停的持续时间,
+- GC暂停不同阶段的持续时间。
 
 
 The derived metrics include, for example, the allocation and promotion rates of the application. In this chapter will talk mainly about ways of acquiring the raw data. The most important derived metrics are described in the following chapter discussing the most common GC-related performance problems.
 
-派生指标包括,例如,应用程序的分配和晋升。在本章将主要谈论的方式获取原始数据.最重要的派生指标是描述在以下章节讨论最常见GC-related性能问题。
+派生的指标主要包括: 程序内存的分配率和晋升率。本章主要讨论获取原始数据的方式.后续章节中将介绍和讨论最重要的派生指标，以及常见的GC相关的性能问题。
 
 
 ## JMX API
-
-##JMX API
 
 
 The most basic way to get GC-related information from the running JVM is via the standard JMX API. This is a standardized way for the JVM to expose internal information regarding the runtime state of the JVM. You can access this API either programmatically from your own application running inside the very same JVM, or using JMX clients.
