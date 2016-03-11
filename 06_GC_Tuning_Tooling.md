@@ -26,7 +26,7 @@ While observing GC behavior there is raw data provided by the JVM runtime. In ad
 
 The derived metrics include, for example, the allocation and promotion rates of the application. In this chapter will talk mainly about ways of acquiring the raw data. The most important derived metrics are described in the following chapter discussing the most common GC-related performance problems.
 
-派生的指标主要包括: 程序内存的分配率和晋升率。本章主要讨论获取原始数据的方式.后续章节中将介绍和讨论最重要的派生指标，以及常见的GC相关的性能问题。
+派生的指标主要包括: 程序内存的分配率和晋升率。本章主要讨论获取原始数据的方式.后续章节中将介绍和讨论最重要的派生指标，以及GC相关的性能问题。
 
 
 ## JMX API
@@ -34,32 +34,34 @@ The derived metrics include, for example, the allocation and promotion rates of 
 
 The most basic way to get GC-related information from the running JVM is via the standard JMX API. This is a standardized way for the JVM to expose internal information regarding the runtime state of the JVM. You can access this API either programmatically from your own application running inside the very same JVM, or using JMX clients.
 
-最基本的办法从运行中的JVM GC-related信息是通过JMX API的标准.这是JVM标准化的方式揭露内部关于JVM运行时状态的信息.
+从运行中的JVM 获取GC相关(GC-related)信息的最基本方式是通过标准 JMX API . JMX是揭露JVM内部关于运行时状态信息的标准化API. 我们可以用编程的方式通过这个AP来访问当前运行此程序的JVM，也可以通过JMX客户端来(远程)访问。
+
 
 
 Two of the most popular JMX clients are JConsole and JVisualVM (with a corresponding plugin installed). Both of these tools are part of the standard JDK distribution, so getting started is easy. If you are running on JDK 7u40 or later, a third tool bundled into the JDK called Java Mission Control is also available.
 
-两个最受欢迎的JMX客户机是JConsole和JVisualVM(安装相应的插件)。这些工具都是标准JDK的一部分分布,所以开始很容易.如果你运行在JDK 7 u40或之后,第三个工具捆绑到JDK称为Java任务控制也可以。
+最常见的两个JMX客户端是 JConsole 和 JVisualVM (需要安装相关插件)。这两款工具都是标准JDK的一部分,所以很容易入门. 如果使用的是JDK 7u40或之后的版本,还可以使用Java Mission Control 工具( 大致翻译为 Java飞行控制中心, `jmc.exe`)。
+
+> JVisualVM安装MBeans插件,通过 工具(T)--插件(G)--可用插件-勾选VisualVM-MBeans--安装--下一步--等待...
 
 
 All the JMX clients run as a separate application connecting to the target JVM. The target JVM can be either local to the client if running both in the same machine, or remote. For the remote connections from client, JVM has to explicitly allow remote JMX connections. This can be achieved by setting a specific system property to the port where you wish to enable the JMX RMI connection to arrive:
 
-所有的JMX客户机运行作为一个单独的应用程序连接到目标JVM。目标JVM可以是本地客户端如果运行在同一台机器,或远程.远程连接的客户端,JVM必须显式地允许远程JMX连接.这可以通过设置一个特定的系统属性来港,您想启用JMX RMI连接到:
+所有的JMX客户端都是一个单独的程序,可以连接到目标JVM。目标JVM可以是本机的JVM,也可以是远程的JVM. 如果要连接远程JVM, 则目标JVM必须显式地允许远程JMX连接. 如果要启用远程JMX RMI连接可以通过设置系统属性来指定端口号,例如:
 
 
-	java -Dcom.sun.management.jmxremote.port=5432 com.yourcompanyYourApp
-
+	java -Dcom.sun.management.jmxremote.port=5432 com.yourcompany.YourApp
 
 
 
 In the example above, the JVM opens port 5432 for JMX connections.
 
-在上面的示例中,JVM JMX连接打开端口5432。
+在上面的示例中,JVM 打开端口5432以支持JMX连接。
 
 
 After connecting your JMX client to the JVM of interest and navigating to the MBeans list, select MBeans under the node “java.lang/GarbageCollector”. See below for two screenshots exposing information about GC behavior from JVisualVM and Java Mission Control, respectively:
 
-在连接你的JMX客户机JVM的兴趣并导航到mbean列表,选择下mbean节点" . lang / GarbageCollector ".下面两个截图曝光信息从JVisualVM GC行为和Java任务控制,分别为:
+通过 JVisualVM  连接到某个JVM之后, 导航到 MBeans list, 选择 “java.lang/GarbageCollector” 下的 MBeans. 下面是展示 JVisualVM 和Java Mission Control 中GC行为信息的截图:
 
 
 ![](06_01_JMX-view.png)
@@ -74,12 +76,12 @@ After connecting your JMX client to the JVM of interest and navigating to the MB
 
 As the screenshots above indicate, there are two garbage collectors present. One of these collectors is responsible for cleaning the young generation and one for the old generation. The names of those elements correspond to the names of the garbage collectors used. In the screenshots above we can see that the particular JVM is running with ParallelNew for the young generation and with Concurrent Mark and Sweep for the old generation.
 
-上面的截图显示,有两个垃圾收集器。其中一个收藏家负责打扫年轻一代和老一代.这些元素的名称对应的名称所使用的垃圾收集器.在上面的截图中我们可以看到特定JVM运行与ParallelNew年轻一代和老一代的并发标记和清扫。
+上面的截图信息显示, 存在两个垃圾收集器。其中一个负责清理年轻代，另一个负责清理老年代. 元素的名称就对应所使用的垃圾收集器的名字. 上面截图中可以看到,该JVM使用的年轻代垃圾收集器是 **PS Scavenge** , 而老年代使用的是 **PS MarkSweep**。
 
 
 For each collector the JMX API exposes the following information:
 
-每个收集器JMX API公开以下信息:
+对每个垃圾收集器, JMX API 公开的信息包括:
 
 
 - CollectionCount – the total number of times this collector has run in this JVM,
@@ -90,23 +92,42 @@ For each collector the JMX API exposes the following information:
 - ObjectName – the name of this MBean, as dictated by JMX specifications,
 - Valid – shows whether this collector is valid in this JVM. I personally have never seen anything but “true” in here
 
-- CollectionCount的总数乘以这个收藏家JVM中运行,
-- CollectionTime收集器运行时间的累计时间。时间是所有的时钟时间的总和GC事件,
-- LastGcInfo最后垃圾收集事件的详细信息。这个信息包含事件的持续时间,和事件的开始和结束时间以及使用不同的内存池之前和之后的最后一个集合,
-- MemoryPoolNames这收集器的内存池管理的名字,
--名字-垃圾收集器的名称
--的ObjectName这个MBean的名字,由JMX规范,
--有效显示在这个JVM这个收集器是否有效。我从没见过,但“真正的”
+<br/>
+
+- **CollectionCount** : 此垃圾收集器在JVM中运行的总次数,
+- **CollectionTime**: 收集器运行时间的累计。此时间是所有GC事件时间的总和,
+- **LastGcInfo**: 最后一次GC事件的详细信息。包括GC事件的 持续时间(duration),  开始时间(startTime) 和 结束时间(endTime), 以及各个内存池在最后一次GC之前和之后的使用情况,
+- **MemoryPoolNames**:  该收集器管理的内存池的名字,
+- **Name**: 垃圾收集器的名称
+- **ObjectName**: 此 MBean的名字,由JMX规范定义,
+- **Valid**: 在此JVM中这个收集器是否有效。本人只见过为 "true"的情况
 
 
 In my experience this information is not enough to make any conclusions about the efficiency of the garbage collector. The only case where it can be of any use is when you are willing to build custom software to get JMX notifications about garbage collection events. This approach can rarely be used as we will see in the next sections, which give better ways of getting beneficial insight into garbage collection activities.
 
-根据我的经验这一信息并不足以让任何结论垃圾收集器的效率.唯一的情况下,它可以是任何使用当你愿意建造定制软件得到关于垃圾收集的JMX通知事件.这种方法很少可以在下一节中我们将看到,这给更好的方法得到有益的见解垃圾收集活动。
+根据我的经验, 这些信息并不足以对GC的效率得出任何结论. 唯一可能使用的情况是用来构建自己的软件,通过定制来获取GC事件相关的 JMX 通知. 在下一节中我们可以看到,这种方法使用的较少, 但对于我们认识垃圾收集活动倒是挺有用的。
+
+
+
+
+
+
+
+
+
+
+##
+##
+##
+##
+
+
+
+
+
 
 
 ## JVisualVM
-
-##JVisualVM
 
 
 JVisualVM adds extra information to the basic JMX client functionality via a separate plugin called “VisualGC”. It provides a real-time view into GC events and the occupancy of different memory regions inside JVM.
