@@ -109,24 +109,6 @@ In my experience this information is not enough to make any conclusions about th
 
 
 
-
-
-
-
-
-
-
-##
-##
-##
-##
-
-
-
-
-
-
-
 ## JVisualVM
 
 
@@ -164,14 +146,15 @@ When compared with pure JMX tools, the VisualGC add-on to JVisualVM does offer s
 与纯粹的JMX工具相比, VisualGC 附加到JVisualVM 以后对 JVM的内部信息提供了更好的视图, 如果手头上没有其他工具,请选择VisualGC插件. 如果还有其他工具可用, 那么请继续阅读本章, 其他工具可以给你更多的信息以及更好的视角. 当然， 在“分析器”一节中，也会讲到 JVisualVM 的适用场景 —— 即分配分析(allocation profiling), 所以我们绝不是贬低哪一款工具, 关键还得看实际情况。
 
 
+
+
 ## jstat
 
-##jstat
 
 
 The next tool to look at is also part of the standard JDK distribution. The tool is called “jstat” – a Java Virtual Machine statistics monitoring tool. This is a command line tool that can be used to get metrics from the running JVM. The JVM connected can again either be local or remote. A full list of metrics that jstat is capable of exposing can be obtained by running “jstat -option” from the command line. The most commonly used options are:
 
-下一个工具来看看也是标准JDK的一部分分布。的工具叫做“jstat”——Java虚拟机统计监控工具.这是一个命令行工具,可以用来获取指标从正在运行的JVM。JVM连接又可以是本地的还是远程的.完整的指标列表jstat能够暴露可以通过“jstat选项”从命令行运行。最常用的选项是:
+接下来要介绍的 jstat 工具也是标准JDK的一部分。jstat 是一款JVM统计监控工具(Java Virtual Machine statistics monitoring tool). 这款命令行工具, 可以用来从正在运行的JVM中获取各种指标。JVM连接可以是本地的或者是远程的. 可用的指标选项列表可以通过执行 “`jstat -options`” 来查看。最常用的指标选项包括:
 
 
 	+-----------------+---------------------------------------------------------------+
@@ -202,7 +185,12 @@ The next tool to look at is also part of the standard JDK distribution. The tool
 
 This tool is extremely useful for getting a quick overview of JVM health to see whether the garbage collector behaves as expected. You can run it via “jstat -gc -t PID 1s”, for example, where PID is the process ID of the JVM you want to monitor. You can acquire PID via running “jps” to get the list of running Java processes. As a result, each second jstat will print a new line to the standard output similar to the following example:
 
-这个工具是非常有用的一个快速概述JVM健康的垃圾收集器是否按预期的行为。您可以运行它通过“jstat PID 1 s gc - t”,例如,PID在哪里要监视JVM的进程ID。你可以通过运行“jps”获得PID运行Java进程的列表。作为一个结果,每秒钟jstat将新的一行打印到标准输出类似于下面的例子:
+这款工具对于快速查看JVM中的GC行为是否按预期方式运行是很有用的。可以通过 “`jstat -gc -t PID 1s`” 这种方式来启动, 例如,PID 就是要监视的JVM的进程ID。正在运行的Java进程列表可用通过 `jps` 命令得到。
+
+	jps
+	jstat -gc -t 2428 1s
+
+上面命令的结果, 是 jstat 每秒钟往标准输出打印出新的一行,类似下面这样:
 
 
 	Timestamp  S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT   
@@ -221,7 +209,7 @@ This tool is extremely useful for getting a quick overview of JVM health to see 
 
 Let us interpret the output above using the explanation given to output attributes in the jstat manpage. Using the knowledge acquired, we can see that:
 
-让我们解释上面的输出使用给出的解释在jstat从输出属性。使用获得的知识,我们可以看到:
+让我们解释一下上面的输出。通过 manpage 获得的知识, 我们可以看到:
 
 
 - jstat connected to the JVM 200 seconds from the time this JVM was started. This information is present in the first column labeled “Timestamp”. As seen from the very same column, the jstat harvests information from the JVM once every second as specified in the “1s” argument given in the command.
@@ -229,53 +217,73 @@ Let us interpret the output above using the explanation given to output attribut
 - The young generation garbage collector has been running for a total of 0.720 seconds, as indicated in the “YGCT” column.
 - The total duration of the full GC has been 133.684 seconds, as indicated in the “FGCT” column. This should immediately catch our eye – we can see that out of the total 200 seconds the JVM has been running, 66% of the time has been spent in Full GC cycles.
 
-——jstat连接到JVM JVM 200秒的时间就开始了。这些信息出现在第一列“时间戳”的标签。从同一列,从JVM jstat收成信息每秒钟一次作为“1”中指定参数的命令。
-——从第一行我们可以看到,年轻一代已经打扫34次,整个堆已经打扫658次,所表示的“YGC”和“第五代计算机”列,分别。
-——年轻一代的垃圾收集器已经运行了0.720秒,显示在“YGCT”专栏。
-——完整的GC的总持续时间133.684秒,显示在“FGCT”专栏.这应该立即抓住我们的眼睛,我们可以看到,总200秒的JVM已经运行,66%的时间是花在GC周期。
+<br/>
+
+- jstat 在JVM启动后 200s 连接到了此 JVM 。此信息由第一列 “Timestamp” 得知。继续查看第一列, jstat 每秒钟从JVM 接收一次信息, 也就是命令行参数中 "**1s**" 的意思。
+- 从第一行我们可以看到,年轻代已经清理了34次(由 “**YGC**” 列表示), 整个堆内存已经清理了 658次(由  “**FGC**” 列表示)。
+- 年轻代的垃圾收集器执行的总时间为 0.720 秒, 显示在“**YGCT**” 这一列。
+- full GC 的总持续时间为 133.684 秒, 由“**FGCT**”列显示. 这立刻就吸引了我们的目光,我们可以看到,JVM总的才运行了200秒的时间, 但66%的时间由 Full GC 周期占用了。
 
 
 The problem becomes even clearer when we look at the next line, harvesting information a second later.
 
-这个问题变得更加明显,当我们看下一行,不一会儿收获信息。
+我们再看下一行, 问题就变得非常明显了。
 
 
 - Now we can see that there have been four more Full GCs running during the one second between the last time jstat printed out the data as indicated in the “FGC” column.
 - These four GC pauses have taken almost the entire second – as seen in the difference in the “FGCT” column. Compared to the first row, the Full GC has been running for 928 milliseconds, or 92.8% of the total time.
 - At the same time, as indicated by the “OC” and “OU” columns, we can see that from almost all of the old generation capacity of 169,344.0 KB (“OC“), after all the cleaning work that the four collection cycles tried to accomplish, 169,344.2 KB (“OU“) is still in use. Cleaning 800 bytes in 928 ms should not be considered a normal behavior.
 
--现在,表现在劳教的烘炉须要期间如何以更为充分咨询服务处第二between the last main one jstat time printed论述“数据项。FGC”column
-——这四个GC暂停了几乎整个第二见“FGCT”列中的差异。相比于第一行,完整的GC已经运行了928毫秒,或92年.总时间的8%。
-——与此同时,所表示的“度”和“欧”列,我们可以看到,从几乎所有的旧的发电能力169344 .0 KB(OC),毕竟四的清扫工作收集周期试图完成,169344。2 KB(OU)仍在使用。清洁女士800年800个字节不应被认为是正常的行为。
+<br/>
+
+- 现在我们看到, 在刚刚过去的那一秒内执行了 4 次Full GC。参见 "**FGC**" 列.
+- 这4次 GC暂停 占用了几乎整整 1秒的时间(根据 **FGCT**列的差异)。与第一行相比,  Full GC 运行了 928 毫秒, 或者说是总时间的92.8%。
+- 与此同时, 根据 “**OC** 和 “**OU**” 列, 我们可以看到, 几乎整个老年代的空间 169,344.0 KB (“OC“), 在 4 次GC之后依然占用了 169,344.2 KB (“OU“)。在 928ms 之内只清理了 800个字节, 怎么看都不能算是正常的行为。
 
 
 Only these two rows from the jstat output give us insight that something is terribly wrong with the application. Applying the same analytics to the next rows, we can confirm that the problem persists and is getting even worse.
 
-只有这两行从jstat输出给我们洞察应用程序是极其错误的。应用相同的分析到下一行,我们可以确认问题依然存在,变得更糟。
+只看这两行 jstat 的输出内容, 我们就感觉到程序出了什么严重的问题。继续分析下一行,我们可以确认问题依然存在,而且变得更糟。
 
 
 The JVM is almost stalled, with GC eating away more than 90% of the available computing power. And as a result of all this cleaning, almost all the old generation still remains in use, further confirming our doubts. As a matter of fact, the example died in under a minute later with a “java.lang.OutOfMemoryError: GC overhead limit exceeded” error, removing the last remaining doubts whether or not things are truly sour.
 
-JVM几乎停滞,GC侵蚀超过90%的可用的计算能力。结果这一切清洁,几乎所有老的代仍然在使用,进一步证实了我们的怀疑。事实上,死亡的例子在一分钟后," . lang。OutOfMemoryError:GC开销限制超过”的错误,删除最后一个怀疑事情是否真的是酸的。
+JVM几乎停滞(stalled), 因为GC占用了超过90%的计算能力。清理的结果是, 几乎所有的老代空间仍然在使用, 这进一步证实了我们的怀疑。事实上,这个示例程序在一分钟后就挂了, 抛出了 “java.lang.OutOfMemoryError: GC overhead limit exceeded”  错误, 不需要再怀疑什么了。
 
 
 As seen from the example, jstat output can quickly reveal symptoms about JVM health in terms of misbehaving garbage collectors. As general guidelines, just looking at the jstat output will quickly reveal the following symptoms:
 
-从这个例子中,jstat输出可以很快发现症状对JVM健康行为不端的垃圾收集器。一般的指导方针,只看jstat输出将很快发现以下症状:
+从这个例子中可以看到, jstat 的输出可以很快发现对JVM健康极为不利的GC行为。一般来说, 只看 jstat 的输出可以很快发现以下症状:
 
 
 - Changes in the last column, “GCT”, when compared to the total runtime of the JVM in the “Timestamp” column, give information about the overhead of garbage collection. If you see that every second, the value in that column increases significantly in comparison to the total runtime, a high overhead is exposed. How much GC overhead is tolerable is application-specific and should be derived from the performance requirements you have at hand, but as a ground rule, anything more than 10% looks truly suspicious.
 - Rapid changes in the “YGC” and “FGC” columns tracking the young and Full GC counts also tend to expose problems. Much too frequent GC pauses when piling up again affect the throughput via adding many stop-the-world pauses for application threads.
 - When you see that the old generation usage in the “OU” column is almost equal to the maximum capacity of the old generation in the “OC” column without a decrease after an increase in the “FGC” column count has signaled that old generation collection has occurred, you have exposed yet another symptom of poorly performing GC.
 
-——最后一列的变化,“GCT的总运行时相比,JVM的“时间戳”专栏,给信息垃圾收集的开销。如果你看到每一秒,列中的值显著增加,总运行时相比,暴露高开销.GC开销多少是可容忍的是特定于应用程序的,应该来自你的性能要求,但作为一个基本原则,任何超过10%看起来确实可疑。
-——快速的变化“YGC”和“第五代计算机”列追踪年轻人和完整GC计数也往往暴露问题.太频繁的GC暂停的时候再次堆积影响吞吐量通过添加许多应用程序线程停止一切停顿。
-——当你看到旧的一代“或者”列中使用几乎等于最大容量老一辈的“度”列没有减少后增加“第五代计算机” 列数表示,旧一代收集已经发生,你有业绩不佳的GC的暴露另一个症状。
+<br/>
+
+- 最后一列, “**GCT**” 的变化, 与JVM的总运行时间 “**Timestamp**” 的比值, 就是GC 的开销。如果每一秒中, "**GCT**" 列中的值都会显著增加, 那么总运行时相比, 就暴露出高开销的事实. 具体 GC开销占多少比例是可容忍的, 一般由具体的系统来决定, 由性能要求来决定, 但作为一般原则, 任何超过 10% 的开销看起来都是有问题的。
+- “**YGC**” 和 “**FGC**” 列的快速变化往往也是有问题的. 太频繁的GC暂停会积累并导致更多的线程停顿(stop-the-world pauses),影响到吞吐量。
+- 当你看到  “**OU**” 列中 老年代的使用量几乎等于老年代最大容量“**OC**”而不会降低时则表示, 虽然执行了老年代垃圾收集, 但GC的性能非常的差劲。
 
 
-## GC logs
 
-##GC日志
+
+
+
+
+
+##
+##
+##
+##
+
+
+
+
+
+
+## GC日志(GC logs)
 
 
 The next source for GC-related information is accessible via garbage collector logs. As they are built in the JVM, GC logs give you (arguably) the most useful and comprehensive overview about garbage collector activities. GC logs are de facto standard and should be referenced as the ultimate source of truth for garbage collector evaluation and optimization.
