@@ -132,37 +132,36 @@ In my experience this information is not enough to make any conclusions about th
 
 JVisualVM adds extra information to the basic JMX client functionality via a separate plugin called “VisualGC”. It provides a real-time view into GC events and the occupancy of different memory regions inside JVM.
 
-JVisualVM将额外的信息添加到基本的JMX客户机功能通过一个单独的插件称为“VisualGC”.它提供了一个实时视图到GC事件和占用不同的JVM内存区域内。
+JVisualVM 在基本的JMX客户端功能之外, 通过单独的插件 “VisualGC”,  添加了额外的信息. 它提供了一个实时视图, 来展示GC事件和JVM中各个内存区域的使用情况。
 
 
 The most common use-case for the Visual GC plugin is the monitoring of the locally running application, when an application developer or a performance specialist wants an easy way to get visual information about the general behavior of the GC during a test run of the application.
 
-最常见的用例的视觉GC插件监控本地运行的应用程序,当应用程序开发人员或性能专家想要一个简单的方法来获取视觉信息的一般行为GC测试期间运行的应用程序。
+Visual GC 插件最常见的使用情况就是用来监控本地运行的应用程序, 比如开发人员或者性能专家想要在测试的时候, 通过一种简单的方式来获取GC行为的可视化信息时。
 
 
 ![](06_03_jvmsualvm-garbage-collection-monitoring.png)
 
 
 
-
 On the left side of the charts you can see the real-time view of the current usages of the different memory pools: Metaspace or Permanent Generation, Old Generation, Eden Generation and two Survivor Spaces.
 
-左边的图表你可以看到当前的实时视图使用不同的内存池:Metaspace或永久的一代,老的一代,伊甸园代和两个幸存者空间。
+左边的图表可以看到各个内存池当前的使用情况: Metaspace/永久代,老年代,Eden区以及两个存活区空间。
 
 
 On the right side, top two charts are not GC related, exposing JIT compilation times and class loading timings. The following six charts display the history of the memory pools usages, the number of GC collections of each pool and cumulative time of GC for that pool. In addition for each pool its current size, peak usage and maximum size are displayed.
 
-在右边,上面两个图表不是GC相关,暴露JIT编译时间和类加载时间。以下六个图表显示内存池用法的历史,GC的集合每个池的数量和总时间的GC池。此外对于每个池当前大小,使用和峰值显示最大大小。
+在右边, 最上面两个 Chart 与 GC无关, 显示的是 JIT编译时间 和 类加载的时间。下面的6个图显示的是内存池的使用情况历史记录, 每个内存池的GC次数,GC总时间。此外就是每个内存池的最大值，峰值,以及当前使用情况。
 
 
 Below is the distribution of objects ages that currently reside in the Young generation. The full discussion of objects tenuring monitoring is outside of the scope of this chapter.
 
-下面是对象年龄的分布,目前存在于年轻一代。对象的充分讨论任期监控是本章的范围之外的。
+再下面是 HistoGram, 显示的是对象年龄分布图, 当前存在于年轻代。对象的任期监控(objects tenuring monitoring)超出了本章的讨论范围。
 
 
 When compared with pure JMX tools, the VisualGC add-on to JVisualVM does offer slightly better insight to the JVM, so when you have only these two tools in your toolkit, pick the VisualGC plug-in. If you can use any other solutions referred to in this chapter, read on. Alternative options can give you more information and better insight. There is however a particular use-case discussed in the “Profilers” section where JVisualVM is suitable for – namely allocation profiling, so by no means we are demoting the tool in general, just for the particular use case.
 
-与纯JMX工具相比,VisualGC附加到JVisualVM JVM的报价更好的洞察力,所以当你只有这两个工具在你的工具箱,选择VisualGC插件.如果你可以使用任何其他的解决方案在这一章,继续读下去。选择选项可以给你更多的信息和更好的洞察力.然而有一个特定的用例“分析器”一节中所讨论的JVisualVM适合——即分配分析,我们绝不是降职的工具,只是为了特定的用例。
+与纯粹的JMX工具相比, VisualGC 附加到JVisualVM 以后对 JVM的内部信息提供了更好的视图, 如果手头上没有其他工具,请选择VisualGC插件. 如果还有其他工具可用, 那么请继续阅读本章, 其他工具可以给你更多的信息以及更好的视角. 当然， 在“分析器”一节中，也会讲到 JVisualVM 的适用场景 —— 即分配分析(allocation profiling), 所以我们绝不是贬低哪一款工具, 关键还得看实际情况。
 
 
 ## jstat
