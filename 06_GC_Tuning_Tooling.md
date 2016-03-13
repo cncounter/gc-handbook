@@ -268,47 +268,31 @@ As seen from the example, jstat output can quickly reveal symptoms about JVM hea
 
 
 
-
-
-
-
-
-##
-##
-##
-##
-
-
-
-
-
-
 ## GC日志(GC logs)
 
 
 The next source for GC-related information is accessible via garbage collector logs. As they are built in the JVM, GC logs give you (arguably) the most useful and comprehensive overview about garbage collector activities. GC logs are de facto standard and should be referenced as the ultimate source of truth for garbage collector evaluation and optimization.
 
-第二来源GC-related信息是通过垃圾收集器日志。因为他们都是建立在JVM中,GC日志给你(可以说)有关垃圾收集器活动最有用的和全面的概述.GC日志是事实上的标准,应该引用作为垃圾收集器的终极真理的来源评估和优化。
+GC相关信息的第二来源是GC日志。因为内建于JVM中的,可以说GC日志是对GC活动最有用和最全面的概括. GC日志是事实上的标准,应该作为对垃圾收集器评估和优化的最真实的依据。
 
 
 A garbage collector log is in plain text and can be either printed out by the JVM to standard output or redirected to a file. There are many JVM options related to GC logging. For example, you can log the total time for which the application was stopped before and during each GC event (-XX:+PrintGCApplicationStoppedTime) or expose the information about different reference types being collected (-XX:+PrintReferenceGC).
 
-垃圾收集器的日志在纯文本和JVM可以打印到标准输出或重定向到一个文件中。有许多JVM选项与GC日志记录。例如,你可以登录应用程序的总时间是停止之前和期间每个GC事件(- xx:+ PrintGCApplicationStoppedTime)或公开信息不同的引用类型收集(- xx:+ PrintReferenceGC)。
+GC日志是纯文本格式的,一般是输出到文件之中,当然也可以打印到标准输出。有许多JVM选项来控制GC日志记录。例如,可以记录每次GC事件的持续时间, 以及程序暂停了多久(`-XX:+PrintGCApplicationStoppedTime`) 或者是垃圾回收清理多少引用类型(`-XX:+PrintReferenceGC`)。
 
 
 The minimum that each JVM should be logging can be achieved by specifying the following in your startup scripts:
 
-最低,每个JVM应该记录可以通过指定以下你的启动脚本:
+要记录GC日志,则至少应该在启动脚本设置如下这样的JVM参数:
 
 
 	-XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:<filename>
 
 
 
-
 This will instruct JVM to print every GC event to the log file and add the timestamp of each event to the log. The exact information exposed to the logs varies depending on the GC algorithm used. When using ParallelGC the output should look similar to the following:
 
-这将指示JVM打印每个GC事件日志文件,并将每个事件的时间戳添加到日志中。确切的信息暴露在日志根据GC算法不同.当使用ParallelGC输出应该类似如下:
+这指示JVM需要将所有GC事件打印到日志文件,并将每个事件的时间戳添加到日志中。具体信息根据GC算法不同而不一样. 当使用 ParallelGC 时输出应该类似下面这样:
 
 
 	199.879: [Full GC (Ergonomics) [PSYoungGen: 64000K->63998K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1473386 secs] [Times: user=0.43 sys=0.01, real=0.15 secs]
@@ -323,7 +307,7 @@ This will instruct JVM to print every GC event to the log file and add the times
 
 These different formats are discussed in detail in the chapter “GC Algorithms: Implementations”, so if you are not familiar with the output, please read this chapter first. If you can already interpret the output above, then you are able to deduct that:
 
-这一章中详细讨论这些不同格式“GC算法:实现”,如果你不熟悉输出,请先阅读本章.如果你已经可以解释上面的输出,那么你可以扣除:
+这些不同的格式在章节 “04 GC算法:实现篇” 中详细讨论过了,如果对输出不熟悉, 可以先阅读第4章. 如果解析上面的输出,则可以得知:
 
 
 - The log is extracted around 200 seconds after the JVM was started.
@@ -331,39 +315,58 @@ These different formats are discussed in detail in the chapter “GC Algorithms:
 - The total duration of these pauses was 777 milliseconds, or 99.6% of the total runtime.
 - At the same time, as seen from the old generation capacity and consumption, almost all of the old generation capacity (169,472 kB) remains used (169,318 K) after the GC has repeatedly tried to free up some memory.
 
-——提取日志JVM开始后200秒左右。
-——在780毫秒出现在日志中,JVM为GC停顿了五次(我们扣除6日暂停开始,没有结束的时间戳).所有这些停顿GC暂停。
-——这些停顿的总持续时间是777毫秒,占总数的99.6%运行时。
-——与此同时,从旧的发电能力和消费,几乎所有的老发电能力(169472 kB)仍然使用(169,后318 K)GC一再试图释放一些内存。
+<br/>
+
+- 这部分日志截取自JVM启动后200秒左右。
+- 日志片段中显示, 在780毫秒之内, JVM因为GC停顿了五次(去掉第六次暂停,这样更精确一些). 所有停顿都是 Full GC暂停。
+- 这些停顿的总持续时间是 777毫秒, 占总运行时间的 **99.6%**
+- 与此同时, 可以看到老年代的容量与使用情况, 在GC完成之后几乎所有的老年代空间(`169,472 kB`)仍然被使用(`169,318 K`)。
 
 
 From the output, we can confirm that the application is not performing well in terms of GC. The JVM is almost stalled, with GC eating away more than 99% of the available computing power. And as a result of all this cleaning, almost all the old generation still remains in use, further confirming our suspicions. The example application, being the same as used in the previous jstat section, died in just a few minutes later with the “java.lang.OutOfMemoryError: GC overhead limit exceeded” error, confirming that the problem was severe.
 
-从输出,我们可以证实,应用程序不能正确执行GC。JVM几乎停滞,GC侵蚀超过99%的可用的计算能力.由于所有这些清洗,几乎所有的旧一代仍然在使用,进一步证实了我们的怀疑。示例应用程序,
+
+从输出可以证实, 该应用的GC执行状况非常不好。JVM几乎处于停滞状态, 因为GC侵蚀了超过99%的可用计算时间. 而垃圾回收的结果是, 几乎全部的老年代空间仍然被占用, 这进一步证实了我们的猜测。示例程序和 jstat 小节中是同一个, 几分钟后就挂了, 抛出的也是 “java.lang.OutOfMemoryError: GC overhead limit exceeded” 错误, 确认问题是很严重的.
 
 
 As seen from the example, GC logs are valuable input to reveal symptoms about JVM health in terms of misbehaving garbage collectors. As general guidelines, the following symptoms can quickly be revealed by just looking at GC logs:
 
-从这个例子中,GC日志是有价值的输入显示症状对JVM健康行为不端的垃圾收集器。一般的指导方针,以下症状很快就可以揭示了只是看着GC日志:
+从这个例子中可以看出, GC日志对于显示JVM的GC行为健康状态是很有价值的输入。一般情况下, 通过查看 GC 日志可以很快揭示以下症状:
 
 
 - Too much GC overhead. When the total time for GC pauses is too long, the throughput of the application suffers. The limit is application-specific, but as a general rule anything over 10% already looks suspicious.
 - Excessively long individual pauses. Whenever an individual pause starts taking too long, the latency of the application starts to suffer. When the latency requirements require the transactions in the application to complete under 1,000 ms, for example, you cannot tolerate any GC pauses taking more than 1,000 ms.
 - Old generation consumption at the limits. Whenever the old generation remains close to being fully utilized even after several full GC cycles, you face a situation in which GC becomes the bottleneck, either due to under-provisioning resources or due to a memory leak. This symptom always triggers GC overhead to go through the roof as well.
 
-——太多的GC开销。当总GC暂停时间太长,应用程序的吞吐量受到损害。极限是特定于应用程序的,但作为一般规则已经看上去可疑的10%以上。
-——个人停顿过长。每当一个人停顿太久,开始应用程序的延迟开始受到影响.当延迟需求要求事务应用程序中完成在1000 ms,例如,你不能容忍任何GC暂停服用超过1000毫秒。
-岁的一代消费限制。当老的代仍然接近充分利用即使几个完整的GC周期,你面临的情况GC成为瓶颈,由于资源供给不足或由于内存泄漏。这症状总是触发GC开销飞涨。
+<br/>
+
+- 太多的GC开销。当总的GC暂停时间太长, 系统的吞吐量就会受到损害。具体允许多大比例由特定程序决定,但一般超过 10% 则很可能不太正常。
+ 极个别的暂停时间过长。当某一个人GC停顿太久,则开始影响程序的延迟. 如果延迟需求要求事务在 1,000 ms内完成, 那你肯定不能容忍任何GC暂停超过 1000毫秒。
+- 老年代的使用率超过限制。当老年代空间在 Full GC 之后仍然接近用满, 此时GC就成为瓶颈, 也许是内存太小,或者是内存泄漏。这种症状总是让GC开销飞涨。
 
 
 As we can see, GC logs can give us very detailed information about what is going on inside the JVM in relation to garbage collection. However, for all but the most trivial applications, this results in vast amounts of data, which tend to be difficult to read and interpret by a human being.
 
-我们可以看到,GC日志可以让我们非常详细的信息是怎么回事在JVM的垃圾收集。然而,除了最简单的应用程序,这导致了大量的数据,这往往是由一个人难以阅读和解释。
+我们可以看到,GC日志给出了JVM内部非常详细的GC信息。然而,除了最简单的那些示例程序, 其他情况下都会导致生成大量的数据, 这往往是人工难以阅读和理解的。
+
+
+
+
+
+
+
+##
+##
+##
+##
+
+
+
+
 
 
 ## GCViewer
 
-##GCViewer
 
 
 One way to cope with the information flood in GC logs is to write custom parsers for GC log files to visualize the information. In most cases it would not be a reasonable decision due to the complexity of different GC algorithms that are producing the information. Instead, a good way would be to start with a solution that already exists: GCViewer.
