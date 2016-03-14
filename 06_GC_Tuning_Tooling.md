@@ -434,12 +434,12 @@ More detailed information about GC events can be obtained from the “Event deta
 
 Here you can see a summary of all the important GC events recorded in the logs: minor and major pauses and concurrent, not stop-the-world GC events. In our case, we can see an obvious “winner”, a situation in which full GC events are contributing the most to both throughput and latency, by again confirming the fact that the 3,928 full GC pauses took 634 seconds to complete.
 
-在这里你可以看到所有重要的摘要GC事件记录在日志:轻度和重度停顿和并发,而不是停止一切GC事件。在我们的例子中,我们可以看到一个明显的“赢家”,的情况完整GC事件贡献最吞吐量和延迟,3928年再次确认这一事实完整GC暂停了634秒才能完成。
+在这里可以看到记录在日志所有重要的GC事件汇总: minor 和 major 停顿和并发数, 非 stop-the-world 事件等。在这个示例中,我们可以看到有一个明显的 “winner”, full GC事件影响了最大的吞吐量和延迟, 再次确认了一个事实, 3,928 次 Full GC,暂停了634秒。
 
 
 As seen from the example, GCViewer can quickly visualize symptoms that tell us whether or not the JVM is healthy in terms of misbehaving garbage collectors. As general guidelines, the following symptoms can quickly be revealed, visualizing the behavior of the GC:
 
-从这个例子中,GCViewer快速可视化症状能告诉我们是否JVM健康行为不端的垃圾收集器。一般的指导方针,以下症状可以快速被揭示,可视化GC的行为:
+从这个例子可以看到, GCViewer 能用可视化的方式迅速显示出JVM中的GC行为是否正常。一般来说,可视化信息能迅速揭示以下症状:
 
 
 - Low throughput. When the throughput of the application decreases and falls under a tolerable level, the total time that the application spends doing useful work gets reduced. What is “tolerable” depends on your application and its usage scenario. One rule of thumb says that any value below 90% should draw your attention and may require GC optimization.
@@ -448,14 +448,14 @@ As seen from the example, GCViewer can quickly visualize symptoms that tell us w
 
 <br/>
 
-- 低吞吐量。当应用程序的吞吐量下降,属于可容忍的水平,应用程序花费的总时间做有用的工作得到减少.什么是“容忍”取决于您的应用程序和它的使用场景。一个经验法则说任何值低于90%应该引起你的注意和GC可能需要优化。
-- 个人GC暂停时间过长。每当一个人停顿太久,开始应用程序的延迟开始受到影响.当延迟需求要求事务应用程序中完成在1000 ms,例如,你不能容忍任何GC暂停服用超过1000毫秒。
-- 高堆消费。当老的代仍然接近充分利用甚至几个完整的GC周期之后,你面临的情况应用程序在其局限性,由于资源供给不足或由于内存泄漏。这个症状总是对吞吐量产生重大影响。
+- 低吞吐量。当应用程序的吞吐量下降,低到不能容忍的地步,程序做有用工作的总时间就会大量减少. 具体有多大的 “容忍度”(tolerable) 取决于具体场景。按照经验, 低于 90% 的有效时间就应该注意了,可能GC真的需要好好优化。
+- 单个GC暂停时间过长。只要有一次GC停顿太久,就会影响程序的延迟指标.例如, 当延迟需求指明事务要在1000 ms以内完成, 那么,就不能容忍任何的GC暂停时间超过1000毫秒。
+- 堆内存搞使用率。当老年代的空间占用在 Full GC 之后仍然接近全满, 你面临的情况可能就是程序性能大降, 可能是资源不足或者是内存泄漏。这个症状会对吞吐量产生重大影响。
 
 
 As a general comment – visualizing GC logs is definitely something we recommend. Instead of directly working with lengthy and complex GC logs, you get access to humanly understandable visualization of the very same information.
 
-业界良心 —— 图形化展示 GC日志信息绝对是我们推荐的东西。不用去直接面对冗长而又复杂的GC日志,你可以通过易于理解的图形得知相同的信息。
+业界良心 —— 图形化展示GC日志信息绝对是我们要重磅推荐的。不用去直接面对冗长而又复杂的GC日志,你可以通过易于理解的图形得知相同的信息。
 
 
 
