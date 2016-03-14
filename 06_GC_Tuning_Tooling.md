@@ -353,40 +353,28 @@ As we can see, GC logs can give us very detailed information about what is going
 
 
 
-
-
-##
-##
-##
-##
-
-
-
-
-
-
 ## GCViewer
 
 
 
 One way to cope with the information flood in GC logs is to write custom parsers for GC log files to visualize the information. In most cases it would not be a reasonable decision due to the complexity of different GC algorithms that are producing the information. Instead, a good way would be to start with a solution that already exists: GCViewer.
 
-一个方法来对付洪水的信息GC日志是为GC日志文件编写自定义解析器可视化信息.在大多数情况下,它不会是一个合理的决定,由于不同的GC算法的复杂性产生的信息。而不是,的一个好方法就是从一个已经存在的解决方案:GCViewer。
+有一种方法用来对付庞大的GC日志, 那就是编写自定义解析器, 来将GC日志文件解析为直观易懂的图形信息. 但很多时候这也不是个很好的解决方案, 因为各种GC算法的复杂性导致产生的日志信息并不一样。那么神器来了: [GCViewer](https://github.com/chewiebug/GCViewer)。
 
 
-GCViewer is an open source tool for parsing and analyzing GC log files. The GitHub web page provides a full description of all the presented metrics. In the following we will review the most common way to use this tool.
+[GCViewer](https://github.com/chewiebug/GCViewer) is an open source tool for parsing and analyzing GC log files. The GitHub web page provides a full description of all the presented metrics. In the following we will review the most common way to use this tool.
 
-GCViewer是一个开源工具解析和分析GC日志文件。GitHub web页面提供了一个完整描述所有提出的指标.在下面我们将审查最常见的方式使用这个工具。
+[GCViewer](https://github.com/chewiebug/GCViewer) 是一款开源工具, 专门用来解析和分析GC日志文件。GitHub 页面提供了对各个指标的完整描述信息. 下面我们介绍最常见的使用方式。
 
 
 The first step is to get useful garbage collection log files. They should reflect the usage scenario of your application that you are interested in during this performance optimization session. If your operational department complains that every Friday afternoon, the application slows down, and if you want to verify whether GC is the culprit, there is no point in analyzing GC logs from Monday morning.
 
-第一步是把有用的垃圾收集日志文件。他们应该反映你的应用程序的使用场景,你有兴趣在这个性能优化会话.如果你的操作部门抱怨每星期五下午,应用程序慢下来,如果你想验证是否GC是罪魁祸首,是没有意义的分析GC日志从周一早上。
+第一步是获取有用的GC日志文件。这些日志文件应该能够反映系统在性能优化时的具体场景. 比如运营部门(operational department)抱怨说每周五下午,程序就运行缓慢, 不管GC是不是头号杀手,从周一早上的日志开始分析是没有多少意义的。
 
 
 After you have received the log, you can feed it into GCViewer to see a result similar to the following:
 
-您已经收到了日志之后,可以喂它到GCViewer看到类似下面的结果:
+收到日志文件之后, 可以用 GCViewer 分析,大致会看到类似下面的结果:
 
 
 ![](06_04_gcviewer-screenshot.png)
@@ -396,32 +384,32 @@ After you have received the log, you can feed it into GCViewer to see a result s
 
 The chart area is devoted to the visual representation of GC events. The information available includes the sizes of all memory pools and GC events. In the picture above, only two metrics are visualized: the total used heap is visualized with blue lines and individual GC pause durations with black bars underneath.
 
-图表区域是致力于GC事件的可视化表示。提供的信息包括所有内存池的大小和GC事件。在上面的图片中,只有两个指标可视化:总与蓝线和个人堆可视化使用GC暂停时间和黑条下面。
+Chart 区域是对GC事件的图形化展示。提供的信息包括所有内存池的大小和GC事件。在上面的图片中,只有两个可视化指标: 蓝色线条表示堆内存的使用情况, 黑色的Bar则表示每次GC暂停时间的长短。
 
 
 The first interesting thing that we can see from this picture is the fast growth of memory usage. In just around a minute the total heap consumption reaches almost the maximum heap available. This indicates a problem – almost all the heap is consumed and new allocations cannot proceed, triggering frequent full GC cycles. The application is either leaking memory or set to run with under-provisioned heap size.
 
-第一个有趣的事,从这张图片我们可以看到内存使用量的快速增长。在短短一分钟左右堆总消费量达到几乎最大堆可用.这说明一个问题——几乎所有堆消耗和新的分配不能进行,引发频繁的完整GC周期.应用程序内存泄露或将运行under-provisioned堆大小。
+首先, 从图中我们可以看到,内存的使用量快速增长。仅仅一分钟左右就达到了堆内存的最大可用值. 这说明一个问题 —— 几乎所有堆内存都被消耗, 新的内存分配不能顺利进行, 并引发频繁的 Full GC周期. 程序可能是存在内存泄露,或者是启动时指定的内存空间不足。
 
 
 The next problem visible in the charts is the frequency and duration of GC pauses. We can see that after the initial 30 seconds GC is almost constantly running, with the longest pauses exceeding 1.4 seconds.
 
-下一个问题图表中可见GC暂停的频率和持续时间。我们可以看到,在最初的30秒GC几乎不间断地运行,最长暂停超过1.4秒。
+从图中还可以看出GC暂停的频率和持续时间。可以看到, 在最初的30秒之后, GC几乎不间断地运行,最长的暂停时间超过1.4秒。
 
 
 On the right there is small panel with three tabs. Under the “Summary” tab the most interesting numbers are “Throughput” and “Number of GC pauses”, along with the “Number of full GC pauses”. Throughput shows the portion of the application run time that was devoted to running your application, as opposed to spending time in garbage collection.
 
-在右边有小面板有三个选项卡。在“摘要”选项卡最有趣的数字是“吞吐”和“数量的GC暂停”,以及“完整GC暂停的数量”.吞吐量的显示了部分应用程序运行时用于运行您的应用程序,而不是把时间花在垃圾收集。
+在右边有三个选项卡。“**Summary**(摘要)”选项卡中比较有用的是 “Throughput”(吞吐量) 和 “Number of GC pauses”(GC暂停的次数), 以及“Number of full GC pauses”(Full GC 暂停的次数). 吞吐量显示了有多少CPU时间在运行你的应用程序, 剩余的部分就是花在垃圾收集上的时间。
 
 
 In our example we are facing throughput of 6.28%. This means that 93.72% of the CPU time was spent on GC. It is a clear symptom of the application suffering – instead of spending precious CPU cycles on actual work, it spends most of the time trying to get rid of the garbage.
 
-在我们的示例中我们面临吞吐量的6.28%。这意味着93.72%的CPU时间是花在GC.这是应用程序的一个明确的症状痛苦——而不是实际工作上花费宝贵的CPU周期,它大部分时间试图摆脱垃圾。
+在示例中我们的吞吐量是 **6.28%**。这意味着有 **93.72%** 的CPU时间花在了GC上面. 很明显程序面临一个痛苦的症状 —— 没有把宝贵的CPU时间花在实际工作上, 大部分的时间都是在试图清理垃圾。
 
 
 The next interesting tab is “Pause”:
 
-下一个有趣的选项卡是“暂停”:
+下一个有意思的地方是“**Pause**”(暂停)选项卡:
 
 
 ![](06_05_gviewer-screenshot-pause.png)
@@ -431,12 +419,12 @@ The next interesting tab is “Pause”:
 
 The “Pause” tab exposes the totals, averages, minimum and maximum values of GC pauses, both as a grand total and minor/major pauses separately. Optimizing the application for low latency, this gives the first glimpse of whether or not you are facing pauses that are too long. Again, we can get confirmation that both the accumulated pause duration of 634.59 seconds and the total number of GC pauses of 3,938 is much too high, considering the total runtime of just over 11 minutes.
 
-“暂停”选项卡使总数,平均水平,GC暂停时间的最小值和最大值,既是单独总数和小/大停顿。优化低延迟申请,这给第一眼你是否正面临暂停,太长了。再一次,我们可以确认634年积累的暂停时间.59秒,GC暂停的总数3938多过高,考虑在11分钟的总运行时。
+“Pause” 展示了GC暂停的 汇总信息,平均值,最小值和最大值, 并且将 total 与minor/major 暂停分开统计。如果要优化程序的低延迟, 这可以让你一眼就能判断出暂停时间是否过长了。另外, 我们可以得出明确的信息: 累计的暂停时间是 `634.59` 秒, GC暂停的总次数为 3,938 次, 这在11分钟的总运行时间里面实在是太高了。
 
 
 More detailed information about GC events can be obtained from the “Event details” tab of the main area:
 
-可以获得更详细的信息关于GC事件的“事件详细信息”选项卡主要区域:
+关于GC事件更详细的信息请参考主界面中的 “**Event details**” 标签:
 
 
 ![](06_06_gcviewer-screenshot-eventdetails.png)
@@ -458,19 +446,34 @@ As seen from the example, GCViewer can quickly visualize symptoms that tell us w
 - Excessively long individual GC pauses. Whenever an individual pause starts taking too long, the latency of the application starts to suffer. When the latency requirements require the transactions in the application to complete under 1,000 ms, for example, you cannot tolerate any GC pauses taking more than 1,000 ms.
 - High heap consumption. Whenever the old generation remains close to being fully utilized even after several full GC cycles, you face a situation where the application is at its limits, either due to under-provisioning resources or due to a memory leak. This symptom always has a significant impact on throughput as well.
 
-——低吞吐量。当应用程序的吞吐量下降,属于可容忍的水平,应用程序花费的总时间做有用的工作得到减少.什么是“容忍”取决于您的应用程序和它的使用场景。一个经验法则说任何值低于90%应该引起你的注意和GC可能需要优化。
-——个人GC暂停时间过长。每当一个人停顿太久,开始应用程序的延迟开始受到影响.当延迟需求要求事务应用程序中完成在1000 ms,例如,你不能容忍任何GC暂停服用超过1000毫秒。
-——高堆消费。当老的代仍然接近充分利用甚至几个完整的GC周期之后,你面临的情况应用程序在其局限性,由于资源供给不足或由于内存泄漏。这个症状总是对吞吐量产生重大影响。
+<br/>
+
+- 低吞吐量。当应用程序的吞吐量下降,属于可容忍的水平,应用程序花费的总时间做有用的工作得到减少.什么是“容忍”取决于您的应用程序和它的使用场景。一个经验法则说任何值低于90%应该引起你的注意和GC可能需要优化。
+- 个人GC暂停时间过长。每当一个人停顿太久,开始应用程序的延迟开始受到影响.当延迟需求要求事务应用程序中完成在1000 ms,例如,你不能容忍任何GC暂停服用超过1000毫秒。
+- 高堆消费。当老的代仍然接近充分利用甚至几个完整的GC周期之后,你面临的情况应用程序在其局限性,由于资源供给不足或由于内存泄漏。这个症状总是对吞吐量产生重大影响。
 
 
 As a general comment – visualizing GC logs is definitely something we recommend. Instead of directly working with lengthy and complex GC logs, you get access to humanly understandable visualization of the very same information.
 
-一般的评论——可视化GC日志绝对是我们推荐的东西。而不是直接使用冗长而复杂的GC日志,你获得人类可以理解的同一信息的可视化。
+业界良心 —— 图形化展示 GC日志信息绝对是我们推荐的东西。不用去直接面对冗长而又复杂的GC日志,你可以通过易于理解的图形得知相同的信息。
 
 
-## Profilers
 
-##分析器
+
+
+
+
+
+##
+##
+##
+##
+
+
+
+
+## 分析器(Profilers)
+
 
 
 The next set of tools to introduce is profilers. As opposed to the tools introduced in previous sections, GC-related areas are a subset of the functionality that profilers offer. In this section we focus only on the GC-related functionality of profilers.
