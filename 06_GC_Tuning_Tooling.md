@@ -478,7 +478,7 @@ As a general comment – visualizing GC logs is definitely something we recommen
 
 The next set of tools to introduce is profilers. As opposed to the tools introduced in previous sections, GC-related areas are a subset of the functionality that profilers offer. In this section we focus only on the GC-related functionality of profilers.
 
-下一组工具引入分析器。相对于前面介绍的工具,GC-related区域分析器提供的功能的一个子集.在本节中,我们只关注GC-related分析器的功能。
+下一组要介绍的工具是 分析器(profilers)。相对于前面介绍的工具,GC-related区域分析器提供的功能的一个子集.在本节中,我们只关注GC-related分析器的功能。
 
 
 The chapter starts with a warning – profilers as a tool category tend to be misunderstood and used in situations for which there are better alternatives. There are times when profilers truly shine, for example when detecting CPU hot spots in your application code. But for several other situations there are better alternatives.
@@ -508,7 +508,7 @@ In the following sections we will see three different allocation profilers in ac
 
 #### hprof
 
-####hprof
+#### hprof
 
 
 Bundled with the JDK distribution is hprof profiler. As it is present in all environments, this is the first profiler to be considered when harvesting information.
@@ -570,17 +570,15 @@ Now, knowing that 64.43% of the objects were allocated as integer arrays in the 
 
 #### Java VisualVM
 
-####Java VisualVM
-
 
 JVisualVM makes a second appearance in this chapter. In the first section we ruled JVisualVM out from the list of tools monitoring your JVM for GC behavior, but in this section we will demonstrate its strengths in allocation profiling.
 
-JVisualVM让第二个出现在这一章。在第一部分,我们统治JVisualVM从工具的列表监控JVM GC行为,但在本节中,我们将展示它的优点在分配分析。
+本章中 JVisualVM 第二次出现了。在第一部分,我们在监控 JVM 的GC行为工具中介绍了 JVisualVM, 本节中,我们将展示它在分配分析上的优点。
 
 
 Attaching JVisualVM to your JVM is done via GUI where you can attach the profiler to a running JVM. After attaching the profiler:
 
-将JVisualVM附加到您的JVM是通过GUI,您可以把分析器运行的JVM。后附加性能分析:
+JVisualVM 通过GUI的方式连接并附加到运行的JVM中。连接 profiler 之后 :
 
 
 1. Open the “Profiler” tab and make sure that under the “Settings” checkbox you have enabled “Record allocations stack traces”.
@@ -588,15 +586,17 @@ Attaching JVisualVM to your JVM is done via GUI where you can attach the profile
 1. Let your application run for some time to gather enough information about object allocations.
 1. Click the “Snapshot” button. This will give you a snapshot of the profiling information gathered.
 
-1。打开“分析器”标签,确保在“设置”复选框启用“分配堆栈跟踪记录”。
-1。点击“记忆”按钮开始内存分析。
-1。让你的应用程序运行一段时间收集足够的信息对象分配。
-1。单击“快照”按钮。这将给你的快照收集分析信息。
+<br/>
+
+1. 打开 “Profiler” 标签,确保在 “Settings” 复选框下面启用了 “Record allocations stack traces”(分配堆栈跟踪记录)。
+1. 点击 “Memory” 按钮开始进行内存分析。
+1. 让程序运行一段时间,以收集到关于对象分配的足够信息。
+1. 单击 “Snapshot”(快照) 按钮。可以取得收集到的信息的快照。
 
 
 After completing the steps above, you are exposed to information similar to the following:
 
-完成上面的步骤后,您接触到类似如下信息:
+完成上面的步骤后, 可以得到类似下面这样的信息:
 
 
 ![](06_07_jvisualvm-top-objects.png)
@@ -606,7 +606,7 @@ After completing the steps above, you are exposed to information similar to the 
 
 From the above, we can see the allocations ranked by the number of objects created per class. In the very first line we can see that the vast majority of all objects allocated were int[] arrays. By right-clicking the row you can access all stack traces where those objects were allocated:
 
-从上面,我们可以看到排名分配的每个类创建的对象的数量。在第一线,我们可以看到,绝大多数的所有对象分配是int[]数组.通过右键单击行您可以访问所有堆栈跟踪这些对象被分配:
+上图是按照每个类创建的对象数量来进行排序的。从第一行可以看到,分配的最多的对象是 `int[]` 数组. 右键单击这行就可以看到这些对象都是在哪里分配的:
 
 
 ![](06_08_jvisualvm-allocation-traces.png)
@@ -616,7 +616,7 @@ From the above, we can see the allocations ranked by the number of objects creat
 
 Compared to hprof, JVisualVM makes the information a bit easier to process – for example in the screenshot above you can see that all allocation traces for the int[] are exposed in single view, so you can escape the potentially repetitive process of matching different allocation traces.
 
-hprof相比,JVisualVM让过程更简单的信息——例如在上面的截图中可以看到所有分配int[]的痕迹暴露在单一视图,所以你可以逃避可能重复匹配不同的分配过程的痕迹。
+与 hprof 相比, JVisualVM 让信息更容易处理 —— 例如在上面的截图中可以在一处地方就可以看到所有的int[] 分配信息, 所以在同一个地方分配多次的问题就省心了好多。
 
 
 #### AProf
