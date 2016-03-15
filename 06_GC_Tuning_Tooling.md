@@ -472,13 +472,13 @@ As a general comment – visualizing GC logs is definitely something we recommen
 
 
 
-## 分析器(Profilers)
+## 抽样器(Profilers)
 
 
 
 The next set of tools to introduce is profilers. As opposed to the tools introduced in previous sections, GC-related areas are a subset of the functionality that profilers offer. In this section we focus only on the GC-related functionality of profilers.
 
-下一组要介绍的工具是 分析器(profilers)。相对于前面介绍的工具,GC-related区域分析器提供的功能的一个子集.在本节中,我们只关注GC-related分析器的功能。
+下一组要介绍的工具是 抽样器(profilers)。相对于前面介绍的工具,GC-related区域分析器提供的功能的一个子集.在本节中,我们只关注GC-related分析器的功能。
 
 
 The chapter starts with a warning – profilers as a tool category tend to be misunderstood and used in situations for which there are better alternatives. There are times when profilers truly shine, for example when detecting CPU hot spots in your application code. But for several other situations there are better alternatives.
@@ -588,10 +588,14 @@ JVisualVM 通过GUI的方式连接并附加到运行的JVM中。连接 profiler 
 
 <br/>
 
-1. 打开 “Profiler” 标签,确保在 “Settings” 复选框下面启用了 “Record allocations stack traces”(分配堆栈跟踪记录)。
-1. 点击 “Memory” 按钮开始进行内存分析。
+1. 打开 “工具” --> “选项” 菜单, 点击 **性能分析** 标签, 新增配置, 选择 Profiler 内存, 确保勾选了 “Record allocations stack traces”(记录分配栈跟踪)。
+1. 勾选 “Settings”(设置) 复选框, 在内存设置标签下,修改预设配置。
+1. 点击 “Memory”(内存) 按钮开始进行内存分析。
 1. 让程序运行一段时间,以收集到关于对象分配的足够信息。
-1. 单击 “Snapshot”(快照) 按钮。可以取得收集到的信息的快照。
+1. 单击下面一点的 “Snapshot”(快照) 按钮。可以取得收集到的信息的快照。
+
+
+![](06_07_01_trace.png)
 
 
 After completing the steps above, you are exposed to information similar to the following:
