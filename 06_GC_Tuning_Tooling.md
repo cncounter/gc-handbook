@@ -459,54 +459,54 @@ As a general comment – visualizing GC logs is definitely something we recommen
 
 
 
-
-
-
-
-
-##
-##
-##
-##
-
-
-
-
-## 抽样器(Profilers)
+## 分析器(Profilers)
 
 
 
 The next set of tools to introduce is profilers. As opposed to the tools introduced in previous sections, GC-related areas are a subset of the functionality that profilers offer. In this section we focus only on the GC-related functionality of profilers.
 
-下一组要介绍的工具是 抽样器(profilers)。相对于前面介绍的工具,GC-related区域分析器提供的功能的一个子集.在本节中,我们只关注GC-related分析器的功能。
+下面要介绍的是分析器(profilers,Oracle官方翻译是:抽样器)。相对于前面介绍的工具,GC分析只是分析器的一部分功能.本节我们只关注GC相关的功能。
 
 
 The chapter starts with a warning – profilers as a tool category tend to be misunderstood and used in situations for which there are better alternatives. There are times when profilers truly shine, for example when detecting CPU hot spots in your application code. But for several other situations there are better alternatives.
 
-The个分会——profilers高压警报规范类往往摩洛哥和经济状况(更好的替代办法。在profilers shine并递解时报》,例如,当检测CPU热点在您的应用程序代码。但对于其他情况有更好的选择。
+
+首先警告 —— 分析器往往会被误认为适合所有的情况。有时候分析器确实光芒四射, 例如在检测代码中的CPU热点时。但对于其他情况不一定是最好的方案。
+
 
 
 This also applies to garbage collection tuning. When it comes to detecting whether or not you are suffering from GC-induced latency or throughput issues, you do not really need a profiler. The tools mentioned in previous chapters (jstat or raw/visualized GC logs) are quicker and cheaper ways of detecting whether or not you have anything to worry about in the first place. Especially when gathering data from production deployments, profilers should not be your tool of choice due to the introduced performance overhead.
 
-这也适用于垃圾收集调优。当涉及到检测你是否患有GC-induced延迟或吞吐量问题,你真的不需要一个分析器.在前几章提到的工具(jstat或生/可视化GC日志)更快和更便宜的方法检测你是否有什么需要担心的.特别是当收集数据从生产部署,分析器应该不是你选择的工具由于引入性能开销。
+对GC调优来说也是同样的。当检测是否因GC而导致延迟或吞吐量问题时,并不需要使用分析器. 前面提到的工具( jstat 或 原生/可视化GC日志)都能更快和更好地检测是否需要操心GC. 特别是从生产环境收集数据时, 分析器不应是你选择的工具,因为性能开销很大。
 
 
 But whenever you have verified you indeed need to optimize the impact GC has on your application, profilers do have an important role to play by exposing information about object creation. If you take a step back – GC pauses are triggered by objects not fitting into a particular memory pool. This can only happen when you create objects. And all profilers are capable of tracking object allocations via allocation profiling, giving you information about what actually resides in the memory along with the allocation traces.
 
-但是当你证实你确实需要优化GC对应用程序的影响,分析器有可发挥重要作用,让对象创建的信息.如果你退一步,GC暂停时间是由对象不适合一个特定的内存池。这只会发生在当你创建对象.和所有分析器能够跟踪对象分配通过分配分析,给你信息实际驻留在内存分配的痕迹。
+但当你确定需要对对GC进行优化时, 分析器可以发挥重要的作用, 让对象创建信息一目了然. 就算退一步讲, 导致很多GC暂停的原因不在某个特定内存池中。那也只会发生创建对象时. 所有的分析器都能够跟踪对象分配（通过分配分析）, 根据内存分配的痕迹让你知道实际驻留在内存中的是什么。
 
 
 Allocation profiling gives you information about the places where your application creates the majority of the objects. Exposing the top memory consuming objects and the threads in your application that produce the largest number of objects is the benefit you should be after when using profilers for GC tuning.
 
-分配分析给你信息的地方您的应用程序创建的大多数对象.暴露前内存消耗对象和应用程序中的线程产生最多的对象是好处后你应该当使用分析器为GC调优。
+分配分析能告诉你在什么地方创建了大多数对象. 使用分析器辅助进行GC调优的好处是, 能显示出最消耗内存的是什么类型, 以及生成最多对象的是哪些线程,。
 
 
 In the following sections we will see three different allocation profilers in action: hprof, JVisualVM and AProf. There are plenty more different profilers out there to choose from, both commercial and free solutions, but the functionality and benefits of each are similar to the ones discussed in the following sections.
 
-在下面几节中我们将看到三个不同的分配分析器在行动:hprof,JVisualVM AProf。有很多不同的评测器可供选择,商业和免费的解决方案,但每个类似的功能和好处的在以下部分中讨论。
+下面我们将在实例中介绍三种不同的分配分析器: **hprof**, **JVisualVM** 和 **AProf**。实际上有很多种不同的分析器可供选择, 包括商业的和免费的, 但各自的功能和优点都会在下面的部分中进行讨论。
 
 
-#### hprof
+
+
+
+
+
+
+##
+##
+##
+##
+
+
 
 #### hprof
 
