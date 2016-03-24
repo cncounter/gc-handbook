@@ -609,16 +609,6 @@ Compared to hprof, JVisualVM makes the information a bit easier to process – f
 
 
 
-
-
-
-
-##
-##
-##
-##
-
-
 #### AProf
 
 
