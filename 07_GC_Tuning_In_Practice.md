@@ -9,7 +9,7 @@ This chapter covers several typical performance problems that one may encounter 
 
 
 
-High Allocation Rate
+## High Allocation Rate
 
 
 
@@ -21,14 +21,25 @@ An excessively high allocation rate can mean trouble for your application’s pe
 
 
 
-How to Measure Allocation Rate?
+### How to Measure Allocation Rate?
 
 
 
 One way to measure the allocation rate is to turn on GC logging by specifying -XX:+PrintGCDetails -XX:+PrintGCTimeStamps flags for the JVM. The JVM now starts logging the GC pauses similar to the following:
-0.291: [GC (Allocation Failure) [PSYoungGen: 33280K->5088K(38400K)] 33280K->24360K(125952K), 0.0365286 secs] [Times: user=0.11 sys=0.02, real=0.04 secs] 
-0.446: [GC (Allocation Failure) [PSYoungGen: 38368K->5120K(71680K)] 57640K->46240K(159232K), 0.0456796 secs] [Times: user=0.15 sys=0.02, real=0.04 secs] 
-0.829: [GC (Allocation Failure) [PSYoungGen: 71680K->5120K(71680K)] 112800K->81912K(159232K), 0.0861795 secs] [Times: user=0.23 sys=0.03, real=0.09 secs]
+
+
+	0.291: [GC (Allocation Failure) 
+			[PSYoungGen: 33280K->5088K(38400K)] 
+			33280K->24360K(125952K), 0.0365286 secs] 
+		[Times: user=0.11 sys=0.02, real=0.04 secs] 
+	0.446: [GC (Allocation Failure) 
+			[PSYoungGen: 38368K->5120K(71680K)] 
+			57640K->46240K(159232K), 0.0456796 secs] 
+		[Times: user=0.15 sys=0.02, real=0.04 secs] 
+	0.829: [GC (Allocation Failure) 
+			[PSYoungGen: 71680K->5120K(71680K)] 
+			112800K->81912K(159232K), 0.0861795 secs] 
+		[Times: user=0.23 sys=0.03, real=0.09 secs]
 
 
 
@@ -36,15 +47,9 @@ From the GC log above, we can calculate the allocation rate as the difference be
 
 
 
-At 291 ms after the JVM was launched, 33,280 K of objects were created. The first minor GC event cleaned the young generation, after which there were 5,088 K of objects in the young generation left.
-
-
-
-At 446 ms after launch, the young generation occupancy had grown to 38,368 K, triggering the next GC, which managed to reduce the young generation occupancy to 5,120 K.
-
-
-
-At 829 ms after the launch, the size of the young generation was 71,680 K and the GC reduced it again to 5,120 K.
+- At 291 ms after the JVM was launched, 33,280 K of objects were created. The first minor GC event cleaned the young generation, after which there were 5,088 K of objects in the young generation left.
+- At 446 ms after launch, the young generation occupancy had grown to 38,368 K, triggering the next GC, which managed to reduce the young generation occupancy to 5,120 K.
+- At 829 ms after the launch, the size of the young generation was 71,680 K and the GC reduced it again to 5,120 K.
 
 
 
@@ -52,14 +57,52 @@ This data can then be expressed in the following table calculating the allocatio
 
 
 
-Event	Time	Young before	Young after	Allocated during	Allocation rate
-1st GC	291ms	33,280KB	5,088KB	33,280KB	114MB/sec
-2nd GC	446ms	38,368KB	5,120KB	33,280KB	215MB/sec
-3rd GC	829ms	71,680KB	5,120KB	66,560KB	174MB/sec
-
-
-
-Total	829ms	N/A	N/A	133,120KB	161MB/sec
+<table class="data compact">
+<thead>
+<tr>
+<th><strong>Event</strong></th>
+<th><strong>Time</strong></th>
+<th><strong>Young before</strong></th>
+<th><strong>Young after</strong></th>
+<th><strong>Allocated during</strong></th>
+<th><strong>Allocation rate</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1st GC</td>
+<td>291ms</td>
+<td>33,280KB</td>
+<td>5,088KB</td>
+<td>33,280KB</td>
+<td><strong>114MB/sec</strong></td>
+</tr>
+<tr>
+<td>2nd GC</td>
+<td>446ms</td>
+<td>38,368KB</td>
+<td>5,120KB</td>
+<td>33,280KB</td>
+<td><strong>215MB/sec</strong></td>
+</tr>
+<tr>
+<td>3rd GC</td>
+<td>829ms</td>
+<td>71,680KB</td>
+<td>5,120KB</td>
+<td>66,560KB</td>
+<td><strong>174MB/sec</strong></td>
+</tr>
+<tr>
+<td>Total</td>
+<td>829ms</td>
+<td>N/A</td>
+<td>N/A</td>
+<td>133,120KB</td>
+<td><strong>161MB/sec</strong></td>
+</tr>
+</tbody>
+</table>
 
 
 
@@ -67,7 +110,7 @@ Having this information allows us to say that this particular piece of software 
 
 
 
-Why Should I Care?
+### Why Should I Care?
 
 
 
@@ -83,11 +126,8 @@ And indeed, when running the same application with different Eden sizes using -X
 
 
 
-Re-running with 100 M of Eden reduces the allocation rate to below 100 MB/sec.
-
-
-
-Increasing Eden size to 1 GB increases the allocation rate to just below 200 MB/sec.
+- Re-running with 100 M of Eden reduces the allocation rate to below 100 MB/sec.
+- Increasing Eden size to 1 GB increases the allocation rate to just below 200 MB/sec.
 
 
 
@@ -99,24 +139,26 @@ Now, before you jump to the conclusion that “bigger Eden is better”, you sho
 
 
 
-Give me an Example
+### Give me an Example
 
 
 
 Meet the demo application. Suppose that it works with an external sensor that provides a number. The application continuously updates the value of the sensor in a dedicated thread (to a random value, in this example), and from other threads sometimes uses the most recent value to do something meaningful with it in the processSensorValue() method:
-public class BoxingFailure {
-  private static volatile Double sensorValue;
 
-  private static void readSensor() {
-    while(true) sensorValue = Math.random();
-  }
 
-  private static void processSensorValue(Double value) {
-    if(value != null) {
-      //...
-    }
-  }
-}
+	public class BoxingFailure {
+	  private static volatile Double sensorValue;
+	
+	  private static void readSensor() {
+	    while(true) sensorValue = Math.random();
+	  }
+	
+	  private static void processSensorValue(Double value) {
+	    if(value != null) {
+	      //...
+	    }
+	  }
+	}
 
 
 
@@ -128,7 +170,7 @@ The demo application is impacted by the GC not keeping up with the allocation ra
 
 
 
-Could my JVMs be Affected?
+### Could my JVMs be Affected?
 
 
 
@@ -137,15 +179,26 @@ First and foremost, you should only be worried if the throughput of your applica
 
 
 When you run into a situation like this, you would be facing a log file similar to the following short snippet extracted from the GC logs of the demo application introduced in the previous section. The application was launched as with the -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m command line arguments:
-2.808: [GC (Allocation Failure) [PSYoungGen: 9760K->32K(10240K)], 0.0003076 secs]
-2.819: [GC (Allocation Failure) [PSYoungGen: 9760K->32K(10240K)], 0.0003079 secs]
-2.830: [GC (Allocation Failure) [PSYoungGen: 9760K->32K(10240K)], 0.0002968 secs]
-2.842: [GC (Allocation Failure) [PSYoungGen: 9760K->32K(10240K)], 0.0003374 secs]
-2.853: [GC (Allocation Failure) [PSYoungGen: 9760K->32K(10240K)], 0.0004672 secs]
-2.864: [GC (Allocation Failure) [PSYoungGen: 9760K->32K(10240K)], 0.0003371 secs]
-2.875: [GC (Allocation Failure) [PSYoungGen: 9760K->32K(10240K)], 0.0003214 secs]
-2.886: [GC (Allocation Failure) [PSYoungGen: 9760K->32K(10240K)], 0.0003374 secs]
-2.896: [GC (Allocation Failure) [PSYoungGen: 9760K->32K(10240K)], 0.0003588 secs]
+
+
+	2.808: [GC (Allocation Failure) 
+			[PSYoungGen: 9760K->32K(10240K)], 0.0003076 secs]
+	2.819: [GC (Allocation Failure) 
+			[PSYoungGen: 9760K->32K(10240K)], 0.0003079 secs]
+	2.830: [GC (Allocation Failure) 
+			[PSYoungGen: 9760K->32K(10240K)], 0.0002968 secs]
+	2.842: [GC (Allocation Failure) 
+			[PSYoungGen: 9760K->32K(10240K)], 0.0003374 secs]
+	2.853: [GC (Allocation Failure) 
+			[PSYoungGen: 9760K->32K(10240K)], 0.0004672 secs]
+	2.864: [GC (Allocation Failure) 
+			[PSYoungGen: 9760K->32K(10240K)], 0.0003371 secs]
+	2.875: [GC (Allocation Failure) 
+			[PSYoungGen: 9760K->32K(10240K)], 0.0003214 secs]
+	2.886: [GC (Allocation Failure) 
+			[PSYoungGen: 9760K->32K(10240K)], 0.0003374 secs]
+	2.896: [GC (Allocation Failure) 
+			[PSYoungGen: 9760K->32K(10240K)], 0.0003588 secs]
 
 
 
@@ -153,7 +206,7 @@ What should immediately grab your attention is the frequency of minor GC events.
 
 
 
-What is the Solution?
+### What is the Solution?
 
 
 
@@ -162,10 +215,16 @@ In some cases, reducing the impact of high allocation rates can be as easy as in
 
 
 The result is visible when we run the very same demo application with increased heap size and, with it, the young generation size, by using the -Xmx64m parameter:
-2.808: [GC (Allocation Failure) [PSYoungGen: 20512K->32K(20992K)], 0.0003748 secs]
-2.831: [GC (Allocation Failure) [PSYoungGen: 20512K->32K(20992K)], 0.0004538 secs]
-2.855: [GC (Allocation Failure) [PSYoungGen: 20512K->32K(20992K)], 0.0003355 secs]
-2.879: [GC (Allocation Failure) [PSYoungGen: 20512K->32K(20992K)], 0.0005592 secs]
+
+
+	2.808: [GC (Allocation Failure) 
+			[PSYoungGen: 20512K->32K(20992K)], 0.0003748 secs]
+	2.831: [GC (Allocation Failure) 
+			[PSYoungGen: 20512K->32K(20992K)], 0.0004538 secs]
+	2.855: [GC (Allocation Failure) 
+			[PSYoungGen: 20512K->32K(20992K)], 0.0003355 secs]
+	2.879: [GC (Allocation Failure) 
+			[PSYoungGen: 20512K->32K(20992K)], 0.0005592 secs]
 
 
 
@@ -177,7 +236,7 @@ The simple change (diff) will, in the demo application, almost completely remove
 
 
 
-Premature Promotion
+## Premature Promotion
 
 
 
@@ -193,14 +252,25 @@ Cleaning these short-lived objects now becomes a job for major GC, which is not 
 
 
 
-How to Measure Promotion Rate
+### How to Measure Promotion Rate
 
 
 
 One of the ways you can measure the promotion rate is to turn on GC logging by specifying -XX:+PrintGCDetails -XX:+PrintGCTimeStamps flags for the JVM. The JVM now starts logging the GC pauses just like in the following snippet:
-0.291: [GC (Allocation Failure) [PSYoungGen: 33280K->5088K(38400K)] 33280K->24360K(125952K), 0.0365286 secs] [Times: user=0.11 sys=0.02, real=0.04 secs] 
-0.446: [GC (Allocation Failure) [PSYoungGen: 38368K->5120K(71680K)] 57640K->46240K(159232K), 0.0456796 secs] [Times: user=0.15 sys=0.02, real=0.04 secs] 
-0.829: [GC (Allocation Failure) [PSYoungGen: 71680K->5120K(71680K)] 112800K->81912K(159232K), 0.0861795 secs] [Times: user=0.23 sys=0.03, real=0.09 secs]
+
+
+	0.291: [GC (Allocation Failure) 
+			[PSYoungGen: 33280K->5088K(38400K)] 
+			33280K->24360K(125952K), 0.0365286 secs] 
+		[Times: user=0.11 sys=0.02, real=0.04 secs] 
+	0.446: [GC (Allocation Failure) 
+			[PSYoungGen: 38368K->5120K(71680K)] 
+			57640K->46240K(159232K), 0.0456796 secs] 
+		[Times: user=0.15 sys=0.02, real=0.04 secs] 
+	0.829: [GC (Allocation Failure) 
+			[PSYoungGen: 71680K->5120K(71680K)] 
+			112800K->81912K(159232K), 0.0861795 secs] 
+		[Times: user=0.23 sys=0.03, real=0.09 secs]
 
 
 
@@ -208,14 +278,55 @@ From the above we can extract the size of the young Generation and the total hea
 
 
 
-Event	Time	Young decreased	Total decreased	Promoted	Promotion rate
-1st GC	291ms	28,192K	8,920K	19,272K	66.2 MB/sec
-2nd GC	446ms	33,248K	11,400K	21,848K	140.95 MB/sec
-3rd GC	829ms	66,560K	30,888K	35,672K	93.14 MB/sec
+<table class="data compact">
+<thead>
+<tr>
+<th><strong>Event</strong></th>
+<th><strong>Time</strong></th>
+<th><strong>Young decreased</strong></th>
+<th><strong>Total decreased</strong></th>
+<th><strong>Promoted</strong></th>
+<th><strong>Promotion rate</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1st GC</td>
+<td>291ms</td>
+<td>28,192K</td>
+<td>8,920K</td>
+<td>19,272K</td>
+<td><strong>66.2 MB/sec</strong></td>
+</tr>
+<tr>
+<td>2nd GC</td>
+<td>446ms</td>
+<td>33,248K</td>
+<td>11,400K</td>
+<td>21,848K</td>
+<td><strong>140.95 MB/sec</strong></td>
+</tr>
+<tr>
+<td>3rd GC</td>
+<td>829ms</td>
+<td>66,560K</td>
+<td>30,888K</td>
+<td>35,672K</td>
+<td><strong>93.14 MB/sec</strong></td>
+</tr>
+<tr>
+<td>Total</td>
+<td>829ms</td>
+<td></td>
+<td></td>
+<td>76,792K</td>
+<td><strong>92.63 MB/sec</strong></td>
+</tr>
+</tbody>
+</table>
 
 
 
-Total	829ms			76,792K	92.63 MB/sec
 will allow us to extract the promotion rate for the measured period. We can see that on average the promotion rate was 92 MB/sec, peaking at 140.95 MB/sec for a while.
 
 
@@ -224,7 +335,7 @@ Notice that you can extract this information only from minor GC pauses. Full GC 
 
 
 
-Why Should I Care?
+### Why Should I Care?
 
 
 
@@ -242,24 +353,27 @@ As we have shown in earlier chapters, full garbage collections typically require
 
 
 
-Give me an Example
+### Give me an Example
 
 
 
 Let us look at a demo application suffering from premature promotion. This app obtains chunks of data, accumulates them, and, when a sufficient number is reached, processes the whole batch at once:
-public class PrematurePromotion {
 
-   private static final Collection<byte[]> accumulatedChunks = new ArrayList<>();
 
-   private static void onNewChunk(byte[] bytes) {
-       accumulatedChunks.add(bytes);
-
-       if(accumulatedChunks.size() > MAX_CHUNKS) {
-           processBatch(accumulatedChunks);
-           accumulatedChunks.clear();
-       }
-   }
-}
+	public class PrematurePromotion {
+	
+	   private static final Collection<byte[]> accumulatedChunks 
+					= new ArrayList<>();
+	
+	   private static void onNewChunk(byte[] bytes) {
+	       accumulatedChunks.add(bytes);
+	
+	       if(accumulatedChunks.size() > MAX_CHUNKS) {
+	           processBatch(accumulatedChunks);
+	           accumulatedChunks.clear();
+	       }
+	   }
+	}
 
 
 
@@ -267,7 +381,7 @@ The demo application is impacted by premature promotion by the GC. The ways to v
 
 
 
-Could my JVMs be Affected?
+### Could my JVMs be Affected?
 
 
 
@@ -275,23 +389,31 @@ In general, the symptoms of premature promotion can take any of the following fo
 
 
 
-The application goes through frequent full GC runs over a short period of time.
-
-
-
-The old generation consumption after each full GC is low, often under 10-20% of the total size of the old generation.
-
-
-
-Facing the promotion rate approaching the allocation rate.
+- The application goes through frequent full GC runs over a short period of time.
+- The old generation consumption after each full GC is low, often under 10-20% of the total size of the old generation.
+- Facing the promotion rate approaching the allocation rate.
 
 
 
 Showcasing this in a short and easy-to-understand demo application is a bit tricky, so we will cheat a little by making the objects tenure to the old generation a bit earlier than it happens by default. If we ran the demo with a specific set of GC parameters (-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1), we would see this in the garbage collection logs:
-2.176: [Full GC (Ergonomics) [PSYoungGen: 9216K->0K(10752K)] [ParOldGen: 10020K->9042K(12288K)] 19236K->9042K(23040K), 0.0036840 secs]
-2.394: [Full GC (Ergonomics) [PSYoungGen: 9216K->0K(10752K)] [ParOldGen: 9042K->8064K(12288K)] 18258K->8064K(23040K), 0.0032855 secs]
-2.611: [Full GC (Ergonomics) [PSYoungGen: 9216K->0K(10752K)] [ParOldGen: 8064K->7085K(12288K)] 17280K->7085K(23040K), 0.0031675 secs]
-2.817: [Full GC (Ergonomics) [PSYoungGen: 9216K->0K(10752K)] [ParOldGen: 7085K->6107K(12288K)] 16301K->6107K(23040K), 0.0030652 secs]
+
+
+	2.176: [Full GC (Ergonomics) 
+			[PSYoungGen: 9216K->0K(10752K)] 
+			[ParOldGen: 10020K->9042K(12288K)] 
+			19236K->9042K(23040K), 0.0036840 secs]
+	2.394: [Full GC (Ergonomics) 
+			[PSYoungGen: 9216K->0K(10752K)] 
+			[ParOldGen: 9042K->8064K(12288K)] 
+			18258K->8064K(23040K), 0.0032855 secs]
+	2.611: [Full GC (Ergonomics) 
+			[PSYoungGen: 9216K->0K(10752K)] 
+			[ParOldGen: 8064K->7085K(12288K)] 
+			17280K->7085K(23040K), 0.0031675 secs]
+	2.817: [Full GC (Ergonomics) 
+			[PSYoungGen: 9216K->0K(10752K)] 
+			[ParOldGen: 7085K->6107K(12288K)] 
+			16301K->6107K(23040K), 0.0030652 secs]
 
 
 
@@ -303,13 +425,19 @@ There is a simple explanation for this GC behavior: while many objects are being
 
 
 
-What is the Solution?
+### What is the Solution?
 
 
 
 In a nutshell, to fix this problem, we would need to make the buffered data fit into the young generation. There are two simple approaches for doing this. The first is to increase the young generation size by using -Xmx64m -XX:NewSize=32m parameters at JVM startup. Running the application with this change in configuration will make Full GC events much less frequent, while barely affecting the duration of minor collections:
-2.251: [GC (Allocation Failure) [PSYoungGen: 28672K->3872K(28672K)] 37126K->12358K(61440K), 0.0008543 secs]
-2.776: [GC (Allocation Failure) [PSYoungGen: 28448K->4096K(28672K)] 36934K->16974K(61440K), 0.0033022 secs]
+
+
+	2.251: [GC (Allocation Failure) 
+			[PSYoungGen: 28672K->3872K(28672K)] 
+			37126K->12358K(61440K), 0.0008543 secs]
+	2.776: [GC (Allocation Failure) 
+			[PSYoungGen: 28448K->4096K(28672K)] 
+			36934K->16974K(61440K), 0.0033022 secs]
 
 
 
@@ -321,7 +449,7 @@ If neither is a viable option, then perhaps data structures can be optimized to 
 
 
 
-Weak, Soft and Phantom References
+## Weak, Soft and Phantom References
 
 
 
@@ -329,7 +457,7 @@ Another class of issues affecting GC is linked to the use of non-strong referenc
 
 
 
-Why Should I Care?
+## Why Should I Care?
 
 
 
@@ -370,41 +498,47 @@ That is right, we have to manually clear() up phantom references or risk facing 
 
 
 
-Give me an Example
+## Give me an Example
 
 
 
 Let us take a look at another demo application that allocates a lot of objects, which are successfully reclaimed during minor garbage collections. Bearing in mind the trick of altering the tenuring threshold from the previous section on promotion rate, we could run this application with -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1 and see this in GC logs:
-2.330: [GC (Allocation Failure)  20933K->8229K(22528K), 0.0033848 secs]
-2.335: [GC (Allocation Failure)  20517K->7813K(22528K), 0.0022426 secs]
-2.339: [GC (Allocation Failure)  20101K->7429K(22528K), 0.0010920 secs]
-2.341: [GC (Allocation Failure)  19717K->9157K(22528K), 0.0056285 secs]
-2.348: [GC (Allocation Failure)  21445K->8997K(22528K), 0.0041313 secs]
-2.354: [GC (Allocation Failure)  21285K->8581K(22528K), 0.0033737 secs]
-2.359: [GC (Allocation Failure)  20869K->8197K(22528K), 0.0023407 secs]
-2.362: [GC (Allocation Failure)  20485K->7845K(22528K), 0.0011553 secs]
-2.365: [GC (Allocation Failure)  20133K->9501K(22528K), 0.0060705 secs]
-2.371: [Full GC (Ergonomics)  9501K->2987K(22528K), 0.0171452 secs]
+
+
+	2.330: [GC (Allocation Failure)  20933K->8229K(22528K), 0.0033848 secs]
+	2.335: [GC (Allocation Failure)  20517K->7813K(22528K), 0.0022426 secs]
+	2.339: [GC (Allocation Failure)  20101K->7429K(22528K), 0.0010920 secs]
+	2.341: [GC (Allocation Failure)  19717K->9157K(22528K), 0.0056285 secs]
+	2.348: [GC (Allocation Failure)  21445K->8997K(22528K), 0.0041313 secs]
+	2.354: [GC (Allocation Failure)  21285K->8581K(22528K), 0.0033737 secs]
+	2.359: [GC (Allocation Failure)  20869K->8197K(22528K), 0.0023407 secs]
+	2.362: [GC (Allocation Failure)  20485K->7845K(22528K), 0.0011553 secs]
+	2.365: [GC (Allocation Failure)  20133K->9501K(22528K), 0.0060705 secs]
+	2.371: [Full GC (Ergonomics)  9501K->2987K(22528K), 0.0171452 secs]
 
 
 
 Full collections are quite rare in this case. However, if the application also starts creating weak references (-Dweak.refs=true) to these created objects, the situation may change drastically. There may be many reasons to do this, starting from using the object as keys in a weak hash map and ending with allocation profiling. In any case, making use of weak references here may lead to this:
-2.059: [Full GC (Ergonomics)  20365K->19611K(22528K), 0.0654090 secs]
-2.125: [Full GC (Ergonomics)  20365K->19711K(22528K), 0.0707499 secs]
-2.196: [Full GC (Ergonomics)  20365K->19798K(22528K), 0.0717052 secs]
-2.268: [Full GC (Ergonomics)  20365K->19873K(22528K), 0.0686290 secs]
-2.337: [Full GC (Ergonomics)  20365K->19939K(22528K), 0.0702009 secs]
-2.407: [Full GC (Ergonomics)  20365K->19995K(22528K), 0.0694095 secs]
+
+
+	2.059: [Full GC (Ergonomics)  20365K->19611K(22528K), 0.0654090 secs]
+	2.125: [Full GC (Ergonomics)  20365K->19711K(22528K), 0.0707499 secs]
+	2.196: [Full GC (Ergonomics)  20365K->19798K(22528K), 0.0717052 secs]
+	2.268: [Full GC (Ergonomics)  20365K->19873K(22528K), 0.0686290 secs]
+	2.337: [Full GC (Ergonomics)  20365K->19939K(22528K), 0.0702009 secs]
+	2.407: [Full GC (Ergonomics)  20365K->19995K(22528K), 0.0694095 secs]
 
 
 
 As we can see, there are now many full collections, and the duration of the collections is an order of magnitude longer! Another case of premature promotion, but this time a tad trickier. The root cause, of course, lies with the weak references. Before we added them, the objects created by the application were dying just before being promoted to the old generation. But with the addition, they are now sticking around for an extra GC round so that the appropriate cleanup can be done on them. Like before, a simple solution would be to increase the size of the young generation by specifying -Xmx64m -XX:NewSize=32m:
-2.328: [GC (Allocation Failure)  38940K->13596K(61440K), 0.0012818 secs]
-2.332: [GC (Allocation Failure)  38172K->14812K(61440K), 0.0060333 secs]
-2.341: [GC (Allocation Failure)  39388K->13948K(61440K), 0.0029427 secs]
-2.347: [GC (Allocation Failure)  38524K->15228K(61440K), 0.0101199 secs]
-2.361: [GC (Allocation Failure)  39804K->14428K(61440K), 0.0040940 secs]
-2.368: [GC (Allocation Failure)  39004K->13532K(61440K), 0.0012451 secs]
+
+
+	2.328: [GC (Allocation Failure)  38940K->13596K(61440K), 0.0012818 secs]
+	2.332: [GC (Allocation Failure)  38172K->14812K(61440K), 0.0060333 secs]
+	2.341: [GC (Allocation Failure)  39388K->13948K(61440K), 0.0029427 secs]
+	2.347: [GC (Allocation Failure)  38524K->15228K(61440K), 0.0101199 secs]
+	2.361: [GC (Allocation Failure)  39804K->14428K(61440K), 0.0040940 secs]
+	2.368: [GC (Allocation Failure)  39004K->13532K(61440K), 0.0012451 secs]
 
 
 
@@ -413,13 +547,15 @@ The objects are now once again reclaimed during minor garbage collection.
 
 
 The situation is even worse when soft references are used as seen in the next demo application. The softly-reachable objects are not reclaimed until the application risks getting an OutOfMemoryError. Replacing weak references with soft references in the demo application immediately surfaces many more Full GC events:
-2.162: [Full GC (Ergonomics)  31561K->12865K(61440K), 0.0181392 secs]
-2.184: [GC (Allocation Failure)  37441K->17585K(61440K), 0.0024479 secs]
-2.189: [GC (Allocation Failure)  42161K->27033K(61440K), 0.0061485 secs]
-2.195: [Full GC (Ergonomics)  27033K->14385K(61440K), 0.0228773 secs]
-2.221: [GC (Allocation Failure)  38961K->20633K(61440K), 0.0030729 secs]
-2.227: [GC (Allocation Failure)  45209K->31609K(61440K), 0.0069772 secs]
-2.234: [Full GC (Ergonomics)  31609K->15905K(61440K), 0.0257689 secs]
+
+
+	2.162: [Full GC (Ergonomics)  31561K->12865K(61440K), 0.0181392 secs]
+	2.184: [GC (Allocation Failure)  37441K->17585K(61440K), 0.0024479 secs]
+	2.189: [GC (Allocation Failure)  42161K->27033K(61440K), 0.0061485 secs]
+	2.195: [Full GC (Ergonomics)  27033K->14385K(61440K), 0.0228773 secs]
+	2.221: [GC (Allocation Failure)  38961K->20633K(61440K), 0.0030729 secs]
+	2.227: [GC (Allocation Failure)  45209K->31609K(61440K), 0.0069772 secs]
+	2.234: [Full GC (Ergonomics)  31609K->15905K(61440K), 0.0257689 secs]
 
 
 
@@ -428,9 +564,11 @@ And the king here is the phantom reference as seen in the third demo application
 
 
 However, adding one flag that disables phantom reference clearing (-Dno.ref.clearing=true) would quickly give us this:
-4.180: [Full GC (Ergonomics)  57343K->57087K(61440K), 0.0879851 secs]
-4.269: [Full GC (Ergonomics)  57089K->57088K(61440K), 0.0973912 secs]
-4.366: [Full GC (Ergonomics)  57091K->57089K(61440K), 0.0948099 secs]
+
+
+	4.180: [Full GC (Ergonomics)  57343K->57087K(61440K), 0.0879851 secs]
+	4.269: [Full GC (Ergonomics)  57089K->57088K(61440K), 0.0973912 secs]
+	4.366: [Full GC (Ergonomics)  57091K->57089K(61440K), 0.0948099 secs]
 
 
 
@@ -442,14 +580,49 @@ One must exercise extreme caution when using phantom references and always clear
 
 
 
-Could my JVMs be Affected?
+### Could my JVMs be Affected?
 
 
 
 As a general recommendation, consider enabling the -XX:+PrintReferenceGC JVM option to see the impact that different references have on garbage collection. If we add this to the application from the WeakReference example, we will see this:
-2.173: [Full GC (Ergonomics) 2.234: [SoftReference, 0 refs, 0.0000151 secs]2.234: [WeakReference, 2648 refs, 0.0001714 secs]2.234: [FinalReference, 1 refs, 0.0000037 secs]2.234: [PhantomReference, 0 refs, 0 refs, 0.0000039 secs]2.234: [JNI Weak Reference, 0.0000027 secs][PSYoungGen: 9216K->8676K(10752K)] [ParOldGen: 12115K->12115K(12288K)] 21331K->20792K(23040K), [Metaspace: 3725K->3725K(1056768K)], 0.0766685 secs] [Times: user=0.49 sys=0.01, real=0.08 secs] 
-2.250: [Full GC (Ergonomics) 2.307: [SoftReference, 0 refs, 0.0000173 secs]2.307: [WeakReference, 2298 refs, 0.0001535 secs]2.307: [FinalReference, 3 refs, 0.0000043 secs]2.307: [PhantomReference, 0 refs, 0 refs, 0.0000042 secs]2.307: [JNI Weak Reference, 0.0000029 secs][PSYoungGen: 9215K->8747K(10752K)] [ParOldGen: 12115K->12115K(12288K)] 21331K->20863K(23040K), [Metaspace: 3725K->3725K(1056768K)], 0.0734832 secs] [Times: user=0.52 sys=0.01, real=0.07 secs] 
-2.323: [Full GC (Ergonomics) 2.383: [SoftReference, 0 refs, 0.0000161 secs]2.383: [WeakReference, 1981 refs, 0.0001292 secs]2.383: [FinalReference, 16 refs, 0.0000049 secs]2.383: [PhantomReference, 0 refs, 0 refs, 0.0000040 secs]2.383: [JNI Weak Reference, 0.0000027 secs][PSYoungGen: 9216K->8809K(10752K)] [ParOldGen: 12115K->12115K(12288K)] 21331K->20925K(23040K), [Metaspace: 3725K->3725K(1056768K)], 0.0738414 secs] [Times: user=0.52 sys=0.01, real=0.08 secs]
+
+
+	2.173: [Full GC (Ergonomics) 
+			2.234: [SoftReference, 0 refs, 0.0000151 secs]
+			2.234: [WeakReference, 2648 refs, 0.0001714 secs]
+			2.234: [FinalReference, 1 refs, 0.0000037 secs]
+			2.234: [PhantomReference, 0 refs, 0 refs, 0.0000039 secs]
+			2.234: [JNI Weak Reference, 0.0000027 secs]
+				[PSYoungGen: 9216K->8676K(10752K)] 
+				[ParOldGen: 12115K->12115K(12288K)] 
+				21331K->20792K(23040K), 
+			[Metaspace: 3725K->3725K(1056768K)], 
+			0.0766685 secs] 
+		[Times: user=0.49 sys=0.01, real=0.08 secs] 
+	2.250: [Full GC (Ergonomics) 
+			2.307: [SoftReference, 0 refs, 0.0000173 secs]
+			2.307: [WeakReference, 2298 refs, 0.0001535 secs]
+			2.307: [FinalReference, 3 refs, 0.0000043 secs]
+			2.307: [PhantomReference, 0 refs, 0 refs, 0.0000042 secs]
+			2.307: [JNI Weak Reference, 0.0000029 secs]
+				[PSYoungGen: 9215K->8747K(10752K)] 
+				[ParOldGen: 12115K->12115K(12288K)] 
+				21331K->20863K(23040K), 
+			[Metaspace: 3725K->3725K(1056768K)], 
+			0.0734832 secs] 
+		[Times: user=0.52 sys=0.01, real=0.07 secs] 
+	2.323: [Full GC (Ergonomics) 
+			2.383: [SoftReference, 0 refs, 0.0000161 secs]
+			2.383: [WeakReference, 1981 refs, 0.0001292 secs]
+			2.383: [FinalReference, 16 refs, 0.0000049 secs]
+			2.383: [PhantomReference, 0 refs, 0 refs, 0.0000040 secs]
+			2.383: [JNI Weak Reference, 0.0000027 secs]
+				[PSYoungGen: 9216K->8809K(10752K)] 
+				[ParOldGen: 12115K->12115K(12288K)] 
+				21331K->20925K(23040K), 
+			[Metaspace: 3725K->3725K(1056768K)], 
+			0.0738414 secs] 
+		[Times: user=0.52 sys=0.01, real=0.08 secs]
 
 
 
@@ -457,7 +630,7 @@ As always, this information should only be analyzed when you have identified tha
 
 
 
-What is the Solution?
+### What is the Solution?
 
 
 
@@ -465,19 +638,13 @@ When you have verified the application actually is suffering from the mis-, ab- 
 
 
 
-Weak references – if the problem is triggered by increased consumption of a specific memory pool, an increase in the corresponding pool (and possibly the total heap along with it) can help you out. As seen in the example section, increasing the total heap and young generation sizes alleviated the pain.
+- Weak references – if the problem is triggered by increased consumption of a specific memory pool, an increase in the corresponding pool (and possibly the total heap along with it) can help you out. As seen in the example section, increasing the total heap and young generation sizes alleviated the pain.
+- Phantom references – make sure you are actually clearing the references. It is easy to dismiss certain corner cases and have the clearing thread to not being able to keep up with the pace the queue is filled or to stop clearing the queue altogether, putting a lot of pressure to GC and creating a risk of ending up with an OutOfMemoryError.
+- Soft references – when soft references are identified as the source of the problem, the only real way to alleviate the pressure is to change the application’s intrinsic logic.
 
 
 
-Phantom references – make sure you are actually clearing the references. It is easy to dismiss certain corner cases and have the clearing thread to not being able to keep up with the pace the queue is filled or to stop clearing the queue altogether, putting a lot of pressure to GC and creating a risk of ending up with an OutOfMemoryError.
-
-
-
-Soft references – when soft references are identified as the source of the problem, the only real way to alleviate the pressure is to change the application’s intrinsic logic.
-
-
-
-Other Examples
+## Other Examples
 
 
 
@@ -485,7 +652,7 @@ Previous chapters covered the most common problems related to poorly behaving GC
 
 
 
-RMI & GC
+### RMI & GC
 
 
 
@@ -502,7 +669,10 @@ This behavior of removing remote references via System.gc() is triggered by the 
 
 
 For many applications, this is not necessary or outright harmful. To disable such periodic GC runs, you can set up the following for your JVM startup scripts:
-java -Dsun.rmi.dgc.server.gcInterval=9223372036854775807L -Dsun.rmi.dgc.client.gcInterval=9223372036854775807L com.yourcompany.YourApplication
+
+	java -Dsun.rmi.dgc.server.gcInterval=9223372036854775807L 
+		-Dsun.rmi.dgc.client.gcInterval=9223372036854775807L 
+		com.yourcompany.YourApplication
 
 
 
@@ -514,7 +684,7 @@ An alternative solution for the problem would to disable explicit calls to Syste
 
 
 
-JVMTI tagging & GC
+### JVMTI tagging & GC
 
 
 
@@ -538,7 +708,7 @@ If you are not the author of the agent yourself, fixing the problem is often out
 
 
 
-Humongous Allocations
+### Humongous Allocations
 
 
 
@@ -550,24 +720,49 @@ Having frequent humongous allocations can trigger GC performance issues, conside
 
 
 
-If the regions contain humongous objects, space between the last humongous object in the region and the end of the region will be unused. If all the humongous objects are just a bit larger than a factor of the region size, this unused space can cause the heap to become fragmented.
-
-
-
-Collection of the humongous objects is not as optimized by the G1 as with regular objects. It was especially troublesome with early Java 8 releases – until Java 1.8u40 the reclamation of humongous regions was only done during full GC events. More recent releases of the Hotspot JVM free the humongous regions at the end of the marking cycle during the cleanup phase, so the impact of the issue has been reduced significantly for newer JVMs.
+- If the regions contain humongous objects, space between the last humongous object in the region and the end of the region will be unused. If all the humongous objects are just a bit larger than a factor of the region size, this unused space can cause the heap to become fragmented.
+- Collection of the humongous objects is not as optimized by the G1 as with regular objects. It was especially troublesome with early Java 8 releases – until Java 1.8u40 the reclamation of humongous regions was only done during full GC events. More recent releases of the Hotspot JVM free the humongous regions at the end of the marking cycle during the cleanup phase, so the impact of the issue has been reduced significantly for newer JVMs.
 
 
 
 To check whether or not your application is allocating objects in humongous regions, the first step would be to turn on GC logs similar to the following:
-java -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintReferenceGC -XX:+UseG1GC -XX:+PrintAdaptiveSizePolicy -Xmx128m MyClass
+
+	java -XX:+PrintGCDetails -XX:+PrintGCTimeStamps 
+		-XX:+PrintReferenceGC -XX:+UseG1GC 
+		-XX:+PrintAdaptiveSizePolicy -Xmx128m 
+		MyClass
 
 
 
 Now, when you check the logs and discover sections like these:
- 0.106: [G1Ergonomics (Concurrent Cycles) request concurrent cycle initiation, reason: occupancy higher than threshold, occupancy: 60817408 bytes, allocation request: 1048592 bytes, threshold: 60397965 bytes (45.00 %), source: concurrent humongous allocation]
- 0.106: [G1Ergonomics (Concurrent Cycles) request concurrent cycle initiation, reason: requested by GC cause, GC cause: G1 Humongous Allocation]
- 0.106: [G1Ergonomics (Concurrent Cycles) initiate concurrent cycle, reason: concurrent cycle initiation requested]
- 0.106: [GC pause (G1 Humongous Allocation) (young) (initial-mark) 0.106: [G1Ergonomics (CSet Construction) start choosing CSet, _pending_cards: 0, predicted base time: 10.00 ms, remaining time: 190.00 ms, target pause time: 200.00 ms]
+
+
+
+	 0.106: [G1Ergonomics (Concurrent Cycles) 
+			request concurrent cycle initiation, 
+			reason: occupancy higher than threshold, 
+			occupancy: 60817408 bytes, 
+			allocation request: 1048592 bytes, 
+			threshold: 60397965 bytes (45.00 %), 
+			source: concurrent humongous allocation]
+	 0.106: [G1Ergonomics (Concurrent Cycles) 
+			request concurrent cycle initiation, 
+			reason: requested by GC cause, 
+			GC cause: G1 Humongous Allocation]
+	 0.106: [G1Ergonomics (Concurrent Cycles) 
+			initiate concurrent cycle, 
+			reason: concurrent cycle initiation requested]
+	 0.106: [GC pause (G1 Humongous Allocation) 
+			(young) (initial-mark) 
+			0.106: [G1Ergonomics (CSet Construction) 
+				start choosing CSet, 
+				_pending_cards: 0, 
+				predicted base 
+				time: 10.00 ms, 
+				remaining time: 190.00 ms, 
+				target pause time: 200.00 ms]
+
+
 you have evidence that the application is indeed allocating humongous objects. The evidence is visible in the cause for a GC pause being identified as G1 Humongous Allocation and in the “allocation request: 1048592 bytes” section, where we can see that the application is trying to allocate an object with the size of 1,048,592 bytes, which is 16 bytes larger than the 50% of the 2 MB size of the humongous region specified for the JVM.
 
 
@@ -584,7 +779,7 @@ A more time-consuming but potentially better solution would be to understand whe
 
 
 
-Conclusion
+### Conclusion
 
 
 
