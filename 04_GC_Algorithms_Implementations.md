@@ -1,21 +1,20 @@
 # 4. GC 算法(实现篇)
 
-# 4. GC algorithm (implementation)
 
 
 Now that we have reviewed the core concepts behind GC algorithms, let us move to the specific implementations one can find inside the JVM. An important aspect to recognize first is the fact that, for most JVMs out there, two different GC algorithms are needed – one to clean the Young Generation and another to clean the Old Generation.
 
-既然我们已经回顾了GC算法背后的核心概念,让我们搬到JVM内部的人可以找到特定实现。先识别是一个重要方面,对于大多数的jvm,需要两个不同的GC算法——一个干净的年轻一代,另一个干净的旧一代。
+复习了GC算法相关的概念之后, 我们一起来看看JVM中的具体实现。首先要有一个很重要的认识,对于大多数JVM来说,都需要两种不同的GC算法 —— 一种用于清理年轻代, 另一种用于清理老年代。
 
 
 You can choose from a variety of such algorithms bundled into the JVM. If you do not specify a garbage collection algorithm explicitly, a platform-specific default will be used. In this chapter, the working principles of each of those algorithms will be explained.
 
-你可以选择从各种算法捆绑到JVM。如果你不指定一个显式的垃圾收集算法,将使用特定于平台的违约。在这一章,将每一个算法的工作原理解释道。
+我们可以从JVM集成的各种算法中进行选择。如果不显式地指定垃圾收集算法, 则会使用特定于平台的默认实现。在本章中,将会介绍每一种算法的实现原理。
 
 
 For a quick cheat sheet, the following list is a fast way to get yourself up to speed with which algorithm combinations are possible. Note that this stands true for Java 8, for older Java versions the available combinations might differ a bit:
 
-小抄,下面的列表是一个快速的方式让自己的速度算法组合都是可能的。请注意,这是适用于Java 8,对旧的Java版本可用的组合可能会有点不同:
+下面是一个快速概览的列表,显示了各种可能的组合方式。但请注意,这是Java 8中的列表,对于旧的Java版本来说,可用的组合可能会有一些不同:
 
 
 <table>
@@ -28,7 +27,7 @@ For a quick cheat sheet, the following list is a fast way to get yourself up to 
 	</thead>
 	<tbody>
 		<tr>
-			<td>Incremental</td>
+			<td>Incremental(增量GC)</td>
 			<td>Incremental</td>
 			<td>-Xincgc</td>
 		</tr>
@@ -89,7 +88,7 @@ For a quick cheat sheet, the following list is a fast way to get yourself up to 
 
 If the above looks too complex, do not worry. In reality it all boils down to just four combinations highlighted in the table above. The rest are either deprecated, not supported or just impractical to apply in real world. So, in the following chapters we cover the working principles of the following combinations:
 
-如果上述看起来太复杂,不要担心。在现实中这一切都归结为四个组合突出显示在上面的表中。其余的要么是弃用,不支持或者只是不切实际的适用于现实世界。所以,在接下来的章节我们覆盖以下组合的工作原理:
+如果看起来太复杂,不要担心。实际使用的主要是上表中黑体字显示的这四种组合。其余的要么是弃用(deprecated),要么是不支持或者是不适用于生产环境。所以,接下来我们只介绍下面这些组合以及工作原理:
 
 
 - Serial GC for both the Young and Old generations
@@ -97,10 +96,12 @@ If the above looks too complex, do not worry. In reality it all boils down to ju
 - Parallel New for Young + Concurrent Mark and Sweep (CMS) for the Old Generation
 - G1, which encompasses collection of both Young and Old generations
 
-- 串行GC的年轻和年老代
-- 年轻和年老一代并行GC
-- 并行新的年轻+并发标记和清扫(CMS)的一代
-- G1,包括老少两代的集合
+<br/>
+
+- 年轻代和老年代的串行GC(Serial GC)
+- 年轻代和老年代的并行GC(Parallel GC)
+- 年轻代的并行GC() + 老年代的CMS(Concurrent Mark and Sweep)
+- G1, 包括年轻代和老年代的集合
 
 
 
