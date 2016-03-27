@@ -1,29 +1,26 @@
 # 7. GC 调优(实战篇)
 
-# 7. The GC tuning (real)
-
 
 This chapter covers several typical performance problems that one may encounter with garbage collection. The examples given here are derived from real applications, but are simplified for the sake of clarity.
 
-这一章介绍了几种典型垃圾收集的一个可能会遇到性能问题。这里给出的示例来自真实的应用程序中,但简化为了清晰。
+本章介绍几种垃圾收集可能导致的典型的性能问题。其中的示例都来自于真实的应用,但做了一定的简化处理。
 
 
-## High Allocation Rate
-
-## 分配率高
+## 高分配率(High Allocation Rate)
 
 
 Allocation rate is a term used when communicating the amount of memory allocated per time unit. Often it is expressed in MB/sec, but you can use PB/year if you feel like it. So that is all there is – no magic, just the amount of memory you allocate in your Java code measured over a period of time.
 
-.这就是所有,没有魔法,只是你分配的内存数量在Java代码中经过一段时间来衡量。
+
+分配率(Allocation rate)是用来表示每时间单位内,内存分配数量的术语。通常表示为 MB/sec, 但也可以使用 PB/year。就是这么简单, 没有什么奇怪的, 只是在Java代码中通过一段时间来衡量内存分配的数量。
+
+
 
 
 An excessively high allocation rate can mean trouble for your application’s performance. When running on a JVM, the problem will be revealed by garbage collection posing a large overhead.
 
-一个过高的分配率可以为应用程序的性能带来不小的麻烦。当JVM上运行时,这个问题将被揭示垃圾收集带来很大的开销。
+过高的分配率可能会严重影响程序的性能。当JVM上运行时, 这个问题表现为带来很大的GC开销。
 
-
-### How to Measure Allocation Rate?
 
 ### 如何衡量分配率?
 
