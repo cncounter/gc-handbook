@@ -1322,9 +1322,7 @@ Note that G1 will probably be the default GC for Java 9: http://openjdk.java.net
 注意,G1可能会默认GC对于Java 9:http://openjdk.java.net/jeps/248
 
 
-## Shenandoah
-
-## 谢南多厄河谷
+## Shenandoah 的性能
 
 
 We have outlined all of the production-ready algorithms in HotSpot that you can just take and use right away. There is another one in the making, a so-called Ultra-Low-Pause-Time Garbage Collector. It is aimed for large multi-core machines with large heaps, the goal is to manage heaps of 100GB and larger with pauses of 10ms or shorter. This is traded off against throughput: the implementers are aiming at a no more than 10% of a performance penalty for applications with no GC pauses.
@@ -1339,7 +1337,7 @@ We are not going to go into the implementation details before the new algorithm 
 
 A lot of more detailed and up-to-date information about Shenandoah is available on the Internet, for instance in this blog: https://rkennke.wordpress.com/
 
-谢南多厄河很多更详细的和最新的信息在互联网上是可用的,例如在这个博客:https://rkennke.wordpress.com/
+关于 Shenandoah 性能的更多信息,请参考博客: [https://rkennke.wordpress.com/](https://rkennke.wordpress.com/), 或Google搜索。
 
 
 原文链接: [GC Algorithms: Implementations](https://plumbr.eu/handbook/garbage-collection-algorithms-implementations)
