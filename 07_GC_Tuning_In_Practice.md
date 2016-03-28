@@ -27,7 +27,7 @@ An excessively high allocation rate can mean trouble for your application’s pe
 
 One way to measure the allocation rate is to turn on GC logging by specifying -XX:+PrintGCDetails -XX:+PrintGCTimeStamps flags for the JVM. The JVM now starts logging the GC pauses similar to the following:
 
-测量分配率的一种方法是打开GC日志记录通过指定- xx:+ PrintGCDetails - xx:+ PrintGCTimeStamps旗帜的JVM.JVM现在开始记录GC暂停类似如下:
+测量分配率的一种方法是,通过指定 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` 标志开启JVM的GC日志记录. 则JVM开始记录类似下面这样的GC停顿:
 
 
 	0.291: [GC (Allocation Failure) 
@@ -48,22 +48,24 @@ One way to measure the allocation rate is to turn on GC logging by specifying -X
 
 From the GC log above, we can calculate the allocation rate as the difference between the sizes of the young generation after the completion of the last collection and before the start of the next one. Using the example above, we can extract the following information:
 
-从上面的GC日志,我们能够作为个人the rate津贴之间的区别sizes of the young完成after the generation and the last收藏viewarticle受理下一代one.使用上面的示例中,我们可以提取下列信息:
+从上面的GC日志中,我们就可以计算出分配率. 通过上一次垃圾收集之后,与下一次GC开始之前的年轻代大小的差值. 比如上面的示例中, 我们可以得到如下信息:
 
 
 - At 291 ms after the JVM was launched, 33,280 K of objects were created. The first minor GC event cleaned the young generation, after which there were 5,088 K of objects in the young generation left.
 - At 446 ms after launch, the young generation occupancy had grown to 38,368 K, triggering the next GC, which managed to reduce the young generation occupancy to 5,120 K.
 - At 829 ms after the launch, the size of the young generation was 71,680 K and the GC reduced it again to 5,120 K.
 
-- 在JVM启动后291毫秒,33280 K的对象。第一次要GC事件打扫了年轻一代,之后有5088 K的年轻一代中的对象了。
-- 在发射后446毫秒,年轻一代入住率增长至38368 K,触发下一个GC,设法减少年轻一代占用5120 K。
-- 在发射后829毫秒,年轻一代的大小是71680 K和GC再减少到5120 K。
+<br/>
+
+- 在JVM启动后 **291ms**, 创建了 `33,280 KB` 的对象。 第一次清理年轻代的 Minor GC(次要GC)事件, 完成之后还有 `5,088 KB` 的对象存在于年轻代中。
+- 在启动 **446 ms**之后, 年轻一代使用量增长至 `38,368 KB`,触发了下一次GC, 然后让年轻代使用量减少到了 `5120 KB`。
+- 在启动后 **829 ms**, 年轻代的大小为 `71,680 KB`, GC后再让其减少到 `5,120 KB`。
 
 
 
 This data can then be expressed in the following table calculating the allocation rate as deltas of the young occupancy:
 
-这些数据可以用下表计算分配率作为年轻的入住率的增量:
+然后可以通过年轻代的变化来计算出分配率,如下表所示:
 
 
 <table class="data compact">
@@ -118,49 +120,63 @@ This data can then be expressed in the following table calculating the allocatio
 
 Having this information allows us to say that this particular piece of software had the allocation rate of 161 MB/sec during the period of measurement.
 
-有这个信息让我们说这个软件的分配率161 MB /秒期间测量。
+通过这个信息,我们可以说在测量期间, 该软件的分配率是 **161 MB/秒**。。
 
 
-### Why Should I Care?
 
-### 我为什么要在乎?
+### 为什么要关心分配率?
 
 
 After measuring the allocation rate we can understand how the changes in allocation rate affect application throughput by increasing or reducing the frequency of GC pauses. First and foremost, you should notice that only minor GC pauses cleaning the young generation are affected. Neither the frequency nor duration of the GC pauses cleaning the old generation are directly impacted by the allocation rate, but instead by the promotion rate, a term that we will cover separately in the next section.
 
-测量分配率后我们可以理解分配率的变化如何影响应用程序吞吐量增加或减少GC暂停的频率。首先,也是最重要的,你应该注意到,只有轻微的GC暂停打扫影响年轻一代.频率和持续时间的GC暂停清洗旧一代直接分配率的影响,而是通过提升利率,一个术语,我们将在下一节中分别覆盖。
+
+测量分配率之后,我们就可以理解分配率的变化是如何影响应用程序的吞吐量的: 因为分配率会增加或减少GC暂停的频率。首先,也是最重要的,你应该注意到,只有清理年轻代的 minor GC pauses 受影响.而清理老年代的GC暂停, 其频率和持续时间都不受分配率的直接影响, 而是受**提升率**(promotion rate,晋升率)的影响,在下一节中我们将单独介绍这个术语。
 
 
 Knowing that we can focus only on Minor GC pauses, we should next look into the different memory pools inside the young generation. As the allocation takes place in Eden, we can immediately look into how sizing Eden can impact the allocation rate. So we can hypothesize that increasing the size of Eden will reduce the frequency of minor GC pauses and thus allow the application to sustain faster allocation rates.
 
-知道我们可以只关注小GC暂停,我们接下来应该考虑不同的内存池内的年轻一代。随着分配发生在伊甸园,我们可以立即调查分级伊甸园如何影响分配率.所以我们可以假设增加伊甸园的大小会减少小GC暂停的频率,从而使应用程序能够持续快速分配率。
+这里我们只关心 Minor GC 暂停, 接下来应该考虑的是年轻代中的不同内存池。因为分配发生在 Eden 区, 我们可以立即调查如何设置 Eden 的大小来影响分配率. 所以我们可以增加 Eden 的大小来看看是否会减少 Minor GC 暂停的频率, 从而使程序能够维持更快的分配率。
 
 
 And indeed, when running the same application with different Eden sizes using -XX:NewSize -XX:MaxNewSize & -XX:SurvivorRatio parameters, we can see a two-fold difference in allocation rates.
 
-的确,当运行同一个应用程序使用- xx:与不同大小的伊甸园NewSize - xx:MaxNewSize & - xx:SurvivorRatio参数,我们可以看到一个双重的分配率的差别。
+的确,当通过 `-XX:NewSize -XX:MaxNewSize & -XX:SurvivorRatio` 参数设置不同的 Eden 空间来运行同一应用程序时, 我们可以看到分配率有两种不同的差别。
 
 
 - Re-running with 100 M of Eden reduces the allocation rate to below 100 MB/sec.
 - Increasing Eden size to 1 GB increases the allocation rate to just below 200 MB/sec.
 
-——重新运行100伊甸园减少了分配率低于100 MB /秒。
-——增加伊甸园大小增加1 GB的分配率略低于200 MB /秒。
+<br/>
+
+- 用 100 MB的 Eden 空间来运行, 分配率会低于 **100 MB/秒**。
+- 增加Eden区的大小为 **1 GB**, 分配率也跟着增长,大约是略低于 **200 MB/秒** 的样子。
 
 
 If you are still wondering how this can be true – if you stop your application threads for GC less frequently you can do more useful work. More useful work also happens to create more objects, thus supporting the increased allocation rate.
 
-如果你还想知道这可能是正确的——如果你停止你的应用程序线程为GC次数少你可以做更有用的工作。更有用的工作也是创造更多的对象,因此支持分配率增加。
+
+为什么会这样? —— 因为减少暂停所有线程的GC次数，则可以做更多有用功。更有用的工作也创造了更多的对象, 因此同样的程序,分配率增加是挺好的事情。
 
 
 Now, before you jump to the conclusion that “bigger Eden is better”, you should notice that the allocation rate might and probably does not directly correlate with the actual throughput of your application. It is a technical measurement contributing to throughput. The allocation rate can and will have an impact on how frequently your minor GC pauses stop application threads, but to see the overall impact, you also need to take into account major GC pauses and measure throughput not in MB/sec but in the business operations your application provides.
 
-现在,在你跳的结论是,“更大的伊甸园是更好”,你应该注意分配率可能会,可能不会直接与实际的应用程序的吞吐量。这是一个技术测量导致的吞吐量.分配率会影响频率较小的GC暂停停止应用程序线程,但总体影响,您还需要考虑主要GC暂停和测量吞吐量不是MB /秒但在业务应用程序提供。
+那么, 在得出 “Eden去越大越好” 这种结论之前, 你应该注意到分配率可能会,也可能不会直接影响到程序的实际吞吐量。 这是和吞吐量有关系的一个技术指标. 分配率会影响让所以线程停止的 minor GC暂停, 但对于总体影响, 还要考虑 Major GC(主要GC)暂停, 而且衡量吞吐量的单位不是 **MB/秒**， 而是程序处理的业务量。
 
 
-### Give me an Example
+### 示例
 
-### 给我一个例子
+
+##
+##
+##
+##
+##
+##
+
+
+
+
+
 
 
 Meet the demo application. Suppose that it works with an external sensor that provides a number. The application continuously updates the value of the sensor in a dedicated thread (to a random value, in this example), and from other threads sometimes uses the most recent value to do something meaningful with it in the processSensorValue() method:
