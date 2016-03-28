@@ -253,9 +253,7 @@ What should immediately grab your attention is the frequency of minor GC events.
 应立即吸引你的注意力是次要的GC事件的频率。这表明有很多很多的对象被分配。另外,年轻一代的post-GC入住率仍然很低,也没有完整的集合是发生.这些症状表明,GC有重大影响应用程序的吞吐量。
 
 
-### What is the Solution?
-
-### 解决方案是什么?
+### 解决方案
 
 
 In some cases, reducing the impact of high allocation rates can be as easy as increasing the size of the young generation. Doing so will not reduce the allocation rate itself, but will result in less frequent collections. The benefit of the approach kicks in when there will be only a few survivors every time. As the duration of a minor GC pause is impacted by the number of surviving objects, they will not noticeably increase here.
@@ -290,9 +288,8 @@ The simple change (diff) will, in the demo application, almost completely remove
 简单的改变(diff),在演示应用程序中,几乎完全去除GC暂停。在某些情况下,JVM可能是够聪明,去除过度分配本身使用escape分析技术。长话短说,JIT编译器可能在某些情况下,创建的对象永远不会“逃”的范围中创建。在这种情况下,没有实际需要分配在堆上和生产垃圾,所以JIT编译器:它消除了分配。看到这个基准测试的一个例子。
 
 
-## Premature Promotion
 
-## 过早的推广
+## 过早的晋升(Premature Promotion)
 
 
 Before explaining the concept of premature promotion, we should familiarize ourselves with the concept it builds upon – the promotion rate. The promotion rate is measured in the amount of data propagated from the young generation to the old generation per time unit. It is often measured in MB/sec, similarly to the allocation rate.
@@ -401,9 +398,7 @@ Notice that you can extract this information only from minor GC pauses. Full GC 
 请注意,您可以提取这些信息只能从次要的GC暂停.完整GC暂停不公开促进率的改变在旧一代使用GC日志中还包括清洗的对象主要的GC。
 
 
-### Why Should I Care?
-
-### 我为什么要在乎?
+### 为什么要关心
 
 
 Similarly to the allocation rate, the main impact of the promotion rate is the change of frequency in GC pauses. But as opposed to the allocation rate that affects the frequency of minor GC events, the promotion rate affects the frequency of major GC events. Let me explain – the more stuff you promote to the old generation the faster you will fill it up. Filling the old generation faster means that the frequency of the GC events cleaning the old generation will increase.
@@ -421,9 +416,7 @@ As we have shown in earlier chapters, full garbage collections typically require
 在之前的章节中所示,完整的垃圾收集通常需要更多的时间,与更多的对象进行交互,并执行碎片整理等附加的复杂活动。
 
 
-### Give me an Example
-
-### 给我一个例子
+### 示例
 
 
 Let us look at a demo application suffering from premature promotion. This app obtains chunks of data, accumulates them, and, when a sufficient number is reached, processes the whole batch at once:
@@ -509,9 +502,7 @@ There is a simple explanation for this GC behavior: while many objects are being
 有一个简单的解释GC行为:虽然许多对象被提升为旧的一代,收集一些现有的对象.这给了旧一代使用减少的印象,而事实上,有对象,不断提升,引发完整GC。
 
 
-### What is the Solution?
-
-### 解决方案是什么?
+### 解决方案
 
 
 In a nutshell, to fix this problem, we would need to make the buffered data fit into the young generation. There are two simple approaches for doing this. The first is to increase the young generation size by using -Xmx64m -XX:NewSize=32m parameters at JVM startup. Running the application with this change in configuration will make Full GC events much less frequent, while barely affecting the duration of minor collections:
@@ -549,9 +540,7 @@ Another class of issues affecting GC is linked to the use of non-strong referenc
 另一类问题影响GC与non-strong引用在应用程序的使用。虽然这可能有助于避免在许多情况下,一个不受欢迎的OutOfMemoryError,应当参照使用重型garbage切尔诺贝利影响传媒may收藏有关业绩的你的执行。
 
 
-## Why Should I Care?
-
-## 我为什么要在乎?
+## 为什么要关心
 
 
 When using weak references, you should be aware of the way the weak references are garbage-collected. Whenever GC discovers that an object is weakly reachable, that is, the last remaining reference to the object is a weak reference, it is put onto the corresponding ReferenceQueue, and becomes eligible for finalization. One may then poll this reference queue and perform the associated cleanup activities. A typical example for such cleanup would be the removal of the now missing key from the cache.
@@ -600,9 +589,7 @@ That is right, we have to manually clear() up phantom references or risk facing 
 这是正确的,我们必须手动清楚()幻影引用或面临情况JVM开始死亡风险OutOfMemoryError.虚引用的原因是首先是,这是唯一的方法来找出当一个对象通过通常意味着实际上已经成为遥不可及的.与软或弱引用,不能复活phantom-reachable对象。
 
 
-## Give me an Example
-
-## 给我一个例子
+## 示例
 
 
 Let us take a look at another demo application that allocates a lot of objects, which are successfully reclaimed during minor garbage collections. Bearing in mind the trick of altering the tenuring threshold from the previous section on promotion rate, we could run this application with -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1 and see this in GC logs:
@@ -757,9 +744,7 @@ As always, this information should only be analyzed when you have identified tha
 像往常一样,这些信息只能当你已经确定了GC分析有影响应用程序的吞吐量和延迟.在这样的情况下,您可能希望查看这些部分的日志。通常情况下,引用了在每一个GC循环的数量很低,在许多情况下完全零。如果不是这种情况,然而,支出过很长一段时间才清理应用程序引用,或者只是被清除的很多人,然后还需要进一步调查。
 
 
-### What is the Solution?
-
-### 解决方案是什么?
+### 解决方案
 
 
 When you have verified the application actually is suffering from the mis-, ab- or overuse of either weak, soft or phantom references, the solution often involves changing the application’s intrinsic logic. This is very application specific and generic guidelines are thus hard to offer. However, some generic solutions to bear in mind are:
@@ -947,19 +932,19 @@ A more time-consuming but potentially better solution would be to understand whe
 更耗费时间,但潜在的更好的解决方案是了解应用程序是否可以限制分配的大小。最好的工具工作在这种情况下是分析器.他们可以给你巨大无比的对象通过展示它们的分配信息来源和堆栈跟踪。
 
 
-### Conclusion
 
 ### 结论
 
 
 With the enormous number of possible applications that one may run on the JVM, coupled with the hundreds of JVM configuration parameters that one may tweak for GC, there are astoundingly many ways in which the GC may impact your application’s performance.
 
-与大量的可能的应用程序可以在JVM上运行,加上数百JVM配置参数可以调整为GC,有惊人的许多方面GC可能影响应用程序的性能。
+因为有很多各种各样的程序在JVM上运行, 加上有几百个 JVM 参数, 其中很多会影响到 GC, 所以有很多方法可以调优程序的GC性能。
 
 
 Therefore, there is no real silver bullet approach to tuning the JVM to match the performance goals you have to fulfill. What we have tried to do here is walk you through some common (and not so common) examples to give you a general idea of how problems like these can be approached. Coupled with the tooling overview and with a solid understanding of how the GC works, you have all the chances of successfully tuning garbage collection to boost the performance of your application.
 
-因此,没有真正的银弹的方法来调优JVM匹配性能目标你必须完成.我们试图做的是介绍一些常见的(和不常见的)例子给你一个总体的想法如何接近这样的问题.加上工具概述和有坚实的理解GC是如何工作的,你都成功地微调垃圾收集的机会来提高应用程序的性能。
+
+因此,没有真正的银弹, 能满足所有的JVM性能调优目标. 我们能做的只是介绍一些常见的(和不常见的)示例, 让你在碰到类似的问题时知道是怎么回事. 通过对工具的熟练使用, 以及对GC工作原理的深入理解, 你应该能成功地调优垃圾收集, 来有效提高应用程序的性能。
 
 
 原文链接:  [GC Tuning: In Practice](https://plumbr.eu/handbook/gc-tuning-in-practice)
