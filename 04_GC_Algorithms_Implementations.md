@@ -176,56 +176,58 @@ Following snippet contains the information about a GC event cleaning the Young G
 以下代码片段包含信息GC事件打扫年轻代:
 
 
-> 2015-05-26T14:45:37.987-02001:151.1262:[GC3(Allocation Failure4) 151.126: [DefNew5:629119K->69888K6(629120K)7, 0.0584157 secs]1619346K->1273247K8(2027264K)9,0.0585007 secs10][Times: user=0.06 sys=0.00, real=0.06 secs]11
-
-> 2015 - 05 - 26 - t14:45:37.987 02001:151.1262:[GC3(分配Failure4)151.126:[DefNew5:629119K转k6(629120 k)- > 69888 7,0.0584157秒]1619346 k - > 1619346 k8(2027264 k)9日0.0585007 secs10][:用户= 0.06 sys = 0.00,真实= 0.06秒)11
 
 
+> <a>`2015-05-26T14:45:37.987-0200`<sup>1</sup></a> : <a>`151.1262`<sup>2</sup></a> : [ <a>`GC`<sup>3</sup></a> (<a>`Allocation Failure`<sup>4</sup></a> 151.126: <br/>
+> [<a>`DefNew`<sup>5</sup></a> : <a>`629119K->69888K`<sup>6</sup></a> <a>`(629120K)`<sup>7</sup></a> , 0.0584157 secs] <a>`1619346K->1273247K`<sup>8</sup></a> <br/>
+> <a>`(2027264K)`<sup>9</sup></a>, <a>`0.0585007 secs`<sup>10</sup></a>] <a>`[Times: user=0.06 sys=0.00, real=0.06 secs]`<sup>11</sup></a>
 
->1. 2015-05-26T14:45:37.987-0200 – Time when the GC event started.
-1. 151.126 – Time when the GC event started, relative to the JVM startup time. Measured in seconds.
-1. GC – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC.
-1. Allocation Failure – Cause of the collection. In this case, the GC is triggered due to a data structure not fitting into any region in the Young Generation.
-1. DefNew – Name of the garbage collector used. This cryptic name stands for the single-threaded mark-copy stop-the-world garbage collector used to clean Young generation.
-1. 629119K->69888K – Usage of the Young Generation before and after collection.
-1. (629120K) – Total size of the Young Generation.
-1. 1619346K->1273247K – Total used heap before and after collection.
-1. (2027264K) – Total available heap.
-1. 0.0585007 secs – Duration of the GC event in seconds.
-1. [Times: user=0.06 sys=0.00, real=0.06 secs] – Duration of the GC event, measured in different categories:
- - user – Total CPU time that was consumed by the garbage collector threads during this collection
- - sys – Time spent in OS calls or waiting for system event
- - real – Clock time for which your application was stopped. As Serial Garbage Collector always uses just a single thread, real time is thus equal to the sum of user and system times.
 
-> 1。2015 - 05 - 26 t14:45:37.987 - 0200 GC事件开始的时候。
-1。151.126 - GC事件开始,相对于JVM启动时间。以秒为单位来衡量。
-1。GC -标记区分小&完整GC。这次是表明这是一个次要的GC。
-1。分配失败——收集的原因。在这种情况下,GC将触发一个数据结构不适合任何地区的年轻代。
-1。DefNew——垃圾收集器使用的名称。这个神秘的名字代表了单线程mark-copy停止一切垃圾收集器用于干净的年轻代。
-1。629119 k - > 629119 k -使用集合之前和之后的年轻代。
-1。(629120 k)——年轻代的总大小。
-1。1619346 k - > 1619346 k -总堆集合之前和之后使用。
-1。(2027264 k)-总可用堆。
-1。0.0585007秒- GC事件持续时间以秒为单位。
-1。(时间:用户= 0.06 sys = 0.00,真实= 0.06秒)- GC事件期间,测量在不同的类别:
-——用户——总消耗的CPU时间,垃圾收集器线程在此集合
-- sys -时间花在操作系统调用或等待系统事件
--真正的时钟时间为您的应用程序被停止了。正如串行垃圾收集器总是使用一个线程,因此等于实时用户和系统时间的总和。
+
+> 1. <a>`2015-05-26T14:45:37.987-0200`</a> – Time when the GC event started. GC事件开始的时间
+>
+> 2. <a>`151.126`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。
+> 
+> 3. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**次要GC**(Minor GC)
+> 
+> 4. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a data structure not fitting into any region in the Young Generation. 触发垃圾收集的原因。本次GC事件, 是由于年轻代中没有适当的空间存放新的数据结构引起的。
+> 
+> 5. <a>`DefNew`</a> – Name of the garbage collector used. This cryptic name stands for the single-threaded mark-copy stop-the-world garbage collector used to clean Young generation. 垃圾收集器的名称。这个神秘的名字表示的是在年轻代中使用的: 单线程, 标记-拷贝(mark-copy), 全线暂停(STW) 垃圾收集器。
+> 
+> 6. <a>`629119K->69888K`</a> – Usage of the Young Generation before and after collection. 在垃圾收集之前和之后的年轻代使用量。
+> 
+> 7. <a>`(629120K)`</a> – Total size of the Young Generation. 年轻代的总大小。
+> 
+> 8. <a>`1619346K->1273247K`</a> – Total used heap before and after collection. 在垃圾收集之前和之后堆内存的使用情况。
+> 
+> 9. <a>`(2027264K)`</a> – Total available heap. 可用堆的总大小。
+> 
+> 10. <a>`0.0585007 secs`</a> – Duration of the GC event in seconds. GC事件持续的时间,以秒为单位。
+> 
+> 11. <a>`[Times: user=0.06 sys=0.00, real=0.06 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
+> 
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
+
+> 
+ - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
+> 
+ - real – Clock time for which your application was stopped. As Serial Garbage Collector always uses just a single thread, real time is thus equal to the sum of user and system times. 应用程序被停止的系统时钟时间。因为串行垃圾收集器(Serial Garbage Collector)只使用单线程, 因此 real time 等于 user 和 system 时间的总和
+
 
 
 From the above snippet we can understand exactly what was happening with the memory consumption inside JVM during the GC event. Before this collection, heap usage totaled at 1,619,346K. Out of this, the Young Generation consumed 629,119K. From this we can calculate the Old Generation usage being equal to 990,227K.
 
-从上面的代码片段我们可以理解到底发生了什么和JVM中的内存消耗在GC事件。在这个集合之前,总计在1619346 k的堆使用情况。从这,年轻代消费629119 k。从这个我们可以计算旧一代使用等于990227 k。
+我们可以从上面的日志片段了解到, 在GC事件中,JVM里面的内存使用情况到底发生了什么变化。在此次垃圾收集之前, 堆内存总的使用了 **1,619,346K**。其中,年轻代使用了 **629,119K**。并可以计算出老年代使用量等于 **990,227K**。
 
 
 A more important conclusion is hidden in the next batch of numbers indicating that, after the collection, Young Generation usage decreased by 559,231K but total heap usage decreased only by 346,099K. From this we can again derive that 213,132K of objects were promoted from the Young Generation to the Old Generation.
 
-更重要的结论是隐藏在下一批数字表明,集合后,年轻代的使用减少了559231 k但总堆使用只有346099 k下降.从这个我们可以再次推出213132 k的对象是提升旧一代的年轻代。
+更重要的结论隐藏在下一批数字之中, 垃圾收集之后, 年轻代(Young Generation)的使用量减少了 **559231 k**, 但总的堆内存使用量只下降了 **346099 k**. 从中我们可以计算出有 **213132 k** 的对象从年轻代提升到了老年代的。
 
 
 This GC event is also illustrated with the following snapshots showing memory usage right before the GC started and right after it finished:
 
-这个GC事件也说明下列快照显示内存使用GC之前开始,正确的结束后:
+这次GC事件也可用下面的示意图来说明, 显示的是GC开始之前, 以及刚刚结束之后, 这两个时刻的内存使用快照:
 
 
 ![](04_01_serial-gc-in-young-generation.png)
@@ -270,8 +272,8 @@ After understanding the first minor GC event, lets look into the second GC event
 1。172.829 - GC事件开始,相对于JVM启动时间。以秒为单位来衡量。
 1。[DefNew:629120 k - > 629120 k(629120 k),0.0000372秒-与前面的示例类似,一个小垃圾收集在年轻代中发生这个事件由于分配失败.这个集合DefNew收集器运行一样,它减少了年轻代的使用从629120 k为0.注意JVM报告这个错误由于车行为,而年轻代是完全完整的报告。这个集合了0.0000372秒。
 1。终身,垃圾收集器的名称用于清理旧空间。终身的名称表明了单线程的停止一切标记-清除-整理垃圾收集器。
-1。1203359 k - > 1203359 k -使用旧一代之前和之后的事件。
-1。(1398144 k)——旧一代的总容量。
+1。1203359 k - > 1203359 k -使用老年代之前和之后的事件。
+1。(1398144 k)——老年代的总容量。
 1。0.1855567秒-时间清理旧的一代。
 1。1832479 k - > 1832479 k -使用前后整个堆年轻和年老一代的集合。
 1。(2027264 k)-总堆用于JVM。
@@ -407,7 +409,7 @@ The first of the two events indicates a GC event taking place in the Young Gener
 
 So, in short, the total heap consumption before the collection was 9,556,775K. Out of this Young generation was 2,694,440K. This means that used Old generation was 6,862,335K. After the collection young generation usage decreased by 1,389,308K, but total heap usage decreased only by 1,117,849K. This means that 271,459K was promoted from Young generation to Old.
 
-所以,简而言之,收集前的堆总消费量为9556775 k。的年轻代是2694440 k。这意味着用旧一代是6862335 k.收集后的年轻代使用下降了1389308 k,但总堆使用情况只有1117849 k下降。这意味着271459 k从年轻代被提拔到老。
+所以,简而言之,收集前的堆总消费量为9556775 k。的年轻代是2694440 k。这意味着用老年代是6862335 k.收集后的年轻代使用下降了1389308 k,但总堆使用情况只有1117849 k下降。这意味着271459 k从年轻代被提拔到老。
 
 
 ![](04_03_ParallelGC-in-Young-Generation-Java.png)
@@ -457,8 +459,8 @@ After understanding how Parallel GC cleans the Young Generation, we are ready to
 1。人体工程学- GC发生的原因。这表明JVM内部环境决定这是正确的时间去收集一些垃圾。
 1。[PSYoungGen:1305132 k - > 0 k(2796544 k)]——类似于之前的例子,一个平行mark-copy停止一切垃圾收集器,名叫“PSYoungGen”被用来清洁的年轻代.年轻代的使用减少从1305132 k为0,这是一个完整的GC的典型结果。
 1。ParOldGen -类型的收集器用于清洁旧的一代。在这种情况下,并行标记-清除-整理停止一切垃圾收集器,名叫ParOldGen使用。
-1。7133794 k - > 7133794 k -前后使用旧一代的集合
-1。(8388608 k)——旧一代的总大小
+1。7133794 k - > 7133794 k -前后使用老年代的集合
+1。(8388608 k)——老年代的总大小
 1。8438926 k - > 8438926 k -使用前后整个堆的集合。
 1。(11185152 k)-总堆可用
 1。[Metaspace:6745 k - > 6745 k(1056768 k)]——Metaspace地区类似的信息。我们可以看到,没有垃圾收集在Metaspace这个事件。
@@ -626,7 +628,7 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 
 **Phase 1: Initial Mark**. This is one of the two stop-the-world events during CMS. The goal of this phase is to mark all the objects in the Old Generation that are either direct GC roots or are referenced from some live object in the Young Generation. The latter is important since the Old Generation is collected separately.
 
-* *第1阶段:初始马克* *。这是其中一个CMS期间停止一切活动.这个阶段的目的是为了纪念所有对象在旧一代直接GC根或引用一些对象在年轻代的生活.后者分别收集非常重要,因为旧的一代。
+* *第1阶段:初始马克* *。这是其中一个CMS期间停止一切活动.这个阶段的目的是为了纪念所有对象在老年代直接GC根或引用一些对象在年轻代的生活.后者分别收集非常重要,因为旧的一代。
 
 
 ![](04_06_g1-06.png)
@@ -662,7 +664,7 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 
 **Phase 2: Concurrent Mark.** During this phase the Garbage Collector traverses the Old Generation and marks all live objects, starting from the roots found in the previous phase of “Initial Mark”. The “Concurrent Mark” phase, as its name suggests, runs concurrently with your application and does not stop the application threads. Note that not all the live objects in the Old Generation may be marked, since the application is mutating references during the marking.
 
-* *第二阶段:并发标记。* *在此阶段垃圾收集器遍历老的一代和标记所有活动对象,从根开始前一阶段发现的“初始标记”.“并发标记”阶段,顾名思义,与您的应用程序同时运行,不停止应用程序线程.请注意,并不是所有的旧一代可能被标记为活动对象,由于应用程序变异引用标记。
+* *第二阶段:并发标记。* *在此阶段垃圾收集器遍历老的一代和标记所有活动对象,从根开始前一阶段发现的“初始标记”.“并发标记”阶段,顾名思义,与您的应用程序同时运行,不停止应用程序线程.请注意,并不是所有的老年代可能被标记为活动对象,由于应用程序变异引用标记。
 
 
 ![](04_07_g1-07.png)
@@ -781,7 +783,7 @@ This phase may significantly impact the duration of the upcoming stop-the-world 
 
 **Phase 5: Final Remark.** This is the second and last stop-the-world phase during the event. The goal of this stop-the-world phase is to finalize marking all live objects in the Old Generation. Since the previous preclean phases were concurrent, they may have been unable to keep up with the application’s mutating speeds. A stop-the-world pause is required to finish the ordeal.
 
-* *阶段5:最后的评论。* *这是第二个和最后一个在活动期间停止一切阶段。停止一切阶段的目标是完成标志着旧一代所有活动对象.并发前preclean阶段以来,他们可能无法跟上应用程序的变异速度。需要停止一切暂停完成考验。
+* *阶段5:最后的评论。* *这是第二个和最后一个在活动期间停止一切阶段。停止一切阶段的目标是完成标志着老年代所有活动对象.并发前preclean阶段以来,他们可能无法跟上应用程序的变异速度。需要停止一切暂停完成考验。
 
 
 Usually CMS tries to run final remark phase when Young Generation is as empty as possible in order to eliminate the possibility of several stop-the-world phases happening back-to-back.
@@ -830,7 +832,7 @@ This event looks a bit more complex than previous phases:
 
 After the five marking phases, all live objects in the Old Generation are marked and now garbage collector is going to reclaim all unused objects by sweeping the Old Generation:
 
-五个标记阶段之后,都生活在旧一代标记对象,现在垃圾收集器将回收所有未使用的对象通过全面旧一代:
+五个标记阶段之后,都生活在老年代标记对象,现在垃圾收集器将回收所有未使用的对象通过全面老年代:
 
 
 Phase 6: Concurrent Sweep. Performed concurrently with the application, without the need for the stop-the-world pauses. The purpose of the phase is to remove unused objects and to reclaim the space occupied by them for future use.
