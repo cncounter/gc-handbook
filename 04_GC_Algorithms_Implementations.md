@@ -184,7 +184,7 @@ Following snippet contains the information about a GC event cleaning the Young G
 
 
 
-> 1. <a>`2015-05-26T14:45:37.987-0200`</a> – Time when the GC event started. GC事件开始的时间
+> 1. <a>`2015-05-26T14:45:37.987-0200`</a> – Time when the GC event started. GC事件开始的时间. 其中`-0200`是时区,而中国所在的东8区为 `+0800`。
 >
 > 2. <a>`151.126`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。
 > 
@@ -237,32 +237,36 @@ This GC event is also illustrated with the following snapshots showing memory us
 
 ### Full GC
 
-### 完整GC
-
 
 After understanding the first minor GC event, lets look into the second GC event in the logs:
 
-理解第一个小GC事件后,让调查第二个GC事件日志中:
+
+在理解了第一个次要GC事件后,让我们看看日志中的第二个GC事件:
 
 
-> 2015-05-26T14:45:59.690-02001: 172.8292:[GC (Allocation Failure) 172.829: [DefNew: 629120K->629120K(629120K), 0.0000372 secs3]172.829:[Tenured4: 1203359K->755802K 5(1398144K) 6,0.1855567 secs7] 1832479K->755802K8(2027264K)9,[Metaspace: 6741K->6741K(1056768K)]10 [Times: user=0.18 sys=0.00, real=0.18 secs]11
 
-> 2015 - 05 - 26 - t14:45:59.690 - 02001:172.8292:[GC(分配失败)172.829:[DefNew:629120 k - > 629120 k(629120 k),0.0000372 secs3]172.829:[Tenured4:1203359 k - > 755802 k 5(1398144 k)6 0.美丽1855567 secs7]1855567 k - > 1855567(2027264 k)9日[Metaspace:6741 k - > 6741 k(1056768 k)]10[:用户= 0.18 sys = 0.00,真实= 0.18秒)11
+
+> <a>`2015-05-26T14:45:59.690-0200`<sup>1</sup></a> : <a>`172.829`<sup>2</sup></a> : [GC (Allocation Failure 172.829: <br/>
+> <a>`[DefNew: 629120K->629120K(629120K), 0.0000372 secs`<sup>3</sup></a>] 172.829:[<a>`Tenured`<sup>4</sup></a>: <br/>
+> <a>`1203359K->755802K`<sup>5</sup></a> <a>`(1398144K)`<sup>6</sup></a>, <a>`0.1855567 secs`<sup>7</sup></a> ] <a>`1832479K->755802K`<sup>8</sup></a> <br/>
+> <a>`(2027264K)`<sup>9</sup></a>, <a>`[Metaspace: 6741K->6741K(1056768K)]`<sup>10</sup></a> <br/>
+> <a>`[Times: user=0.18 sys=0.00, real=0.18 secs]`<sup>11</sup></a>
+
 
 
 
 > 
-1. 2015-05-26T14:45:59.690-0200 – Time when the GC event started.
-1. 172.829 – Time when the GC event started, relative to the JVM startup time. Measured in seconds.
-1. [DefNew: 629120K->629120K(629120K), 0.0000372 secs – Similar to the previous example, a minor garbage collection in the Young Generation happened during this event due to Allocation Failure. For this collection the same DefNew collector was run as before and it decreased the usage of the Young Generation from 629120K to 0. Notice that JVM reports this incorrectly due to buggy behavior and instead reports the Young Generation as being completely full. This collection took 0.0000372 seconds.
-1. Tenured – Name of the garbage collector used to clean the Old space. The name Tenured indicates a single-threaded stop-the-world mark-sweep-compact garbage collector being used.
-1. 1203359K->755802K  – Usage of Old generation before and after the event.
-1. (1398144K)  – Total capacity of the Old generation.
-1. 0.1855567 secs – Time it took to clean the Old Generation.
-1. 1832479K->755802K – Usage of the whole heap before and after the collection of the Young and Old Generations.
-1. (2027264K) – Total heap available for the JVM.
-1. [Metaspace: 6741K->6741K(1056768K)] – Similar information about Metaspace collection. As seen, no garbage was collected in Metaspace during the event.
-1. [Times: user=0.18 sys=0.00, real=0.18 secs] – Duration of the GC event, measured in different categories:
+> 1. <a>`2015-05-26T14:45:59.690-0200`</a> – Time when the GC event started.
+> 1. <a>`172.829`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds.
+> 1. <a>`[DefNew: 629120K->629120K(629120K), 0.0000372 secs`</a> – Similar to the previous example, a minor garbage collection in the Young Generation happened during this event due to Allocation Failure. For this collection the same DefNew collector was run as before and it decreased the usage of the Young Generation from 629120K to 0. Notice that JVM reports this incorrectly due to buggy behavior and instead reports the Young Generation as being completely full. This collection took 0.0000372 seconds.
+> 1. <a>`Tenured`</a> – Name of the garbage collector used to clean the Old space. The name Tenured indicates a single-threaded stop-the-world mark-sweep-compact garbage collector being used.
+> 1. <a>`1203359K->755802K`</a>  – Usage of Old generation before and after the event.
+> 1. <a>`(1398144K)`</a>  – Total capacity of the Old generation.
+> 1. <a>`0.1855567 secs`</a> – Time it took to clean the Old Generation.
+> 1. <a>`1832479K->755802K`</a> – Usage of the whole heap before and after the collection of the Young and Old Generations.
+> 1. <a>`(2027264K)`</a> – Total heap available for the JVM.
+> 1. <a>`[Metaspace: 6741K->6741K(1056768K)]`</a> – Similar information about Metaspace collection. As seen, no garbage was collected in Metaspace during the event.
+> 1. <a>`[Times: user=0.18 sys=0.00, real=0.18 secs]`</a> – Duration of the GC event, measured in different categories:
  - user – Total CPU time that was consumed by Garbage Collector threads during this collection
  - sys – Time spent in OS calls or waiting for system event
  - real – Clock time for which your application was stopped. As Serial Garbage Collector always uses just a single thread, real time is thus equal to the sum of user and system times.
@@ -375,17 +379,17 @@ The first of the two events indicates a GC event taking place in the Young Gener
 
 
 >
-1. 2015-05-26T14:27:40.915-0200 – Time when the GC event started.
-1. 116.115 – Time when the GC event started, relative to the JVM startup time. Measured in seconds.
-1. GC – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC.
-1. Allocation Failure – Cause of the collection. In this case, the GC is triggered due to a data structure not fitting into any region in the Young Generation.
-1. PSYoungGen – Name of the garbage collector used, representing a parallel mark-copy stop-the-world garbage collector used to clean the Young generation.
-1. 2694440K->1305132K – usage of the Young Generation before and after collection
-1. (2796544K) – Total size of the Young Generation
-1. 9556775K->8438926K – Total heap usage before and after collection
-1. (11185152K) – Total available heap
-1. 0.2406675 secs – Duration of the GC event in seconds
-1. [Times: user=1.77 sys=0.01, real=0.24 secs] – Duration of the GC event, measured in different categories:
+> 1. <a>`2015-05-26T14:27:40.915-0200`</a> – Time when the GC event started.
+> 1. <a>`116.115`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds.
+> 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC.
+> 1. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a data structure not fitting into any region in the Young Generation.
+> 1. <a>`PSYoungGen`</a> – Name of the garbage collector used, representing a parallel mark-copy stop-the-world garbage collector used to clean the Young generation.
+> 1. <a>`2694440K->1305132K`</a> – usage of the Young Generation before and after collection
+> 1. <a>`(2796544K)`</a> – Total size of the Young Generation
+> 1. <a>`9556775K->8438926K`</a> – Total heap usage before and after collection
+> 1. <a>`(11185152K)`</a> – Total available heap
+> 1. <a>`0.2406675 secs`</a> – Duration of the GC event in seconds
+> 1. <a>`[Times: user=1.77 sys=0.01, real=0.24 secs]`</a> – Duration of the GC event, measured in different categories:
  - user – Total CPU time that was consumed by Garbage Collector threads during this collection
  - sys – Time spent in OS calls or waiting for system event
  - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
@@ -435,19 +439,19 @@ After understanding how Parallel GC cleans the Young Generation, we are ready to
 
 
 >
-1. 2015-05-26T14:27:41.155-0200 – Time when the GC event started
-1. 116.356 – Time when the GC event started, relative to the JVM startup time. Measured in seconds. In this case we can see the event started right after the previous Minor GC finished.
-1. Full GC – Flag indicating that the event is Full GC event cleaning both the Young and Old generations.
-1. Ergonomics – Reason for the GC taking place. This indicates that the JVM internal ergonomics decided this is the right time to collect some garbage.
-1. [PSYoungGen: 1305132K->0K(2796544K)] – Similar to previous example, a parallel mark-copy stop-the-world garbage collector named “PSYoungGen” was used to clean the Young Generation. Usage of Young Generation shrank from 1305132K to 0, which is the typical result of a Full GC.
-1. ParOldGen – Type of the collector used to clean the Old Generation. In this case, parallel mark-sweep-compact stop-the-world garbage collector named ParOldGen was used.
-1. 7133794K->6597672K  – Usage of the Old Generation before and after the collection
-1. (8388608K) – Total size of the Old Generation
-1. 8438926K->6597672K – Usage of the whole heap before and after the collection.
-1. (11185152K) – Total heap available
-1. [Metaspace: 6745K->6745K(1056768K)]  – Similar information about Metaspace region. As we can see, no garbage was collected in Metaspace during this event.
-1. 0.9158801 secs – Duration of the GC event in seconds
-1. [Times: user=4.49 sys=0.64, real=0.92 secs] – Duration of the GC event, measured in different categories:
+> 1. <a>`2015-05-26T14:27:41.155-0200`</a> – Time when the GC event started
+> 1. <a>`116.356`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. In this case we can see the event started right after the previous Minor GC finished.
+> 1. <a>`Full GC`</a> – Flag indicating that the event is Full GC event cleaning both the Young and Old generations.
+> 1. <a>`Ergonomics`</a> – Reason for the GC taking place. This indicates that the JVM internal ergonomics decided this is the right time to collect some garbage.
+> 1. <a>`[PSYoungGen: 1305132K->0K(2796544K)]`</a> – Similar to previous example, a parallel mark-copy stop-the-world garbage collector named “PSYoungGen” was used to clean the Young Generation. Usage of Young Generation shrank from 1305132K to 0, which is the typical result of a Full GC.
+> 1. <a>`ParOldGen`</a> – Type of the collector used to clean the Old Generation. In this case, parallel mark-sweep-compact stop-the-world garbage collector named ParOldGen was used.
+> 1. <a>`7133794K->6597672K `</a> – Usage of the Old Generation before and after the collection
+> 1. <a>`(8388608K)`</a> – Total size of the Old Generation
+> 1. <a>`8438926K->6597672K`</a> – Usage of the whole heap before and after the collection.
+> 1. <a>`(11185152K)`</a> – Total heap available
+> 1. <a>`[Metaspace: 6745K->6745K(1056768K)] `</a> – Similar information about Metaspace region. As we can see, no garbage was collected in Metaspace during this event.
+> 1. <a>`0.9158801 secs`</a> – Duration of the GC event in seconds
+> 1. <a>`[Times: user=4.49 sys=0.64, real=0.92 secs]`</a> – Duration of the GC event, measured in different categories:
  - user – Total CPU time that was consumed by Garbage Collector threads during this collection
  - sys – Time spent in OS calls or waiting for system event
  - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
@@ -551,18 +555,18 @@ First of the GC events in log denotes a minor GC cleaning the Young space. Let�
 
 
 >
-1. 2015-05-26T16:23:07.219-0200 – Time when the GC event started.
-1. 64.322 – Time when the GC event started, relative to the JVM startup time. Measured in seconds.
-1. GC – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC.
-1. Allocation Failure – Cause of the collection. In this case, the GC is triggered due to a requested allocation not fitting into any region in Young Generation.
-1. ParNew – Name of the collector used, this time it indicates a parallel mark-copy stop-the-world garbage collector used in the Young Generation, designed to work in conjunction with Concurrent Mark & Sweep garbage collector in the Old Generation.
-1. 613404K->68068K – Usage of the Young Generation before and after collection.
-1. (613440K)  – Total size of the Young Generation.
-1. 0.1020465 secs – Duration for the collection w/o final cleanup.
-1. 10885349K->10880154K  – Total used heap before and after collection.
-1. (12514816K) – Total available heap.
-1. 0.1021309 secs – The time it took for the garbage collector to mark and copy live objects in the Young Generation. This includes communication overhead with ConcurrentMarkSweep collector, promotion of objects that are old enough to the Old Generation and some final cleanup at the end of the garbage collection cycle.
-1. `[Times: user=0.78 sys=0.01, real=0.11 secs]` – Duration of the GC event, measured in different categories:
+> 1. <a>`2015-05-26T16:23:07.219-0200`</a> – Time when the GC event started.
+> 1. <a>`64.322`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds.
+> 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC.
+> 1. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a requested allocation not fitting into any region in Young Generation.
+> 1. <a>`ParNew`</a> – Name of the collector used, this time it indicates a parallel mark-copy stop-the-world garbage collector used in the Young Generation, designed to work in conjunction with Concurrent Mark & Sweep garbage collector in the Old Generation.
+> 1. <a>`613404K->68068K`</a> – Usage of the Young Generation before and after collection.
+> 1. <a>`(613440K) `</a> – Total size of the Young Generation.
+> 1. <a>`0.1020465 secs`</a> – Duration for the collection w/o final cleanup.
+> 1. <a>`10885349K->10880154K `</a> – Total used heap before and after collection.
+> 1. <a>`(12514816K)`</a> – Total available heap.
+> 1. <a>`0.1021309 secs`</a> – The time it took for the garbage collector to mark and copy live objects in the Young Generation. This includes communication overhead with ConcurrentMarkSweep collector, promotion of objects that are old enough to the Old Generation and some final cleanup at the end of the garbage collection cycle.
+> 1. <a>``[Times: user=0.78 sys=0.01, real=0.11 secs]``</a> – Duration of the GC event, measured in different categories:
  - user – Total CPU time that was consumed by Garbage Collector threads during this collection
  - sys – Time spent in OS calls or waiting for system event
  - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by the Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
@@ -644,13 +648,13 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 
 
 >
-1. 2015-05-26T16:23:07.321-0200: 64.42 – Time the GC event started, both clock time and relative to the time from the JVM start. For the following phases the same notion is used throughout the event and is thus skipped for brevity.
-1. CMS Initial Mark – Phase of the collection – “Initial Mark” in this occasion – that is collecting all GC Roots.
-1. 10812086K – Currently used Old Generation.
-1. (11901376K) – Total available memory in the Old Generation.
-1. 10887844K – Currently used heap
-1. (12514816K) – Total available heap
-1. 0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] – Duration of the phase, measured also in user, system and real time.
+> 1. <a>`2015-05-26T16:23:07.321-0200: 64.42`</a> – Time the GC event started, both clock time and relative to the time from the JVM start. For the following phases the same notion is used throughout the event and is thus skipped for brevity.
+> 1. <a>`CMS Initial Mark – Phase of the collection – “Initial Mark” in this occasion`</a> – that is collecting all GC Roots.
+> 1. <a>`10812086K`</a> – Currently used Old Generation.
+> 1. <a>`(11901376K)`</a> – Total available memory in the Old Generation.
+> 1. <a>`10887844K`</a> – Currently used heap
+> 1. <a>`(12514816K)`</a> – Total available heap
+> 1. <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`</a> – Duration of the phase, measured also in user, system and real time.
 
 >
 1。2015 - 05 - 26 - t16:23:07.321 - 0200:64.42 - GC事件开始,时钟时间和相对于从JVM开始的时间.下列阶段使用了相同的概念在整个事件,因此跳过简洁。
@@ -692,9 +696,9 @@ In the illustration, a reference pointing away from the “Current object” was
 
 
 >
-1. CMS-concurrent-mark – Phase of the collection – “Concurrent Mark” in this occasion – that is traversing the Old Generation and marking all live objects.
-1. 035/0.035 secs – Duration of the phase, showing elapsed time and wall clock time correspondingly.
-1. [Times: user=0.07 sys=0.00, real=0.03 secs] – “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
+> 1. <a>`CMS-concurrent-mark – Phase of the collection – “Concurrent Mark” in this occasion`</a> – that is traversing the Old Generation and marking all live objects.
+> 1. <a>`035/0.035 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly.
+> 1. <a>`[Times: user=0.07 sys=0.00, real=0.03 secs]`</a> – “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
 
 >
 1。CMS-concurrent-mark阶段的集合——“并发标记”这一次——这是遍历老的一代和标记所有活动对象。
@@ -739,9 +743,9 @@ Additionally, some necessary housekeeping and preparations for the Final Remark 
 
 
 >
-1. CMS-concurrent-preclean – Phase of the collection – “Concurrent Preclean” in this occasion – accounting for references being changed during previous marking phase.
-1. 0.016/0.016 secs – Duration of the phase, showing elapsed time and wall clock time correspondingly.
-1. [Times: user=0.02 sys=0.00, real=0.02 secs] – The “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
+> 1. <a>`CMS-concurrent-preclean – Phase of the collection – “Concurrent Preclean” in this occasion`</a> – accounting for references being changed during previous marking phase.
+> 1. <a>`0.016/0.016 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly.
+> 1. <a>`[Times: user=0.02 sys=0.00, real=0.02 secs]`</a> – The “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
 
 >
 1。CMS-concurrent-preclean阶段的集合——“并发Preclean”这一次,占引用被改变了以前的标记阶段。
@@ -766,9 +770,9 @@ Additionally, some necessary housekeeping and preparations for the Final Remark 
 
 
 >
-1. CMS-concurrent-abortable-preclean – Phase of the collection “Concurrent Abortable Preclean” in this occasion
-1. 0.167/1.074 secs – Duration of the phase, showing elapsed and wall clock time respectively. It is interesting to note that the user time reported is a lot smaller than clock time. Usually we have seen that real time is less than user time, meaning that some work was done in parallel and so elapsed clock time is less than used CPU time. Here we have a little amount of work – for 0.167 seconds of CPU time, and garbage collector threads were doing a lot of waiting. Essentially, they were trying to stave off for as long as possible before having to do an STW pause. By default, this phase may last for up to 5 seconds.
-1. [Times: user=0.20 sys=0.00, real=1.07 secs] – The “Times” section is less meaningful for concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
+> 1. <a>`CMS-concurrent-abortable-preclean`</a> – Phase of the collection “Concurrent Abortable Preclean” in this occasion
+> 1. <a>`0.167/1.074 secs – Duration of the phase, showing elapsed and wall clock time respectively. It is interesting to note that the user time reported is a lot smaller than clock time. Usually we have seen that real time is less than user time, meaning that some work was done in parallel and so elapsed clock time is less than used CPU time. Here we have a little amount of work`</a> – for 0.167 seconds of CPU time, and garbage collector threads were doing a lot of waiting. Essentially, they were trying to stave off for as long as possible before having to do an STW pause. By default, this phase may last for up to 5 seconds.
+> 1. <a>`[Times: user=0.20 sys=0.00, real=1.07 secs]`</a> – The “Times” section is less meaningful for concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
 
 >
 1。CMS-concurrent-abortable-preclean -阶段的集合”并发Abortable Preclean”在这个场合
@@ -804,17 +808,17 @@ This event looks a bit more complex than previous phases:
 
 
 >
-1. 2015-05-26T16:23:08.447-0200: 65.550 – Time the GC event started, both clock time and relative to the time from the JVM start.
-1. CMS Final Remark – Phase of the collection – “Final Remark” in this occasion – that is marking all live objects in the Old Generation, including the references that were created/modified during previous concurrent marking phases.
-1. YG occupancy: 387920 K (613440 K) – Current occupancy and capacity of the Young Generation.
-1. [Rescan (parallel) , 0.0085125 secs] – The “Rescan” completes the marking of live objects while the application is stopped. In this case the rescan was done in parallel and took 0.0085125 seconds.
-1. weak refs processing, 0.0000243 secs]65.559 – First of the sub-phases that is processing weak references along with the duration and timestamp of the phase.
-1. class unloading, 0.0013120 secs]65.560 – Next sub-phase that is unloading the unused classes, with the duration and timestamp of the phase.
-1. scrub string table, 0.0001759 secs – Final sub-phase that is cleaning up symbol and string tables which hold class-level metadata and internalized string respectively. Clock time of the pause is also included.
-1. 10812086K(11901376K) – Occupancy and the capacity of the Old Generation after the phase.
-1. 11200006K(12514816K)  – Usage and the capacity of the total heap after the phase.
-1. 0.0110730 secs – Duration of the phase.
-1. [Times: user=0.06 sys=0.00, real=0.01 secs] – Duration of the pause, measured in user, system and real time categories.
+> 1. <a>`2015-05-26T16:23:08.447-0200: 65.550`</a> – Time the GC event started, both clock time and relative to the time from the JVM start.
+> 1. <a>`CMS Final Remark – Phase of the collection – “Final Remark” in this occasion`</a> – that is marking all live objects in the Old Generation, including the references that were created/modified during previous concurrent marking phases.
+> 1. <a>`YG occupancy: 387920 K (613440 K)`</a> – Current occupancy and capacity of the Young Generation.
+> 1. <a>`[Rescan (parallel) , 0.0085125 secs]`</a> – The “Rescan” completes the marking of live objects while the application is stopped. In this case the rescan was done in parallel and took 0.0085125 seconds.
+> 1. <a>`weak refs processing, 0.0000243 secs]65.559`</a> – First of the sub-phases that is processing weak references along with the duration and timestamp of the phase.
+> 1. <a>`class unloading, 0.0013120 secs]65.560`</a> – Next sub-phase that is unloading the unused classes, with the duration and timestamp of the phase.
+> 1. <a>`scrub string table, 0.0001759 secs`</a> – Final sub-phase that is cleaning up symbol and string tables which hold class-level metadata and internalized string respectively. Clock time of the pause is also included.
+> 1. <a>`10812086K(11901376K)`</a> – Occupancy and the capacity of the Old Generation after the phase.
+> 1. <a>`11200006K(12514816K) `</a> – Usage and the capacity of the total heap after the phase.
+> 1. <a>`0.0110730 secs`</a> – Duration of the phase.
+> 1. <a>`[Times: user=0.06 sys=0.00, real=0.01 secs]`</a> – Duration of the pause, measured in user, system and real time categories.
 
 >
 1。2015 - 05 - 26 - t16:23:08.447 - 0200:65.550 - GC事件开始,时钟时间和相对于从JVM开始的时间。
@@ -853,9 +857,9 @@ Phase 6: Concurrent Sweep. Performed concurrently with the application, without 
 
 
 >
-1. CMS-concurrent-sweep – Phase of the collection “Concurrent Sweep” in this occasion, sweeping unmarked and thus unused objects to reclaim space.
-1. 0.027/0.027 secs – Duration of the phase, showing elapsed time and wall clock time correspondingly.
-1. [Times: user=0.03 sys=0.00, real=0.03 secs]  – “Times” section is less meaningful on concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
+> 1. <a>`CMS-concurrent-sweep`</a> – Phase of the collection “Concurrent Sweep” in this occasion, sweeping unmarked and thus unused objects to reclaim space.
+> 1. <a>`0.027/0.027 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly.
+> 1. <a>`[Times: user=0.03 sys=0.00, real=0.03 secs] `</a> – “Times” section is less meaningful on concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
 
 >
 1。CMS-concurrent-sweep -阶段的集合“并发扫描”这一次,彻底的无名,因此未使用的对象回收空间。
@@ -876,9 +880,9 @@ Phase 6: Concurrent Sweep. Performed concurrently with the application, without 
 
 
 >
-1. CMS-concurrent-reset – The phase of the collection – “Concurrent Reset” in this occasion – that is resetting inner data structures of the CMS algorithm and preparing for the next collection.
-1. 0.012/0.012 secs – Duration of the the phase, measuring elapsed and wall clock time respectively.
-1. [Times: user=0.01 sys=0.00, real=0.01 secs] – The “Times” section is less meaningful on concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
+> 1. <a>`CMS-concurrent-reset – The phase of the collection – “Concurrent Reset” in this occasion`</a> – that is resetting inner data structures of the CMS algorithm and preparing for the next collection.
+> 1. <a>`0.012/0.012 secs`</a> – Duration of the the phase, measuring elapsed and wall clock time respectively.
+> 1. <a>`[Times: user=0.01 sys=0.00, real=0.01 secs]`</a> – The “Times” section is less meaningful on concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
 
 >
 1。CMS-concurrent-reset——集合的阶段——“并发重置”这一次——这是重置CMS的内部数据结构算法和准备下一个集合。
@@ -977,17 +981,17 @@ The process of copying these is called Evacuation, and it works in pretty much t
 
 
 >
-1. 0.134: [GC pause (G1 Evacuation Pause) (young), 0.0144119 secs] – G1 pause cleaning only (young) regions. The pause started 134ms after the JVM startup and the duration of the pause was 0.0144 seconds measured in wall clock time.
-1. [Parallel Time: 13.9 ms, GC Workers: 8] – Indicating that for 13.9 ms (real time) the following activities were carried out by 8 threads in parallel
-1. … – Cut for brevity, see the following section below for the details.
-1. [Code Root Fixup: 0.0 ms] – Freeing up the data structures used for managing the parallel activities. Should always be near-zero. This is done sequentially.
-1. [Code Root Purge: 0.0 ms] – Cleaning up more data structures, should also be very fast, but non necessarily almost zero. This is done sequentially.
-1. [Other: 0.4 ms] – Miscellaneous other activities, many of which are also parallelized
-1. … – See the section below for details
-1. [Eden: 24.0M(24.0M)->0.0B(13.0M)  – Eden usage and capacity before and after the pause
-1. Survivors: 0.0B->3072.0K  – Space used by Survivor regions before and after the pause
-1. Heap: 24.0M(256.0M)->21.9M(256.0M)] – Total heap usage and capacity before and after the pause.
-1. [Times: user=0.04 sys=0.04, real=0.02 secs]  – Duration of the GC event, measured in different categories:
+> 1. <a>`0.134: [GC pause (G1 Evacuation Pause) (young), 0.0144119 secs]`</a> – G1 pause cleaning only (young) regions. The pause started 134ms after the JVM startup and the duration of the pause was 0.0144 seconds measured in wall clock time.
+> 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (real time) the following activities were carried out by 8 threads in parallel
+> 1. <a>`…`</a> – Cut for brevity, see the following section below for the details.
+> 1. <a>`[Code Root Fixup: 0.0 ms]`</a> – Freeing up the data structures used for managing the parallel activities. Should always be near-zero. This is done sequentially.
+> 1. <a>`[Code Root Purge: 0.0 ms]`</a> – Cleaning up more data structures, should also be very fast, but non necessarily almost zero. This is done sequentially.
+> 1. <a>`[Other: 0.4 ms]`</a> – Miscellaneous other activities, many of which are also parallelized
+> 1. <a>`…`</a> – See the section below for details
+> 1. <a>`[Eden: 24.0M(24.0M)->0.0B(13.0M) `</a> – Eden usage and capacity before and after the pause
+> 1. <a>`Survivors: 0.0B->3072.0K `</a> – Space used by Survivor regions before and after the pause
+> 1. <a>`Heap: 24.0M(256.0M)->21.9M(256.0M)]`</a> – Total heap usage and capacity before and after the pause.
+> 1. <a>`[Times: user=0.04 sys=0.04, real=0.02 secs] `</a> – Duration of the GC event, measured in different categories:
  - user – Total CPU time that was consumed by Garbage Collector threads during this collection
  - sys – Time spent in OS calls or waiting for system event
  - real – Clock time for which your application was stopped. With the parallelizable activities during GC this number is ideally close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
@@ -1046,16 +1050,16 @@ GC职工总数(ms)9:分钟:13.7,平均值:13.8,马克斯:13.8,差异:0.1,和110.
 
 
 >
-1. [Parallel Time: 13.9 ms, GC Workers: 8] – Indicating that for 13.9 ms (clock time) the following activities were carried out by 8 threads in parallel
-1. [GC Worker Start (ms) – The moment in time at which the workers started their activity, matching the timestamp at the beginning of the pause. If Min and Max differ a lot, then it may be an indication that too many threads are used or other processes on the machine are stealing CPU time from the garbage collection process inside the JVM
-1. [Ext Root Scanning (ms) – How long it took to scan the external (non-heap) roots such as classloaders, JNI references, JVM system roots, etc. Shows elapsed time, “Sum” is CPU time
-1. [Code Root Scanning (ms) – How long it took to scan the roots that came from the actual code: local vars, etc.
-1. [Object Copy (ms) – How long it took to copy the live objects away from the collected regions.
-1. [Termination (ms) – How long it took for the worker threads to ensure that they can safely stop and that there’s no more work to be done, and then actually terminate
-1. [Termination Attempts – How many attempts worker threads took to try and terminate. An attempt is failed if the worker discovers that there’s in fact more work to be done, and it’s too early to terminate.
-1. [GC Worker Other (ms) – Other miscellaneous small activities that do not deserve a separate section in the logs.
-1. GC Worker Total (ms) – How long the worker threads have worked for in total
-1. [GC Worker End (ms) – The timestamp at which the workers have finished their jobs. Normally they should be roughly equal, otherwise it may be an indication of too many threads hanging around or a noisy neighbor
+> 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (clock time) the following activities were carried out by 8 threads in parallel
+> 1. <a>`[GC Worker Start (ms)`</a> – The moment in time at which the workers started their activity, matching the timestamp at the beginning of the pause. If Min and Max differ a lot, then it may be an indication that too many threads are used or other processes on the machine are stealing CPU time from the garbage collection process inside the JVM
+> 1. <a>`[Ext Root Scanning (ms)`</a> – How long it took to scan the external (non-heap) roots such as classloaders, JNI references, JVM system roots, etc. Shows elapsed time, “Sum” is CPU time
+> 1. <a>`[Code Root Scanning (ms)`</a> – How long it took to scan the roots that came from the actual code: local vars, etc.
+> 1. <a>`[Object Copy (ms)`</a> – How long it took to copy the live objects away from the collected regions.
+> 1. <a>`[Termination (ms)`</a> – How long it took for the worker threads to ensure that they can safely stop and that there’s no more work to be done, and then actually terminate
+> 1. <a>`[Termination Attempts`</a> – How many attempts worker threads took to try and terminate. An attempt is failed if the worker discovers that there’s in fact more work to be done, and it’s too early to terminate.
+> 1. <a>`[GC Worker Other (ms)`</a> – Other miscellaneous small activities that do not deserve a separate section in the logs.
+> 1. <a>`GC Worker Total (ms)`</a> – How long the worker threads have worked for in total
+> 1. <a>`[GC Worker End (ms)`</a> – The timestamp at which the workers have finished their jobs. Normally they should be roughly equal, otherwise it may be an indication of too many threads hanging around or a noisy neighbor
 
 >
 1。(平行时间:13.9毫秒,GC工人:8]——表明13.9毫秒(时钟时间)以下活动是由8线程并行
@@ -1097,10 +1101,10 @@ Additionally, there are some miscellaneous activities that are performed during 
 
 
 >
-1. [Other: 0.4 ms] – Miscellaneous other activities, many of which are also parallelized
-1. [Ref Proc: 0.2 ms] – The time it took to process non-strong references: clear them or determine that no clearing is needed.
-1. [Ref Enq: 0.0 ms] – The time it took to enqueue the remaining non-strong references to the appropriate ReferenceQueue
-1. [Free CSet: 0.0 ms] – The time it takes to return the freed regions in the collection set so that they are available for new allocations.
+> 1. <a>`[Other: 0.4 ms]`</a> – Miscellaneous other activities, many of which are also parallelized
+> 1. <a>`[Ref Proc: 0.2 ms]`</a> – The time it took to process non-strong references: clear them or determine that no clearing is needed.
+> 1. <a>`[Ref Enq: 0.0 ms]`</a> – The time it took to enqueue the remaining non-strong references to the appropriate ReferenceQueue
+> 1. <a>`[Free CSet: 0.0 ms]`</a> – The time it takes to return the freed regions in the collection set so that they are available for new allocations.
 
 >
 1。(其他:0.4毫秒)——各种各样的其他活动,其中许多也并行
@@ -1290,11 +1294,11 @@ In the mixed mode, the logs publish certain new interesting aspects when compare
 
 
 >
-1. [Update RS (ms) – Since the Remembered Sets are processed concurrently, we have to make sure that the still-buffered cards are processed before the actual collection begins. If this number is high, then the concurrent GC threads are unable to handle the load. It may be, e.g., because of an overwhelming number of incoming field modifications, or insufficient CPU resources.
-1. [Processed Buffers – How many local buffers each worker thread has processed.
-1. [Scan RS (ms) – How long it took to scan the references coming in from remembered sets.
-1. [Clear CT: 0.2 ms] – Time to clean the cards in the card table. Cleaning simply removes the “dirty” status that was put there to signify that a field was updated, to be used for Remembered Sets.
-1. [Redirty Cards: 0.1 ms] – The time it takes to mark the appropriate locations in the card table as dirty. Appropriate locations are defined by the mutations to the heap that GC does itself, e.g. while enqueuing references.
+> 1. <a>`[Update RS (ms)`</a> – Since the Remembered Sets are processed concurrently, we have to make sure that the still-buffered cards are processed before the actual collection begins. If this number is high, then the concurrent GC threads are unable to handle the load. It may be, e.g., because of an overwhelming number of incoming field modifications, or insufficient CPU resources.
+> 1. <a>`[Processed Buffers`</a> – How many local buffers each worker thread has processed.
+> 1. <a>`[Scan RS (ms)`</a> – How long it took to scan the references coming in from remembered sets.
+> 1. <a>`[Clear CT: 0.2 ms]`</a> – Time to clean the cards in the card table. Cleaning simply removes the “dirty” status that was put there to signify that a field was updated, to be used for Remembered Sets.
+> 1. <a>`[Redirty Cards: 0.1 ms]`</a> – The time it takes to mark the appropriate locations in the card table as dirty. Appropriate locations are defined by the mutations to the heap that GC does itself, e.g. while enqueuing references.
 
 >
 1。(更新RS(女士)——自记得设置并发处理,我们必须确保still-buffered卡片收集实际开始前处理.如果这个数字很高,并发GC线程无法处理负载。它可能是。的,因为绝大多数的字段的修改,或CPU资源不足。
