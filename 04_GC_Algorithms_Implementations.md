@@ -256,8 +256,8 @@ After understanding the first minor GC event, lets look into the second GC event
 
 
 > 
-> 1. <a>`2015-05-26T14:45:59.690-0200`</a> – Time when the GC event started.
-> 1. <a>`172.829`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds.
+> 1. <a>`2015-05-26T14:45:59.690-0200`</a> – Time when the GC event started. GC事件开始的时间. 其中`-0200`是时区,而中国所在的东8区为 `+0800`。
+> 1. <a>`172.829`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。
 > 1. <a>`[DefNew: 629120K->629120K(629120K), 0.0000372 secs`</a> – Similar to the previous example, a minor garbage collection in the Young Generation happened during this event due to Allocation Failure. For this collection the same DefNew collector was run as before and it decreased the usage of the Young Generation from 629120K to 0. Notice that JVM reports this incorrectly due to buggy behavior and instead reports the Young Generation as being completely full. This collection took 0.0000372 seconds.
 > 1. <a>`Tenured`</a> – Name of the garbage collector used to clean the Old space. The name Tenured indicates a single-threaded stop-the-world mark-sweep-compact garbage collector being used.
 > 1. <a>`1203359K->755802K`</a>  – Usage of Old generation before and after the event.
@@ -266,10 +266,10 @@ After understanding the first minor GC event, lets look into the second GC event
 > 1. <a>`1832479K->755802K`</a> – Usage of the whole heap before and after the collection of the Young and Old Generations.
 > 1. <a>`(2027264K)`</a> – Total heap available for the JVM.
 > 1. <a>`[Metaspace: 6741K->6741K(1056768K)]`</a> – Similar information about Metaspace collection. As seen, no garbage was collected in Metaspace during the event.
-> 1. <a>`[Times: user=0.18 sys=0.00, real=0.18 secs]`</a> – Duration of the GC event, measured in different categories:
- - user – Total CPU time that was consumed by Garbage Collector threads during this collection
- - sys – Time spent in OS calls or waiting for system event
- - real – Clock time for which your application was stopped. As Serial Garbage Collector always uses just a single thread, real time is thus equal to the sum of user and system times.
+> 1. <a>`[Times: user=0.18 sys=0.00, real=0.18 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
+ - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
+ - real – Clock time for which your application was stopped. As Serial Garbage Collector always uses just a single thread, real time is thus equal to the sum of user and system times. 应用程序被停止的系统时钟时间。因为串行垃圾收集器(Serial Garbage Collector)只使用单线程, 因此 real time 等于 user 和 system 时间的总和.
 
 >
 1。2015 - 05 - 26 t14:45:59.690 - 0200 GC事件开始的时候。
@@ -379,19 +379,19 @@ The first of the two events indicates a GC event taking place in the Young Gener
 
 
 >
-> 1. <a>`2015-05-26T14:27:40.915-0200`</a> – Time when the GC event started.
-> 1. <a>`116.115`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds.
-> 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC.
-> 1. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a data structure not fitting into any region in the Young Generation.
+> 1. <a>`2015-05-26T14:27:40.915-0200`</a> – Time when the GC event started. GC事件开始的时间. 其中`-0200`是时区,而中国所在的东8区为 `+0800`。
+> 1. <a>`116.115`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。
+> 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**次要GC**(Minor GC)
+> 1. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a data structure not fitting into any region in the Young Generation. 触发垃圾收集的原因。本次GC事件, 是由于年轻代中没有适当的空间存放新的数据结构引起的。
 > 1. <a>`PSYoungGen`</a> – Name of the garbage collector used, representing a parallel mark-copy stop-the-world garbage collector used to clean the Young generation.
-> 1. <a>`2694440K->1305132K`</a> – usage of the Young Generation before and after collection
-> 1. <a>`(2796544K)`</a> – Total size of the Young Generation
+> 1. <a>`2694440K->1305132K`</a> – Usage of the Young Generation before and after collection. 在垃圾收集之前和之后的年轻代使用量。
+> 1. <a>`(2796544K)`</a> – Total size of the Young Generation. 年轻代的总大小。
 > 1. <a>`9556775K->8438926K`</a> – Total heap usage before and after collection
-> 1. <a>`(11185152K)`</a> – Total available heap
-> 1. <a>`0.2406675 secs`</a> – Duration of the GC event in seconds
-> 1. <a>`[Times: user=1.77 sys=0.01, real=0.24 secs]`</a> – Duration of the GC event, measured in different categories:
- - user – Total CPU time that was consumed by Garbage Collector threads during this collection
- - sys – Time spent in OS calls or waiting for system event
+> 1. <a>`(11185152K)`</a> – Total available heap. 可用堆的总大小。
+> 1. <a>`0.2406675 secs`</a> – Duration of the GC event in seconds. GC事件持续的时间,以秒为单位。
+> 1. <a>`[Times: user=1.77 sys=0.01, real=0.24 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
+ - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
  - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
 
 >
@@ -440,7 +440,7 @@ After understanding how Parallel GC cleans the Young Generation, we are ready to
 
 >
 > 1. <a>`2015-05-26T14:27:41.155-0200`</a> – Time when the GC event started
-> 1. <a>`116.356`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. In this case we can see the event started right after the previous Minor GC finished.
+> 1. <a>`116.356`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。 In this case we can see the event started right after the previous Minor GC finished.
 > 1. <a>`Full GC`</a> – Flag indicating that the event is Full GC event cleaning both the Young and Old generations.
 > 1. <a>`Ergonomics`</a> – Reason for the GC taking place. This indicates that the JVM internal ergonomics decided this is the right time to collect some garbage.
 > 1. <a>`[PSYoungGen: 1305132K->0K(2796544K)]`</a> – Similar to previous example, a parallel mark-copy stop-the-world garbage collector named “PSYoungGen” was used to clean the Young Generation. Usage of Young Generation shrank from 1305132K to 0, which is the typical result of a Full GC.
@@ -450,11 +450,12 @@ After understanding how Parallel GC cleans the Young Generation, we are ready to
 > 1. <a>`8438926K->6597672K`</a> – Usage of the whole heap before and after the collection.
 > 1. <a>`(11185152K)`</a> – Total heap available
 > 1. <a>`[Metaspace: 6745K->6745K(1056768K)] `</a> – Similar information about Metaspace region. As we can see, no garbage was collected in Metaspace during this event.
-> 1. <a>`0.9158801 secs`</a> – Duration of the GC event in seconds
-> 1. <a>`[Times: user=4.49 sys=0.64, real=0.92 secs]`</a> – Duration of the GC event, measured in different categories:
- - user – Total CPU time that was consumed by Garbage Collector threads during this collection
- - sys – Time spent in OS calls or waiting for system event
- - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
+> 1. <a>`0.9158801 secs`</a> – Duration of the GC event in seconds. GC事件持续的时间,以秒为单位。
+> 1. <a>`[Times: user=4.49 sys=0.64, real=0.92 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
+ - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
+ - real – Clock time for which your application was stopped. 应用程序被停止的系统时钟时间。. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
+
 
 >
 1。2015 - 05 - 26 t14:27:41.155 - 0200 GC事件开始的时候
@@ -555,21 +556,21 @@ First of the GC events in log denotes a minor GC cleaning the Young space. Let�
 
 
 >
-> 1. <a>`2015-05-26T16:23:07.219-0200`</a> – Time when the GC event started.
-> 1. <a>`64.322`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds.
-> 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC.
+> 1. <a>`2015-05-26T16:23:07.219-0200`</a> – Time when the GC event started. GC事件开始的时间. 其中`-0200`是时区,而中国所在的东8区为 `+0800`。
+> 1. <a>`64.322`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。
+> 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**次要GC**(Minor GC)
 > 1. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a requested allocation not fitting into any region in Young Generation.
 > 1. <a>`ParNew`</a> – Name of the collector used, this time it indicates a parallel mark-copy stop-the-world garbage collector used in the Young Generation, designed to work in conjunction with Concurrent Mark & Sweep garbage collector in the Old Generation.
-> 1. <a>`613404K->68068K`</a> – Usage of the Young Generation before and after collection.
-> 1. <a>`(613440K) `</a> – Total size of the Young Generation.
+> 1. <a>`613404K->68068K`</a> – Usage of the Young Generation before and after collection. 在垃圾收集之前和之后的年轻代使用量。
+> 1. <a>`(613440K) `</a> – Total size of the Young Generation. 年轻代的总大小。
 > 1. <a>`0.1020465 secs`</a> – Duration for the collection w/o final cleanup.
-> 1. <a>`10885349K->10880154K `</a> – Total used heap before and after collection.
-> 1. <a>`(12514816K)`</a> – Total available heap.
+> 1. <a>`10885349K->10880154K `</a> – Total used heap before and after collection. 在垃圾收集之前和之后堆内存的使用情况。
+> 1. <a>`(12514816K)`</a> – Total available heap. 可用堆的总大小。
 > 1. <a>`0.1021309 secs`</a> – The time it took for the garbage collector to mark and copy live objects in the Young Generation. This includes communication overhead with ConcurrentMarkSweep collector, promotion of objects that are old enough to the Old Generation and some final cleanup at the end of the garbage collection cycle.
-> 1. <a>``[Times: user=0.78 sys=0.01, real=0.11 secs]``</a> – Duration of the GC event, measured in different categories:
- - user – Total CPU time that was consumed by Garbage Collector threads during this collection
- - sys – Time spent in OS calls or waiting for system event
- - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by the Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
+> 1. <a>``[Times: user=0.78 sys=0.01, real=0.11 secs]``</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
+ - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
+ - real – Clock time for which your application was stopped. 应用程序被停止的系统时钟时间。. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by the Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
 
 >
 1。2015 - 05 - 26 t16:23:07.219 - 0200 GC事件开始的时候。
@@ -653,7 +654,7 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 > 1. <a>`10812086K`</a> – Currently used Old Generation.
 > 1. <a>`(11901376K)`</a> – Total available memory in the Old Generation.
 > 1. <a>`10887844K`</a> – Currently used heap
-> 1. <a>`(12514816K)`</a> – Total available heap
+> 1. <a>`(12514816K)`</a> – Total available heap. 可用堆的总大小。
 > 1. <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`</a> – Duration of the phase, measured also in user, system and real time.
 
 >
@@ -991,10 +992,10 @@ The process of copying these is called Evacuation, and it works in pretty much t
 > 1. <a>`[Eden: 24.0M(24.0M)->0.0B(13.0M) `</a> – Eden usage and capacity before and after the pause
 > 1. <a>`Survivors: 0.0B->3072.0K `</a> – Space used by Survivor regions before and after the pause
 > 1. <a>`Heap: 24.0M(256.0M)->21.9M(256.0M)]`</a> – Total heap usage and capacity before and after the pause.
-> 1. <a>`[Times: user=0.04 sys=0.04, real=0.02 secs] `</a> – Duration of the GC event, measured in different categories:
- - user – Total CPU time that was consumed by Garbage Collector threads during this collection
- - sys – Time spent in OS calls or waiting for system event
- - real – Clock time for which your application was stopped. With the parallelizable activities during GC this number is ideally close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
+> 1. <a>`[Times: user=0.04 sys=0.04, real=0.02 secs] `</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
+ - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
+ - real – Clock time for which your application was stopped. 应用程序被停止的系统时钟时间。. With the parallelizable activities during GC this number is ideally close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
 
 >
 1。0.134:[GC暂停(G1疏散停顿)(年轻),0.0144119秒]- G1暂停只清洗(年轻)地区。暂停后开始134 ms JVM启动和暂停的持续时间是0.0144秒在挂钟时间测量。
