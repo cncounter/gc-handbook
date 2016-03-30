@@ -284,9 +284,7 @@ The difference with Minor GC is evident – in addition to the Young Generation,
 
 
 
-## Parallel GC
-
-## 平行GC
+## 并行GC(Parallel GC)
 
 
 This combination of Garbage Collectors uses mark-copy in the Young Generation and mark-sweep-compact in the Old Generation. Both Young and Old collections trigger stop-the-world events, stopping all application threads to perform garbage collection. Both collectors run marking and copying / compacting phases using multiple threads, hence the name ‘Parallel’. Using this approach, collection times can be considerably reduced.
