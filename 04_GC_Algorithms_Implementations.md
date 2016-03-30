@@ -138,7 +138,8 @@ Let us now review how garbage collector logs look like when using Serial GC and 
 现在让我们看看Serial GC的垃圾收集器日志, 以及从中可用提取什么有用的信息。为了这个目的, 我们使用下面的参数来打开GC日志记录:
 
 
-	-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps
+	-XX:+PrintGCDetails -XX:+PrintGCDateStamps 
+	-XX:+PrintGCTimeStamps
 
 
 
@@ -259,38 +260,23 @@ After understanding the first minor GC event, lets look into the second GC event
 > 1. <a>`2015-05-26T14:45:59.690-0200`</a> – Time when the GC event started. GC事件开始的时间. 其中`-0200`是时区,而中国所在的东8区为 `+0800`。
 > 1. <a>`172.829`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。
 > 1. <a>`[DefNew: 629120K->629120K(629120K), 0.0000372 secs`</a> – Similar to the previous example, a minor garbage collection in the Young Generation happened during this event due to Allocation Failure. For this collection the same DefNew collector was run as before and it decreased the usage of the Young Generation from 629120K to 0. Notice that JVM reports this incorrectly due to buggy behavior and instead reports the Young Generation as being completely full. This collection took 0.0000372 seconds.
-> 1. <a>`Tenured`</a> – Name of the garbage collector used to clean the Old space. The name Tenured indicates a single-threaded stop-the-world mark-sweep-compact garbage collector being used.
-> 1. <a>`1203359K->755802K`</a>  – Usage of Old generation before and after the event.
-> 1. <a>`(1398144K)`</a>  – Total capacity of the Old generation.
-> 1. <a>`0.1855567 secs`</a> – Time it took to clean the Old Generation.
-> 1. <a>`1832479K->755802K`</a> – Usage of the whole heap before and after the collection of the Young and Old Generations.
-> 1. <a>`(2027264K)`</a> – Total heap available for the JVM.
-> 1. <a>`[Metaspace: 6741K->6741K(1056768K)]`</a> – Similar information about Metaspace collection. As seen, no garbage was collected in Metaspace during the event.
+> 1. <a>`Tenured`</a> – Name of the garbage collector used to clean the Old space. The name Tenured indicates a single-threaded stop-the-world mark-sweep-compact garbage collector being used.  用于清理老年代空间的垃圾收集器名称。名称 **Tenured** 表明使用的是单线程的垃圾收集器,STW, 算法为 标记-清除-整理(mark-sweep-compact )。
+> 1. <a>`1203359K->755802K`</a>  – Usage of Old generation before and after the event. 在垃圾收集之前和之后的老年代使用量。
+> 1. <a>`(1398144K)`</a>  – Total capacity of the Old generation. 老年代的总大小。
+> 1. <a>`0.1855567 secs`</a> – Time it took to clean the Old Generation. 清理老年代所花的时间。
+> 1. <a>`1832479K->755802K`</a> – Usage of the whole heap before and after the collection of the Young and Old Generations. 在垃圾收集之前和之后堆内存的使用情况。
+> 1. <a>`(2027264K)`</a> – Total heap available for the JVM. 可用堆的总大小。
+> 1. <a>`[Metaspace: 6741K->6741K(1056768K)]`</a> – Similar information about Metaspace collection. As seen, no garbage was collected in Metaspace during the event.  Metaspace 空间中类似的信息。可以看到, 在GC事件中 Metaspace 中没有回收到任何垃圾。
 > 1. <a>`[Times: user=0.18 sys=0.00, real=0.18 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
  - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
  - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
  - real – Clock time for which your application was stopped. As Serial Garbage Collector always uses just a single thread, real time is thus equal to the sum of user and system times. 应用程序被停止的系统时钟时间。因为串行垃圾收集器(Serial Garbage Collector)只使用单线程, 因此 real time 等于 user 和 system 时间的总和.
 
->
-1。2015 - 05 - 26 t14:45:59.690 - 0200 GC事件开始的时候。
-1。172.829 - GC事件开始,相对于JVM启动时间。以秒为单位来衡量。
-1。[DefNew:629120 k - > 629120 k(629120 k),0.0000372秒-与前面的示例类似,一个小垃圾收集在年轻代中发生这个事件由于分配失败.这个集合DefNew收集器运行一样,它减少了年轻代的使用从629120 k为0.注意JVM报告这个错误由于车行为,而年轻代是完全完整的报告。这个集合了0.0000372秒。
-1。终身,垃圾收集器的名称用于清理旧空间。终身的名称表明了单线程的停止一切标记-清除-整理垃圾收集器。
-1。1203359 k - > 1203359 k -使用老年代之前和之后的事件。
-1。(1398144 k)——老年代的总容量。
-1。0.1855567秒-时间清理旧的一代。
-1。1832479 k - > 1832479 k -使用前后整个堆年轻和年老一代的集合。
-1。(2027264 k)-总堆用于JVM。
-1。[Metaspace:6741 k - > 6741 k(1056768 k)]——类似Metaspace收集信息。可以看到,没有垃圾收集在Metaspace事件。
-1。(时间:用户= 0.18 sys = 0.00,真实= 0.18秒)- GC事件期间,测量在不同的类别:
-——用户——总消耗的CPU时间垃圾收集器线程在此集合
-- sys -时间花在操作系统调用或等待系统事件
--真正的时钟时间为您的应用程序被停止了。正如串行垃圾收集器总是使用一个线程,因此等于实时用户和系统时间的总和。
 
 
 The difference with Minor GC is evident – in addition to the Young Generation, during this GC event the Old Generation and Metaspace were also cleaned. The layout of the memory before and after the event would look like the situation in the following picture:
 
-小GC的区别是明显的——除了年轻代,在这个GC事件老一代和Metaspace也清洗.记忆事件前后的布局看起来像下图的情况:
+和 Minor GC 的区别是很明显的 —— 在此次GC事件中, 除了年轻代, 还清理了老年代和Metaspace. 在GC事件前后的内存布局如下图所示:
 
 
 ![](04_02_serial-gc-in-old-gen-java.png)
@@ -460,7 +446,7 @@ After understanding how Parallel GC cleans the Young Generation, we are ready to
 >
 1。2015 - 05 - 26 t14:27:41.155 - 0200 GC事件开始的时候
 1。116.356 - GC事件开始,相对于JVM启动时间。以秒为单位来衡量。在这种情况下我们可以看到事件后开始之前的小GC完成。
-1。完整GC -标志,指示事件充满GC事件清洁年轻和年老一代又一代。
+1。完整GC -标志,指示事件充满GC事件清洁年轻和年老年代又一代。
 1。人体工程学- GC发生的原因。这表明JVM内部环境决定这是正确的时间去收集一些垃圾。
 1。[PSYoungGen:1305132 k - > 0 k(2796544 k)]——类似于之前的例子,一个平行mark-copy停止一切垃圾收集器,名叫“PSYoungGen”被用来清洁的年轻代.年轻代的使用减少从1305132 k为0,这是一个完整的GC的典型结果。
 1。ParOldGen -类型的收集器用于清洁旧的一代。在这种情况下,并行标记-清除-整理停止一切垃圾收集器,名叫ParOldGen使用。
@@ -478,7 +464,8 @@ After understanding how Parallel GC cleans the Young Generation, we are ready to
 
 Again, the difference with Minor GC is evident – in addition to the Young Generation, during this GC event the Old Generation and Metaspace were also cleaned. The layout of the memory before and after the event would look like the situation in the following picture:
 
-小GC的区别是明显的,除了年轻代,在这个GC事件老一代和Metaspace也清洗.记忆事件前后的布局看起来像下图的情况:
+
+同样,和 Minor GC 的区别是很明显的 —— 在此次GC事件中, 除了年轻代, 还清理了老年代和Metaspace. 在GC事件前后的内存布局如下图所示:
 
 
 ![](04_04_Java-ParallelGC-in-Old-Generation.png)
@@ -1176,7 +1163,9 @@ This is achieved by the use of the Pre-Write barriers (not to be confused with P
 * * 4级。的话。* *这是一个停止一切停顿,就像以前在CMS,做好标记的过程。为G1,它短暂的停止应用程序线程停止流入的并发更新日志和过程他们剩下的少量,和标志无论still-unmarked对象并发标记周期时启动。这一阶段也执行一些额外的清洁,如.参考处理(见疏散暂停日志)或类卸载。
 
 
-	1.645: [GC remark 1.645: [Finalize Marking, 0.0009461 secs] 1.646: [GC ref-proc, 0.0000417 secs] 1.646: [Unloading, 0.0011301 secs], 0.0074056 secs]
+	1.645: [GC remark 1.645: [Finalize Marking, 0.0009461 secs]
+	1.646: [GC ref-proc, 0.0000417 secs] 1.646: 
+		[Unloading, 0.0011301 secs], 0.0074056 secs]
 	[Times: user=0.01 sys=0.00, real=0.01 secs]
 
 
