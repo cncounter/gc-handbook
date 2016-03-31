@@ -1296,19 +1296,20 @@ In the mixed mode, the logs publish certain new interesting aspects when compare
 1。(女士Redirty卡:0.1),所花费的时间卡表中适当的位置标记为脏。适当的位置是由突变的堆GC本身,如.排队时引用。
 
 
-### Summary
-
 ### 总结
 
 
 This should give one a sufficient basic understanding of how G1 functions. There are, of course, still quite some implementation details that we have left out for brevity, like dealing with humongous objects. All things considered, G1 is the most technologically advanced production-ready collector available in HotSpot. On top of that, it is being relentlessly improved by the HotSpot Engineers, with new optimizations or features coming in with newer java versions.
 
-这应该给一个充分的了解G1的基本功能。当然,仍然相当一些实现细节,剩下简洁,像处理巨大无比的对象。经过全面的考虑,G1是技术最先进生产就绪的收集器中可用热点。最重要的是,被热点工程师不断改进,新的优化和功能更新的java版本。
+通过本节的内容, 你应该对G1的基本功能有一定的了解。当然, 为了简洁, 就像处理一个庞大无比的对象一样, 我们省略了很多的实现细节。通过全方位的考虑, G1是HotSpot中可用的最先进的**准产品级(production-ready)**垃圾收集器。最重要的是, HotSpot 工程师的主要精力都用在不断改进G1上面, 在新的java版本中将会带来新的功能和优化。
 
 
 As we have seen, G1 addressed a wide range of problems that CMS has, starting from pause predictability and ending with heap fragmentation. Given an application not constrained by CPU utilization, but very sensitive to the latency of individual operations, G1 is very likely to be the best available choice for HotSpot users, especially when running the latest versions of Java. However, these latency improvements do not come for free: throughput overhead of G1 is larger thanks to the additional write barriers and more active background threads. So, if the application is throughput-bound or is consuming 100% of CPU, and does not care as much about individual pause durations, then CMS or even Parallel may be better choices.
 
-正如我们所见,G1 CMS解决各种各样的问题,从暂停可预见性和堆碎片。应用程序不受限于CPU利用率,但对个人业务的延迟非常敏感,G1很可能是最好的选择对于热点用户,尤其是当运行最新版本的Java。然而,这些延迟改进不是免费的:吞吐量G1更大的开销由于额外的写屏障和更积极的后台线程。所以,如果应用程序throughput-bound或者消耗100%的CPU,并且不一样关心个人暂停时间,然后CMS甚至平行可能是更好的选择。
+正如我们所见,G1 解决了 CMS 中各种各样的问题, 包括暂停时间的可预见性和以及终结了堆内存的碎片化。对于CPU使用不受限制, 但对单个业务的延迟非常敏感的系统, G1很可能是HotSpot中最好的选择,特别是在最新的Java版本中。然而,这种低延迟的改进也不是没有代价的: 由于额外的写屏障(write barriers)和更积极的后台线程, G1的开销会更大。所以, 如果系统属于吞吐量优先,或者CPU消耗了100%, 而又不在乎单次GC的暂停时间, 那么CMS应该是更好的选择。
+
+
+> 总之: G1适合大内存,需要低延迟的场景。
 
 
 The only viable way to select the right GC algorithm and settings is through trial and errors, but we do give the general guidelines in the next chapter.
