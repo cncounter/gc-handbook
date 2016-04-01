@@ -284,22 +284,25 @@ The difference with Minor GC is evident – in addition to the Young Generation,
 
 
 
+<br/><p style="height:400px;">ccc</p><br/><p style="height:100px;">ccc</p><br/><p style="height:400px;">ccc</p><br/><p style="height:300px;">ccc</p>
+
+
 ## 并行GC(Parallel GC)
 
 
 This combination of Garbage Collectors uses mark-copy in the Young Generation and mark-sweep-compact in the Old Generation. Both Young and Old collections trigger stop-the-world events, stopping all application threads to perform garbage collection. Both collectors run marking and copying / compacting phases using multiple threads, hence the name ‘Parallel’. Using this approach, collection times can be considerably reduced.
 
-这种组合年轻代的垃圾收集器使用mark-copy和标记-清除-整理旧的一代。年轻的和老触发停止一切事件集合,停止所有应用程序线程执行垃圾收集。收集器运行标记和复制/压实阶段使用多个线程,因此得名“并行”。使用这种方法,集合时间可以大大减少。
+这种垃圾收集器在年轻代使用 标记-拷贝(mark-copy)算法, 在老年代使用 标记-清除-整理(mark-sweep-compact)算法。年轻代和老年代的垃圾回收都会触发STW事件,暂停所有的应用程序线程再执行垃圾收集。两者在执行 标记-复制/整理阶段时都使用多个线程, 因此得名“**并行(Parallel)**”。通过使用并行方式, 使得GC时间可以大幅减少。
 
 
 The number of threads used during garbage collection is configurable via the command line parameter -XX:ParallelGCThreads=NNN . The default value is equal to the number of cores in your machine.
 
-垃圾收集期间使用线程的数量是可配置的通过命令行参数- xx:某某ParallelGCThreads =。默认值等于核的数量在你的机器。
+垃圾收集时使用的线程数通过命令行参数 `-XX:ParallelGCThreads=NNN` 配置。 默认值等于机器上CPU内核的数量。
 
 
 Selection of Parallel GC is done via the specification of any of the following combinations of parameters in the JVM startup script:
 
-选择平行GC是通过下列的组合参数的规范在JVM启动脚本:
+下面的命令行参数, 任何一组都可以用来指定并行GC:
 
 
 	java -XX:+UseParallelGC com.mypackages.MyExecutableClass
@@ -311,24 +314,27 @@ Selection of Parallel GC is done via the specification of any of the following c
 
 Parallel Garbage Collector is suitable on multi-core machines in cases where your primary goal is to increase throughput. Higher throughput is achieved due to more efficient usage of system resources:
 
-并行垃圾收集器是合适的在多核机器上在这种情况下,你的主要目标是增加吞吐量。实现更高的吞吐量更有效的使用系统资源:
+并行垃圾收集器适用于在多核服务器上,主要目标是增加吞吐量的情况下。因为对系统资源的有效使用,能达到更搞的吞吐量:
 
 
- - during collection, all cores are cleaning the garbage in parallel, resulting in shorter pauses
- - between garbage collection cycles neither of the collectors is consuming any resources
- 
+- during collection, all cores are cleaning the garbage in parallel, resulting in shorter pauses
+- between garbage collection cycles neither of the collectors is consuming any resources
 
-!! 翻译失败
+<br/>
+
+- 在GC期间, 所有 CPU 内核都在并行地清理垃圾, 所以暂停时间更短
+- 在两次GC周期之间, 没有任何垃圾收集器在运行,不会消耗任何系统资源
+
 
 
 On the other hand, as all phases of the collection have to happen without any interruptions, these collectors are still susceptible to long pauses during which your application threads are stopped. So if latency is your primary goal, you should check the next combinations of garbage collectors.
 
-另一方面,作为收藏的所有阶段必须没有任何中断发生,这些收藏家仍然容易出现长时间的停顿期间应用程序线程停止.如果延迟是你的主要目标,你应该检查下一个垃圾收集器的组合。
+另一方面, 因为GC的所有阶段都不能中断, 所以这些收集器很容易出现长时间的停顿. 如果延迟是系统的主要目标, 那么应该选择下面的其他垃圾收集器组合。
 
 
 Let us now review how garbage collector logs look like when using Parallel GC and what useful information one can obtain from there. For this, let’s look again at the garbage collector logs that expose once more one minor and one major GC pause:
 
-现在让我们回顾如何垃圾收集器日志看起来像当使用并行GC和从那里可以获得什么有用的信息。对于这个,让我们再看看垃圾收集器日志再次暴露一个小,一个主要的GC暂停:
+让我们看看如何并行垃圾收集器的GC日志长什么样, 从中我们可以获取什么有用的信息。下面的GC日志中显示了一次 minor GC 和一次 major GC 暂停:
 
 
 	2015-05-26T14:27:40.915-0200: 116.115: [GC (Allocation Failure) 
@@ -423,17 +429,17 @@ After understanding how Parallel GC cleans the Young Generation, we are ready to
 
 
 >
-> 1. <a>`2015-05-26T14:27:41.155-0200`</a> – Time when the GC event started
+> 1. <a>`2015-05-26T14:27:41.155-0200`</a> – Time when the GC event started. GC事件开始的时间. 其中`-0200`是时区,而中国所在的东8区为 `+0800`
 > 1. <a>`116.356`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。 In this case we can see the event started right after the previous Minor GC finished.
 > 1. <a>`Full GC`</a> – Flag indicating that the event is Full GC event cleaning both the Young and Old generations.
 > 1. <a>`Ergonomics`</a> – Reason for the GC taking place. This indicates that the JVM internal ergonomics decided this is the right time to collect some garbage.
 > 1. <a>`[PSYoungGen: 1305132K->0K(2796544K)]`</a> – Similar to previous example, a parallel mark-copy stop-the-world garbage collector named “PSYoungGen” was used to clean the Young Generation. Usage of Young Generation shrank from 1305132K to 0, which is the typical result of a Full GC.
-> 1. <a>`ParOldGen`</a> – Type of the collector used to clean the Old Generation. In this case, parallel mark-sweep-compact stop-the-world garbage collector named ParOldGen was used.
-> 1. <a>`7133794K->6597672K `</a> – Usage of the Old Generation before and after the collection
-> 1. <a>`(8388608K)`</a> – Total size of the Old Generation
-> 1. <a>`8438926K->6597672K`</a> – Usage of the whole heap before and after the collection.
-> 1. <a>`(11185152K)`</a> – Total heap available
-> 1. <a>`[Metaspace: 6745K->6745K(1056768K)] `</a> – Similar information about Metaspace region. As we can see, no garbage was collected in Metaspace during this event.
+> 1. <a>`ParOldGen`</a> – Type of the collector used to clean the Old Generation. In this case, parallel mark-sweep-compact stop-the-world garbage collector named ParOldGen was used. 用于清理老年代空间的垃圾收集器类型。在这里使用的是名为 **ParOldGen** 的垃圾收集器, 这是一种并行的垃圾收集器,STW, 算法为 标记-清除-整理(mark-sweep-compact)。
+> 1. <a>`7133794K->6597672K `</a> – Usage of the Old Generation before and after the collection. 在垃圾收集之前和之后老年代内存的使用情况。
+> 1. <a>`(8388608K)`</a> – Total size of the Old Generation. 老年代的总大小。
+> 1. <a>`8438926K->6597672K`</a> – Usage of the whole heap before and after the collection. 在垃圾收集之前和之后堆内存的使用情况。
+> 1. <a>`(11185152K)`</a> – Total heap available. 可用堆的总大小。
+> 1. <a>`[Metaspace: 6745K->6745K(1056768K)] `</a> – Similar information about Metaspace region. As we can see, no garbage was collected in Metaspace during this event. Metaspace 空间中类似的信息。可以看到, 在GC事件中 Metaspace 中没有回收到任何垃圾。
 > 1. <a>`0.9158801 secs`</a> – Duration of the GC event in seconds. GC事件持续的时间,以秒为单位。
 > 1. <a>`[Times: user=4.49 sys=0.64, real=0.92 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
  - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
@@ -447,7 +453,7 @@ After understanding how Parallel GC cleans the Young Generation, we are ready to
 1。完整GC -标志,指示事件充满GC事件清洁年轻和年老年代又一代。
 1。人体工程学- GC发生的原因。这表明JVM内部环境决定这是正确的时间去收集一些垃圾。
 1。[PSYoungGen:1305132 k - > 0 k(2796544 k)]——类似于之前的例子,一个平行mark-copy停止一切垃圾收集器,名叫“PSYoungGen”被用来清洁的年轻代.年轻代的使用减少从1305132 k为0,这是一个完整的GC的典型结果。
-1。ParOldGen -类型的收集器用于清洁旧的一代。在这种情况下,并行标记-清除-整理停止一切垃圾收集器,名叫ParOldGen使用。
+1。ParOldGen -类型的收集器用于清洁老年代。在这种情况下,并行标记-清除-整理停止一切垃圾收集器,名叫ParOldGen使用。
 1。7133794 k - > 7133794 k -前后使用老年代的集合
 1。(8388608 k)——老年代的总大小
 1。8438926 k - > 8438926 k -使用前后整个堆的集合。
@@ -478,12 +484,12 @@ Again, the difference with Minor GC is evident – in addition to the Young Gene
 
 The official name for this collection of garbage collectors is “Mostly Concurrent Mark and Sweep Garbage Collector”. It uses the parallel stop-the-world mark-copy algorithm in the Young Generation and the mostly concurrent mark-sweep algorithm in the Old Generation.
 
-这组垃圾收集器的官方名称是“主要并发标记和清扫垃圾收集器”.它使用并行停止一切mark-copy算法大多年轻代和并发标记-清除算法在旧的一代。
+这组垃圾收集器的官方名称是“主要并发标记和清扫垃圾收集器”.它使用并行停止一切mark-copy算法大多年轻代和并发标记-清除算法在老年代。
 
 
 This collector was designed to avoid long pauses while collecting in the Old Generation. It achieves this by two means. Firstly, it does not compact the Old Generation but uses free-lists to manage reclaimed space. Secondly, it does most of the job in the mark-and-sweep phases concurrently with the application. This means that garbage collection is not explicitly stopping the application threads to perform these phases. It should be noted, however, that it still competes for CPU time with the application threads. By default, the number of threads used by this GC algorithm equals to ¼ of the number of physical cores of your machine.
 
-这种收集器是为了避免出现长时间的停顿在收集旧的一代。达到这两个意思。首先,It does not compact, the Old Generation but USES free - lists to the manage reclaimed space. Secondly, it does most of the job in the mark - and - sweep phases concurrently with the application.这意味着垃圾收集没有显式地停止应用程序线程来执行这些阶段。然而,应该注意的,它仍然争夺与应用程序线程CPU时间。默认情况下,这个GC算法所使用的线程的数量等于¼物理内核的数量的机器。
+这种收集器是为了避免出现长时间的停顿在收集老年代。达到这两个意思。首先,It does not compact, the Old Generation but USES free - lists to the manage reclaimed space. Secondly, it does most of the job in the mark - and - sweep phases concurrently with the application.这意味着垃圾收集没有显式地停止应用程序线程来执行这些阶段。然而,应该注意的,它仍然争夺与应用程序线程CPU时间。默认情况下,这个GC算法所使用的线程的数量等于¼物理内核的数量的机器。
 
 
 This garbage collector can be chosen by specifying the following option on your command line:
@@ -562,7 +568,7 @@ First of the GC events in log denotes a minor GC cleaning the Young space. Let�
 1。64.322 - GC事件开始,相对于JVM启动时间。以秒为单位来衡量。
 1。GC -标记区分小&完整GC。这次是表明这是一个次要的GC。
 1。分配失败——收集的原因。在这种情况下,GC由于触发请求分配不符合年轻代的任何地区。
-1。ParNew收集器使用的名字,这一次,它表明一个平行mark-copy停止一切垃圾收集器在年轻代中使用,设计工作与并发标记和清扫垃圾收集器在旧的一代。
+1。ParNew收集器使用的名字,这一次,它表明一个平行mark-copy停止一切垃圾收集器在年轻代中使用,设计工作与并发标记和清扫垃圾收集器在老年代。
 1。613404 k - > 613404 k -使用集合之前和之后的年轻代。
 1。613440K)——合计(" Young严重。
 1。0.1020465干燥——不得不for the收藏w / o最后地区清扫活动等。
@@ -577,7 +583,7 @@ First of the GC events in log denotes a minor GC cleaning the Young space. Let�
 
 From the above we can thus see that before the collection the total used heap was 10,885,349K and the used Young Generation share was 613,404K. This means that the Old Generation share was 10,271,945K. After the collection, Young Generation usage decreased by 545,336K but total heap usage decreased only by 5,195K. This means that 540,141K was promoted from the Young Generation to Old.
 
-从上面我们可以看到,在收藏前总使用堆是10885349 k,年轻代使用份额是613404 k。这意味着旧的一代份额是10271年,945 k。集合后,年轻代的使用减少了545336 k但总堆使用只有5195 k下降。这意味着540141 k被提拔年轻代的历史。
+从上面我们可以看到,在收藏前总使用堆是10885349 k,年轻代使用份额是613404 k。这意味着老年代份额是10271年,945 k。集合后,年轻代的使用减少了545336 k但总堆使用只有5195 k下降。这意味着540141 k被提拔年轻代的历史。
 
 
 ![](04_05_ParallelGC-in-Young-Generation-Java.png)
@@ -613,12 +619,12 @@ Now, just as you are becoming accustomed to reading GC logs already, this chapte
 
 Just to bear in mind – in real world situation Minor Garbage Collections of the Young Generation can occur anytime during concurrent collecting the Old Generation. In such case the major collection records seen below will be interleaved with the Minor GC events covered in previous chapter.
 
-只是要记住——在真实世界情况下小垃圾收集的年轻代可以随时发生在并发收集旧的一代.在这种情况下,主要收集记录所示将交叉小GC事件在前一章。
+只是要记住——在真实世界情况下小垃圾收集的年轻代可以随时发生在并发收集老年代.在这种情况下,主要收集记录所示将交叉小GC事件在前一章。
 
 
 **Phase 1: Initial Mark**. This is one of the two stop-the-world events during CMS. The goal of this phase is to mark all the objects in the Old Generation that are either direct GC roots or are referenced from some live object in the Young Generation. The latter is important since the Old Generation is collected separately.
 
-* *第1阶段:初始马克* *。这是其中一个CMS期间停止一切活动.这个阶段的目的是为了纪念所有对象在老年代直接GC根或引用一些对象在年轻代的生活.后者分别收集非常重要,因为旧的一代。
+* *第1阶段:初始马克* *。这是其中一个CMS期间停止一切活动.这个阶段的目的是为了纪念所有对象在老年代直接GC根或引用一些对象在年轻代的生活.后者分别收集非常重要,因为老年代。
 
 
 ![](04_06_g1-06.png)
@@ -646,7 +652,7 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 1。2015 - 05 - 26 - t16:23:07.321 - 0200:64.42 - GC事件开始,时钟时间和相对于从JVM开始的时间.下列阶段使用了相同的概念在整个事件,因此跳过简洁。
 1。CMS初始马克-收集阶段的“初始标记”这一次——这是收集所有GC根。
 1。10812086 k -当前使用老的一代。
-1。可用内存(11901376 k)——总在旧的一代。
+1。可用内存(11901376 k)——总在老年代。
 1。10887844 k -当前使用的堆
 1。(12514816 k)-总可用堆
 1。0.0001997秒][*:用户= 0.00 sys = 0.00,真实= 0.00秒)-持续时间的阶段,测量也在用户,系统和实时。
@@ -893,7 +899,7 @@ G1的主要设计目标之一就是使停止一切停顿的时间和分配由于
 
 To achieve this, G1 builds upon a number of insights. First, the heap does not have to be split into contiguous Young and Old generation. Instead, the heap is split into a number (typically about 2048) smaller heap regions that can house objects. Each region may be an Eden region, a Survivor region or an Old region. The logical union of all Eden and Survivor regions is the Young Generation, and all the Old regions put together is the Old Generation:
 
-为了达到这个目标,G1构建在一些见解。首先,堆不需要分成连续的年轻和年老的一代。而不是,堆被分成许多小(通常约2048)堆区域可以房子对象。每个地区可能是一个伊甸园地区,幸存者地区或一个旧地区.逻辑联盟的伊甸园和幸存者地区是年轻代,和所有的旧区域放在一起是旧的一代:
+为了达到这个目标,G1构建在一些见解。首先,堆不需要分成连续的年轻和年老的一代。而不是,堆被分成许多小(通常约2048)堆区域可以房子对象。每个地区可能是一个伊甸园地区,幸存者地区或一个旧地区.逻辑联盟的伊甸园和幸存者地区是年轻代,和所有的旧区域放在一起是老年代:
 
 
 ![](04_11_g1-011.png)
@@ -1203,7 +1209,7 @@ In case when some heap regions that only contain garbage were discovered, the pa
 
 It’s a pleasant case when concurrent cleanup can free up entire regions in Old Generation, but it may not always be the case. After Concurrent Marking has successfully completed, G1 will schedule a mixed collection that will not only get the garbage away from the young regions, but also throw in a bunch of Old regions to the collection set.
 
-时这是一个愉快的情况并发清理可以释放整个地区在旧的一代,但它可能并不总是如此。后并发标记已成功完成,G1将安排一个混合收集,不仅会让垃圾远离年轻的地区,但也扔在一堆旧地区收藏集。
+时这是一个愉快的情况并发清理可以释放整个地区在老年代,但它可能并不总是如此。后并发标记已成功完成,G1将安排一个混合收集,不仅会让垃圾远离年轻的地区,但也扔在一堆旧地区收藏集。
 
 
 A mixed Evacuation pause does not always immediately follow the end of the concurrent marking phase. There is a number of rules and heuristics that affect this. For instance, if it was possible to free up a large portion of the Old regions concurrently, then there is no need to do it.
