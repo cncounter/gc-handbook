@@ -57,7 +57,7 @@ From the GC log above, we can calculate the allocation rate as the difference be
 
 <br/>
 
-- 在JVM启动后 **291ms**, 创建了 `33,280 KB` 的对象。 第一次清理年轻代的 Minor GC(次要GC)事件, 完成之后还有 `5,088 KB` 的对象存在于年轻代中。
+- 在JVM启动后 **291ms**, 创建了 `33,280 KB` 的对象。 第一次清理年轻代的 Minor GC(小型GC)事件, 完成之后还有 `5,088 KB` 的对象存在于年轻代中。
 - 在启动 **446 ms**之后, 年轻一代使用量增长至 `38,368 KB`,触发了下一次GC, 然后让年轻代使用量减少到了 `5120 KB`。
 - 在启动后 **829 ms**, 年轻代的大小为 `71,680 KB`, GC后再让其减少到 `5,120 KB`。
 
@@ -160,7 +160,7 @@ If you are still wondering how this can be true – if you stop your application
 
 Now, before you jump to the conclusion that “bigger Eden is better”, you should notice that the allocation rate might and probably does not directly correlate with the actual throughput of your application. It is a technical measurement contributing to throughput. The allocation rate can and will have an impact on how frequently your minor GC pauses stop application threads, but to see the overall impact, you also need to take into account major GC pauses and measure throughput not in MB/sec but in the business operations your application provides.
 
-那么, 在得出 “Eden去越大越好” 这种结论之前, 你应该注意到分配率可能会,也可能不会直接影响到程序的实际吞吐量。 这是和吞吐量有关系的一个技术指标. 分配率会影响让所以线程停止的 minor GC暂停, 但对于总体影响, 还要考虑 Major GC(主要GC)暂停, 而且衡量吞吐量的单位不是 **MB/秒**， 而是程序处理的业务量。
+那么, 在得出 “Eden去越大越好” 这种结论之前, 你应该注意到分配率可能会,也可能不会直接影响到程序的实际吞吐量。 这是和吞吐量有关系的一个技术指标. 分配率会影响让所以线程停止的 minor GC暂停, 但对于总体影响, 还要考虑 Major GC(大型GC)暂停, 而且衡量吞吐量的单位不是 **MB/秒**， 而是程序处理的业务量。
 
 
 ### 示例

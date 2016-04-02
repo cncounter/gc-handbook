@@ -260,13 +260,13 @@ Minor GC vs Major GC vs Full GC
 
 对比: Minor GC vs Major GC vs Full GC
 
-> Minor GC(次要GC,小型GC) - 主要GC(Major GC) - 以及完全GC(Full GC)
+> Minor GC(小型GC,小型GC) - 大型GC(Major GC) - 以及完全GC(Full GC)
 
 
 
 The Garbage Collection events cleaning out different parts inside heap memory are often called Minor, Major and Full GC events. In this section we cover the differences between these events. Along the way we can hopefully see that this distinction is actually not too relevant.
 
-清理堆内存中不同部分的垃圾收集事件(Garbage Collection events)通常称为: 次要GC(Minor GC) - 主要GC(Major GC) - 和完全GC(Full GC) 事件。本节介绍这些事件的区别。在此过程 我们可以看到这些区别并不是完全相关。
+清理堆内存中不同部分的垃圾收集事件(Garbage Collection events)通常称为: 小型GC(Minor GC) - 大型GC(Major GC) - 和完全GC(Full GC) 事件。本节介绍这些事件的区别。在此过程 我们可以看到这些区别并不是完全相关。
 
 
 What typically is relevant is whether the application meets its SLAs, and to see that you monitor your application for latency or throughput. And only then are GC events linked to the results. What is important about these events is whether they stopped the application and how long it took.
@@ -281,12 +281,12 @@ But as the terms Minor, Major and Full GC are widely used and without a proper d
 
 Minor GC
 
-次要GC
+小型GC
 
 
 Collecting garbage from the Young space is called Minor GC. This definition is both clear and uniformly understood. But there are still some interesting takeaways you should be aware of when dealing with Minor Garbage Collection events:
 
-收集年轻代内存空间的事件叫做次要GC。这个定义既清晰又得到广泛共识。但在处理次要GC事件时有一些是有趣的事情你应该了解一下:
+收集年轻代内存空间的事件叫做小型GC。这个定义既清晰又得到广泛共识。但在处理小型GC事件时有一些是有趣的事情你应该了解一下:
 
 
 Minor GC is always triggered when the JVM is unable to allocate space for a new object, e.g. Eden is getting full. So the higher the allocation rate, the more frequently Minor GC occurs.
@@ -322,7 +322,7 @@ It should be noted that there are no formal definitions for those terms – neit
 
 Major GC is cleaning the Old space.
 
-主要GC(Major GC) 清理的是老年代空间(Old space)。
+大型GC(Major GC) 清理的是老年代空间(Old space)。
 
 
 Full GC is cleaning the entire Heap – both Young and Old spaces.

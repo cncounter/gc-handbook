@@ -169,7 +169,7 @@ Such short snippet from the GC logs exposes a lot of information about what is t
 这样一个简短的GC日志片段,暴露了发生在JVM中的很多信息。 事实上,在这段日志中有两次GC事件发生, 其中一次清理的是年轻代,另一次处理的是整个堆内存。让我们先来分析发生在年轻代的第一次GC。
 
 
-### 次要GC(Minor GC)
+### 小型GC(Minor GC)
 
 
 Following snippet contains the information about a GC event cleaning the Young Generation:
@@ -189,7 +189,7 @@ Following snippet contains the information about a GC event cleaning the Young G
 >
 > 2. <a>`151.126`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。
 > 
-> 3. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**次要GC**(Minor GC)
+> 3. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**小型GC**(Minor GC)
 > 
 > 4. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a data structure not fitting into any region in the Young Generation. 触发垃圾收集的原因。本次GC事件, 是由于年轻代中没有适当的空间存放新的数据结构引起的。
 > 
@@ -242,7 +242,7 @@ This GC event is also illustrated with the following snapshots showing memory us
 After understanding the first minor GC event, lets look into the second GC event in the logs:
 
 
-在理解了第一个次要GC事件后,让我们看看日志中的第二个GC事件:
+在理解了第一个小型GC事件后,让我们看看日志中的第二个GC事件:
 
 
 
@@ -348,7 +348,7 @@ Let us now review how garbage collector logs look like when using Parallel GC an
 
 
 
-### 次要GC(Minor GC)
+### 小型GC(Minor GC)
 
 
 The first of the two events indicates a GC event taking place in the Young Generation:
@@ -366,7 +366,7 @@ The first of the two events indicates a GC event taking place in the Young Gener
 >
 > 1. <a>`2015-05-26T14:27:40.915-0200`</a> – Time when the GC event started. GC事件开始的时间. 其中`-0200`是时区,而中国所在的东8区为 `+0800`。
 > 1. <a>`116.115`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。
-> 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**次要GC**(Minor GC)
+> 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**小型GC**(Minor GC)
 > 1. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a data structure not fitting into any region in the Young Generation. 触发垃圾收集的原因。本次GC事件, 是由于年轻代中没有适当的空间存放新的数据结构引起的。
 > 1. <a>`PSYoungGen`</a> – Name of the garbage collector used, representing a parallel mark-copy stop-the-world garbage collector used to clean the Young generation. 垃圾收集器的名称。这个名字表示的是在年轻代中使用的: 并行的 标记-拷贝(mark-copy), 全线暂停(STW) 垃圾收集器。
 > 1. <a>`2694440K->1305132K`</a> – Usage of the Young Generation before and after collection. 在垃圾收集之前和之后的年轻代使用量。
@@ -476,7 +476,7 @@ This combination is a good choice on multi-core machines if your primary target 
 
 As with previous GC algorithms, let us now see how this algorithm is applied in practice by taking a look at the GC logs that once again expose one minor and one major GC pause:
 
-与和前面一样, 我们先通过GC日志来看看这种算法在实践中的应用, 也是一个次要GC,和一个主要GC暂停:
+与和前面一样, 我们先通过GC日志来看看这种算法在实践中的应用, 也是一个小型GC,和一个大型GC暂停:
 
 
 	2015-05-26T16:23:07.219-0200: 64.322: [GC (Allocation Failure) 64.322: 
@@ -516,12 +516,12 @@ As with previous GC algorithms, let us now see how this algorithm is applied in 
 
 
 
-### 次要GC(Minor GC)
+### 小型GC(Minor GC)
 
 
 First of the GC events in log denotes a minor GC cleaning the Young space. Let’s analyze how this collector combination behaves in this regard:
 
-日志中的第一次GC事件代表清理年轻代空间的次要GC(Minor GC)。让我们来分析这款垃圾收集器组合在这方面的表现:
+日志中的第一次GC事件代表清理年轻代空间的小型GC(Minor GC)。让我们来分析这款垃圾收集器组合在这方面的表现:
 
 
 > <a>`2015-05-26T16:23:07.219-0200`</a>: <a>`64.322`</a>:[<a>`GC`</a>(<a>`Allocation Failure`</a>) 64.322: <br/>
@@ -533,7 +533,7 @@ First of the GC events in log denotes a minor GC cleaning the Young space. Let�
 >
 > 1. <a>`2015-05-26T16:23:07.219-0200`</a> – Time when the GC event started. GC事件开始的时间. 其中`-0200`是时区,而中国所在的东8区为 `+0800`。
 > 1. <a>`64.322`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。
-> 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**次要GC**(Minor GC)
+> 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**小型GC**(Minor GC)
 > 1. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a requested allocation not fitting into any region in Young Generation. 触发垃圾收集的原因。本次GC事件, 是由于年轻代中没有适当的空间存放新的数据结构引起的。
 > 1. <a>`ParNew`</a> – Name of the collector used, this time it indicates a parallel mark-copy stop-the-world garbage collector used in the Young Generation, designed to work in conjunction with Concurrent Mark & Sweep garbage collector in the Old Generation. 使用的垃圾收集器的名称。这个名字表示的是在年轻代中使用的: 并行的 标记-拷贝(mark-copy), 全线暂停(STW) 垃圾收集器, 专门设计来配合老年代使用的 Concurrent Mark & Sweep 垃圾收集器。
 > 1. <a>`613404K->68068K`</a> – Usage of the Young Generation before and after collection. 在垃圾收集之前和之后的年轻代使用量。
