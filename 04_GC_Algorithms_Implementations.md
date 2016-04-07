@@ -440,10 +440,6 @@ Again, the difference with Minor GC is evident – in addition to the Young Gene
 
 
 
-<br/><p style="height:400px;">ccc</p><br/><p style="height:300px;">ccc</p><br/><p style="height:800px;">ccc</p><br/><p style="height:600px;">ccc</p>
-
-
-
 
 ## CMS(并发标记-清除)
 
@@ -566,33 +562,54 @@ From the above we can thus see that before the collection the total used heap wa
 
 Now, just as you are becoming accustomed to reading GC logs already, this chapter will introduce a completely different format for the next garbage collection event in the logs. The lengthy output that follows consists of all the different phases of the mostly concurrent garbage collection in the Old Generation. We will review them one by one but in this case we will cover the log content in phases instead of the entire event log at once for more concise representation. But to recap, the whole event for the CMS collector looks like the following:
 
-现在,就像你已经越来越习惯于阅读GC日志,本章将介绍一种完全不同的格式在接下来的垃圾收集事件日志中.冗长的输出,包括所有不同的阶段主要是并发垃圾收集的老年代.We will review them one by one, but in this case We will cover the log content in home phases the - the event log at once for more concise representation. But to recap,整个事件的CMS收集器看起来如下:
 
 
-	2015-05-26T16:23:07.321-0200: 64.425: [GC (CMS Initial Mark) [1 CMS-initial-mark: 10812086K(11901376K)] 10887844K(12514816K), 0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
+现在, 我们已经对解读GC日志越来越熟悉, 本节接下来介绍一种日志格式完全不同的GC事件。下面这一段很长的日志,就是CMS在老年代中进行垃圾收集时各个阶段的输出。为了简洁,我们将根据这些阶段逐个介绍。 首先来看看全貌, CMS收集器的整个GC事件日志如下:
+
+
+
+
+	2015-05-26T16:23:07.321-0200: 64.425: [GC (CMS Initial Mark) 
+			[1 CMS-initial-mark: 10812086K(11901376K)] 
+		10887844K(12514816K), 0.0001997 secs] 
+		[Times: user=0.00 sys=0.00, real=0.00 secs]
 	2015-05-26T16:23:07.321-0200: 64.425: [CMS-concurrent-mark-start]
-	2015-05-26T16:23:07.357-0200: 64.460: [CMS-concurrent-mark: 0.035/0.035 secs] [Times: user=0.07 sys=0.00, real=0.03 secs]
+	2015-05-26T16:23:07.357-0200: 64.460: [CMS-concurrent-mark: 0.035/0.035 secs] 
+		[Times: user=0.07 sys=0.00, real=0.03 secs]
 	2015-05-26T16:23:07.357-0200: 64.460: [CMS-concurrent-preclean-start]
-	2015-05-26T16:23:07.373-0200: 64.476: [CMS-concurrent-preclean: 0.016/0.016 secs] [Times: user=0.02 sys=0.00, real=0.02 secs]
+	2015-05-26T16:23:07.373-0200: 64.476: [CMS-concurrent-preclean: 0.016/0.016 secs] 
+		[Times: user=0.02 sys=0.00, real=0.02 secs]
 	2015-05-26T16:23:07.373-0200: 64.476: [CMS-concurrent-abortable-preclean-start]
-	2015-05-26T16:23:08.446-0200: 65.550: [CMS-concurrent-abortable-preclean: 0.167/1.074 secs] [Times: user=0.20 sys=0.00, real=1.07 secs]
-	2015-05-26T16:23:08.447-0200: 65.550: [GC (CMS Final Remark) [YG occupancy: 387920 K (613440 K)]65.550: [Rescan (parallel) , 0.0085125 secs]65.559: [weak refs processing, 0.0000243 secs]65.559: [class unloading, 0.0013120 secs]65.560: [scrub symbol table, 0.0008345 secs]65.561: [scrub string table, 0.0001759 secs][1 CMS-remark: 10812086K(11901376K)] 11200006K(12514816K), 0.0110730 secs] [Times: user=0.06 sys=0.00, real=0.01 secs]
+	2015-05-26T16:23:08.446-0200: 65.550: [CMS-concurrent-abortable-preclean: 0.167/1.074 secs] 
+		[Times: user=0.20 sys=0.00, real=1.07 secs]
+	2015-05-26T16:23:08.447-0200: 65.550: [GC (CMS Final Remark) 
+			[YG occupancy: 387920 K (613440 K)]
+			65.550: [Rescan (parallel) , 0.0085125 secs]
+			65.559: [weak refs processing, 0.0000243 secs]
+			65.559: [class unloading, 0.0013120 secs]
+			65.560: [scrub symbol table, 0.0008345 secs]
+			65.561: [scrub string table, 0.0001759 secs]
+			[1 CMS-remark: 10812086K(11901376K)] 
+		11200006K(12514816K), 0.0110730 secs] 
+		[Times: user=0.06 sys=0.00, real=0.01 secs]
 	2015-05-26T16:23:08.458-0200: 65.561: [CMS-concurrent-sweep-start]
-	2015-05-26T16:23:08.485-0200: 65.588: [CMS-concurrent-sweep: 0.027/0.027 secs] [Times: user=0.03 sys=0.00, real=0.03 secs]
+	2015-05-26T16:23:08.485-0200: 65.588: [CMS-concurrent-sweep: 0.027/0.027 secs] 
+		[Times: user=0.03 sys=0.00, real=0.03 secs]
 	2015-05-26T16:23:08.485-0200: 65.589: [CMS-concurrent-reset-start]
-	2015-05-26T16:23:08.497-0200: 65.601: [CMS-concurrent-reset: 0.012/0.012 secs] [Times: user=0.01 sys=0.00, real=0.01 secs]
+	2015-05-26T16:23:08.497-0200: 65.601: [CMS-concurrent-reset: 0.012/0.012 secs] 
+		[Times: user=0.01 sys=0.00, real=0.01 secs]
 
 
 
 
 Just to bear in mind – in real world situation Minor Garbage Collections of the Young Generation can occur anytime during concurrent collecting the Old Generation. In such case the major collection records seen below will be interleaved with the Minor GC events covered in previous chapter.
 
-只是要记住——在真实世界情况下小垃圾收集的年轻代可以随时发生在并发收集老年代.在这种情况下,主要收集记录所示将交叉小GC事件在前一章。
+只是要记住 —— 在现实世界, 在老年代进行并发收集时, 可能随时会有多次年轻代的小型GC发生. 在这种情况下, 大型GC的日志中就会掺杂着多次小型GC事件, 像前面一样。
 
 
 **Phase 1: Initial Mark**. This is one of the two stop-the-world events during CMS. The goal of this phase is to mark all the objects in the Old Generation that are either direct GC roots or are referenced from some live object in the Young Generation. The latter is important since the Old Generation is collected separately.
 
-* *第1阶段:初始马克* *。这是其中一个CMS期间停止一切活动.这个阶段的目的是为了纪念所有对象在老年代直接GC根或引用一些对象在年轻代的生活.后者分别收集非常重要,因为老年代。
+**阶段 1: 初始标记(Initial Mark)**. 这是CMS中两次STW事件中的一次. 此阶段的目标是标记老年代中的所有存活对象, 或者直接是GC ROOR 引用, 或者是由年轻代中的存活对象引用. 后者也非常重要, 因为老年代是分开进行回收的。
 
 
 ![](04_06_g1-06.png)
@@ -600,35 +617,34 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 
 
 
->
-2015-05-26T16:23:07.321-0200: 64.421: [GC (CMS Initial Mark2[1 CMS-initial-mark: 10812086K3(11901376K)4] 10887844K5(12514816K)6, 0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]7
-
->
-2015-05-26T16:23:07.321-0200: 64.421: [GC (CMS Initial Mark2[1 CMS-initial-mark: 10812086K3(11901376K)4] 10887844K5(12514816K)6, 0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]7
+><a>`2015-05-26T16:23:07.321-0200: 64.42`</a>: [GC (<a>`CMS Initial Mark`</a><br/>
+>[1 CMS-initial-mark: <a>`10812086K`</a><a>`(11901376K)`</a>] <a>`10887844K`</a><a>`(12514816K)`</a>,<br/>
+> <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`</a>
 
 
+
+
 >
-> 1. <a>`2015-05-26T16:23:07.321-0200: 64.42`</a> – Time the GC event started, both clock time and relative to the time from the JVM start. For the following phases the same notion is used throughout the event and is thus skipped for brevity.
-> 1. <a>`CMS Initial Mark – Phase of the collection – “Initial Mark” in this occasion`</a> – that is collecting all GC Roots.
-> 1. <a>`10812086K`</a> – Currently used Old Generation.
-> 1. <a>`(11901376K)`</a> – Total available memory in the Old Generation.
-> 1. <a>`10887844K`</a> – Currently used heap
+> 1. <a>`2015-05-26T16:23:07.321-0200: 64.42`</a> – Time the GC event started, both clock time and relative to the time from the JVM start. For the following phases the same notion is used throughout the event and is thus skipped for brevity. GC事件开始的时间. 其中-0200是时区,而中国所在的东8区为 +0800。 而 **64.42** 是相对于JVM启动的时间。 下面的其他阶段也是一样,所以就不再重复介绍。
+> 1. <a>`CMS Initial Mark`</a> – Phase of the collection – “Initial Mark” in this occasion – that is collecting all GC Roots. 垃圾回收的阶段名称为 “Initial Mark”。 标记所有的 GC Root。
+> 1. <a>`10812086K`</a> – Currently used Old Generation. 老年代的当前使用量。
+> 1. <a>`(11901376K)`</a> – Total available memory in the Old Generation. 老年代中总的可用内存。
+> 1. <a>`10887844K`</a> – Currently used heap. 当前堆内存的使用量
 > 1. <a>`(12514816K)`</a> – Total available heap. 可用堆的总大小。
-> 1. <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`</a> – Duration of the phase, measured also in user, system and real time.
+> 1. <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`</a> – Duration of the phase, measured also in user, system and real time. 此暂停的持续时间, 以 user, system 和 real time 3个部分进行衡量。
 
->
-1。2015 - 05 - 26 - t16:23:07.321 - 0200:64.42 - GC事件开始,时钟时间和相对于从JVM开始的时间.下列阶段使用了相同的概念在整个事件,因此跳过简洁。
-1。CMS初始马克-收集阶段的“初始标记”这一次——这是收集所有GC根。
-1。10812086 k -当前使用老年代。
-1。可用内存(11901376 k)——总在老年代。
-1。10887844 k -当前使用的堆
-1。(12514816 k)-总可用堆
-1。0.0001997秒][*:用户= 0.00 sys = 0.00,真实= 0.00秒)-持续时间的阶段,测量也在用户,系统和实时。
+
+
+
+<br/><p style="height:1400px;">ccc</p><br/><p style="height:1900px;">ccc</p><br/><p style="height:1800px;">ccc</p><br/><p style="height:1900px;">ccc</p>
+
+
 
 
 **Phase 2: Concurrent Mark.** During this phase the Garbage Collector traverses the Old Generation and marks all live objects, starting from the roots found in the previous phase of “Initial Mark”. The “Concurrent Mark” phase, as its name suggests, runs concurrently with your application and does not stop the application threads. Note that not all the live objects in the Old Generation may be marked, since the application is mutating references during the marking.
 
-* *第二阶段:并发标记。* *在此阶段垃圾收集器遍历老年代和标记所有活动对象,从根开始前一阶段发现的“初始标记”.“并发标记”阶段,顾名思义,与您的应用程序同时运行,不停止应用程序线程.请注意,并不是所有的老年代可能被标记为活动对象,由于应用程序变异引用标记。
+
+**第二阶段:并发标记(Concurrent Mark).**在此阶段垃圾收集器遍历老年代和标记所有活动对象,从根开始前一阶段发现的“初始标记”.“并发标记”阶段,顾名思义,与您的应用程序同时运行,不停止应用程序线程.请注意,并不是所有的老年代可能被标记为活动对象,由于应用程序变异引用标记。
 
 
 ![](04_07_g1-07.png)
