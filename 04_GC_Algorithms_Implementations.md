@@ -644,7 +644,7 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 **Phase 2: Concurrent Mark.** During this phase the Garbage Collector traverses the Old Generation and marks all live objects, starting from the roots found in the previous phase of “Initial Mark”. The “Concurrent Mark” phase, as its name suggests, runs concurrently with your application and does not stop the application threads. Note that not all the live objects in the Old Generation may be marked, since the application is mutating references during the marking.
 
 
-**第二阶段:并发标记(Concurrent Mark).**在此阶段垃圾收集器遍历老年代和标记所有活动对象,从根开始前一阶段发现的“初始标记”.“并发标记”阶段,顾名思义,与您的应用程序同时运行,不停止应用程序线程.请注意,并不是所有的老年代可能被标记为活动对象,由于应用程序变异引用标记。
+**第二阶段:并发标记(Concurrent Mark).** 在此阶段, 垃圾收集器遍历老年代,从前一阶段 “Initial Mark” 找到的 root 根开始, 标记所有存活的对象。 “并发标记”阶段, 顾名思义, 与应用程序同时运行,不会暂停程序线程. 请注意,此阶段并非所有老年代中存活的对象都会被标记,因为在标记过程中引用还会发生变化。
 
 
 ![](04_07_g1-07.png)
@@ -654,25 +654,22 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 
 In the illustration, a reference pointing away from the “Current object” was removed concurrently with the marking thread.
 
-插图,一个引用指向远离“当前对象”被标记线程并发。
+在上面的插图中, 一个“当前对象”指向的引用被标记线程并发移除。
+
+
+>2015-05-26T16:23:07.321-0200: 64.425: [CMS-concurrent-mark-start]
+
+>2015-05-26T16:23:07.321-0200: 64.425: [CMS-concurrent-mark-start]
+
+>2015-05-26T16:23:07.357-0200: 64.460: [CMS-concurrent-mark1: 035/0.035 secs2]<br/>
+>[Times: user=0.07 sys=0.00, real=0.03 secs]3
+
+>2015-05-26T16:23:07.357-0200: 64.460: [CMS-concurrent-mark1: 035/0.035 secs2]<br/>
+>[Times: user=0.07 sys=0.00, real=0.03 secs]3
 
 
 >
-2015-05-26T16:23:07.321-0200: 64.425: [CMS-concurrent-mark-start]
-
->
-2015-05-26T16:23:07.321-0200: 64.425: [CMS-concurrent-mark-start]
-
-
->
-2015-05-26T16:23:07.357-0200: 64.460: [CMS-concurrent-mark1: 035/0.035 secs2] [Times: user=0.07 sys=0.00, real=0.03 secs]3
-
->
-2015-05-26T16:23:07.357-0200: 64.460: [CMS-concurrent-mark1: 035/0.035 secs2] [Times: user=0.07 sys=0.00, real=0.03 secs]3
-
-
->
-> 1. <a>`CMS-concurrent-mark – Phase of the collection – “Concurrent Mark” in this occasion`</a> – that is traversing the Old Generation and marking all live objects.
+> 1. <a>`CMS-concurrent-mark`</a> – Phase of the collection – “Concurrent Mark” in this occasion – that is traversing the Old Generation and marking all live objects.
 > 1. <a>`035/0.035 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly.
 > 1. <a>`[Times: user=0.07 sys=0.00, real=0.03 secs]`</a> – “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
 
