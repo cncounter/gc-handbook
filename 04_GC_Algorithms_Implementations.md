@@ -617,9 +617,9 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 
 
 
-><a>`2015-05-26T16:23:07.321-0200: 64.42`</a>: [GC (<a>`CMS Initial Mark`</a><br/>
->[1 CMS-initial-mark: <a>`10812086K`</a><a>`(11901376K)`</a>] <a>`10887844K`</a><a>`(12514816K)`</a>,<br/>
-> <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`</a>
+><a>`2015-05-26T16:23:07.321-0200: 64.42`<sup>1</sup></a>: [GC (<a>`CMS Initial Mark`<sup>1</sup></a><br/>
+>[1 CMS-initial-mark: <a>`10812086K`<sup>1</sup></a><a>`(11901376K)`<sup>1</sup></a>] <a>`10887844K`<sup>1</sup></a><a>`(12514816K)`<sup>1</sup></a>,<br/>
+> <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`<sup>1</sup></a>
 
 
 
@@ -633,10 +633,6 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 > 1. <a>`(12514816K)`</a> – Total available heap. 可用堆的总大小。
 > 1. <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`</a> – Duration of the phase, measured also in user, system and real time. 此暂停的持续时间, 以 user, system 和 real time 3个部分进行衡量。
 
-
-
-
-<br/><p style="height:1400px;">ccc</p><br/><p style="height:1900px;">ccc</p><br/><p style="height:1800px;">ccc</p><br/><p style="height:1900px;">ccc</p>
 
 
 
@@ -657,26 +653,21 @@ In the illustration, a reference pointing away from the “Current object” was
 在上面的插图中, 一个“当前对象”指向的引用被标记线程并发移除。
 
 
->2015-05-26T16:23:07.321-0200: 64.425: [CMS-concurrent-mark-start]
-
->2015-05-26T16:23:07.321-0200: 64.425: [CMS-concurrent-mark-start]
-
->2015-05-26T16:23:07.357-0200: 64.460: [CMS-concurrent-mark1: 035/0.035 secs2]<br/>
->[Times: user=0.07 sys=0.00, real=0.03 secs]3
-
->2015-05-26T16:23:07.357-0200: 64.460: [CMS-concurrent-mark1: 035/0.035 secs2]<br/>
->[Times: user=0.07 sys=0.00, real=0.03 secs]3
-
+>2015-05-26T16:23:07.321-0200: 64.425: [CMS-concurrent-mark-start]<br/>
+>2015-05-26T16:23:07.357-0200: 64.460: [<a>`CMS-concurrent-mark`<sup>1</sup></a>: <a>`035/0.035 secs`<sup>1</sup></a>]<br/>
+><a>`[Times: user=0.07 sys=0.00, real=0.03 secs]`<sup>1</sup></a><br/>
 
 >
-> 1. <a>`CMS-concurrent-mark`</a> – Phase of the collection – “Concurrent Mark” in this occasion – that is traversing the Old Generation and marking all live objects.
-> 1. <a>`035/0.035 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly.
-> 1. <a>`[Times: user=0.07 sys=0.00, real=0.03 secs]`</a> – “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
+> 1. <a>`CMS-concurrent-mark`</a> – Phase of the collection – “Concurrent Mark” in this occasion – that is traversing the Old Generation and marking all live objects. 此次的并发标记(Concurrent Mark),遍历老年代并标记所有存活的对象
+> 1. <a>`035/0.035 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly. 此阶段的持续时间, 显示运行时间和相应的实际时间
+> 1. <a>`[Times: user=0.07 sys=0.00, real=0.03 secs]`</a> – “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking. <br/>Times 这部分对并发阶段来说没多少意义, 因为是从并发标记开始时计算的,而这段时间内不仅是并发标记在运行,程序也在运行
 
->
-1。CMS-concurrent-mark阶段的集合——“并发标记”这一次——这是遍历老年代和标记所有活动对象。
-1。035/0.035秒的时间阶段,显示运行时间和相应的挂钟时间。
-1。(时间:用户= 0.07 sys = 0.00,= 0.03秒)-“*”部分对并发阶段不太有意义的,因为这是测量从一开始的并发标记的工作,包括的不仅仅是并发标记。
+
+
+
+<br/><p style="height:1400px;">ccc</p><br/><p style="height:1900px;">ccc</p><br/><p style="height:1800px;">ccc</p><br/><p style="height:1900px;">ccc</p>
+
+
 
 
 **Phase 3: Concurrent Preclean.** This is again a concurrent phase, running in parallel with the application threads, not stopping them. While the previous phase was running concurrently with the application, some references were changed. Whenever that happens, the JVM marks the area of the heap (called “Card”) that contains the mutated object as “dirty” (this is known as Card Marking).
