@@ -604,7 +604,7 @@ Now, just as you are becoming accustomed to reading GC logs already, this chapte
 
 Just to bear in mind – in real world situation Minor Garbage Collections of the Young Generation can occur anytime during concurrent collecting the Old Generation. In such case the major collection records seen below will be interleaved with the Minor GC events covered in previous chapter.
 
-只是要记住 —— 在现实世界, 在老年代进行并发收集时, 可能随时会有多次年轻代的小型GC发生. 在这种情况下, 大型GC的日志中就会掺杂着多次小型GC事件, 像前面一样。
+只是要记住 —— 在实际情况下, 在老年代进行并发收集时, 可能随时会有多次年轻代的小型GC发生. 在这种情况下, 大型GC的日志中就会掺杂着多次小型GC事件, 像前面一样。
 
 
 **Phase 1: Initial Mark**. This is one of the two stop-the-world events during CMS. The goal of this phase is to mark all the objects in the Old Generation that are either direct GC roots or are referenced from some live object in the Young Generation. The latter is important since the Old Generation is collected separately.
@@ -658,21 +658,16 @@ In the illustration, a reference pointing away from the “Current object” was
 ><a>`[Times: user=0.07 sys=0.00, real=0.03 secs]`<sup>1</sup></a><br/>
 
 >
-> 1. <a>`CMS-concurrent-mark`</a> – Phase of the collection – “Concurrent Mark” in this occasion – that is traversing the Old Generation and marking all live objects. 此次的并发标记(Concurrent Mark),遍历老年代并标记所有存活的对象
-> 1. <a>`035/0.035 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly. 此阶段的持续时间, 显示运行时间和相应的实际时间
+> 1. <a>`CMS-concurrent-mark`</a> – Phase of the collection – “Concurrent Mark” in this occasion – that is traversing the Old Generation and marking all live objects. 垃圾收集的一个阶段，这里是 "Concurrent Mark", 并发标记,遍历老年代并标记所有存活的对象
+> 1. <a>`035/0.035 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly. 此阶段的持续时间, 分别是运行时间和对应的实际时间
 > 1. <a>`[Times: user=0.07 sys=0.00, real=0.03 secs]`</a> – “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking. <br/>Times 这部分对并发阶段来说没多少意义, 因为是从并发标记开始时计算的,而这段时间内不仅是并发标记在运行,程序也在运行
-
-
-
-
-<br/><p style="height:1400px;">ccc</p><br/><p style="height:1900px;">ccc</p><br/><p style="height:1800px;">ccc</p><br/><p style="height:1900px;">ccc</p>
 
 
 
 
 **Phase 3: Concurrent Preclean.** This is again a concurrent phase, running in parallel with the application threads, not stopping them. While the previous phase was running concurrently with the application, some references were changed. Whenever that happens, the JVM marks the area of the heap (called “Card”) that contains the mutated object as “dirty” (this is known as Card Marking).
 
-* *阶段3:并发Preclean。* *这又是一个并发阶段,与应用程序线程并行运行,没有阻止他们.在前一阶段是与应用程序同时运行,一些引用被改变了。每当发生这种情况,JVM堆的标志着区域(称为“卡”)包含突变对象作为“脏”(这就是所谓的卡片标记)。
+**阶段3: 并发预清理(Concurrent Preclean).** 此阶段也是并发进行的, 与程序线程并行执行, 而不停止线程. 因为前一阶段与程序同时进行的,可能有一些引用已经改变。每当发生这种情况,JVM将堆中的发生了对象改变的区域(称为“Card”)标记为“脏”区域(这就是所谓的卡片标记,Card Marking)。
 
 
 ![](04_08_g1-08.png)
@@ -682,7 +677,7 @@ In the illustration, a reference pointing away from the “Current object” was
 
 In the pre-cleaning phase, these dirty objects are accounted for, and the objects reachable from them are also marked. The cards are cleaned when this is done.
 
-在预清洗阶段,占这些肮脏的对象,对象可以从他们也明显。当这样做是卡片清洁。
+在预清理阶段,统计这些脏对象,从他们可达的对象也标记下来。当(此阶段)完成时 card 也被清理了。
 
 
 ![](04_09_g1-09.png)
@@ -692,34 +687,26 @@ In the pre-cleaning phase, these dirty objects are accounted for, and the object
 
 Additionally, some necessary housekeeping and preparations for the Final Remark phase are performed.
 
-此外,一些必要的家务,准备最后的评论阶段执行。
+此外, 也会执行一些必要的细节处理, 以及为 Final Remark 阶段做一些前期准备工作。
 
 
 >
 2015-05-26T16:23:07.357-0200: 64.460: [CMS-concurrent-preclean-start]
 >
-2015-05-26T16:23:07.373-0200: 64.476: [CMS-concurrent-preclean1: 0.016/0.016 secs2] [Times: user=0.02 sys=0.00, real=0.02 secs]3
+2015-05-26T16:23:07.373-0200: 64.476: [<a>`CMS-concurrent-preclean`</a>: <a>`0.016/0.016 secs`</a>] <a>`[Times: user=0.02 sys=0.00, real=0.02 secs]`</a>
 
->
-2015 - 05 - 26 - t16:23:07.357 - 0200:64.460:[CMS-concurrent-preclean-start]
->
-2015 - 05 - 26 - t16:23:07.373 - 0200:64.476:[CMS-concurrent-preclean1:0.016/0.016 secs2][:用户= 0.02 sys = 0.00,真实= 0.02秒)3
 
 
 >
-> 1. <a>`CMS-concurrent-preclean – Phase of the collection – “Concurrent Preclean” in this occasion`</a> – accounting for references being changed during previous marking phase.
-> 1. <a>`0.016/0.016 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly.
-> 1. <a>`[Times: user=0.02 sys=0.00, real=0.02 secs]`</a> – The “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
+> 1. <a>`CMS-concurrent-preclean`</a> – Phase of the collection – “Concurrent Preclean” in this occasion – accounting for references being changed during previous marking phase. 并发预清理阶段, 统计在前面的标记阶段中发生了改变的对象。
+> 1. <a>`0.016/0.016 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly. 此阶段的持续时间, 分别是运行时间和对应的实际时间
+> 1. <a>`[Times: user=0.02 sys=0.00, real=0.02 secs]`</a> – The “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking. Times 这部分对并发阶段来说没多少意义, 因为是从并发标记开始时计算的,而这段时间内不仅是并发标记在运行,程序也在运行
 
->
-1。CMS-concurrent-preclean阶段的集合——“并发Preclean”这一次,占引用被改变了以前的标记阶段。
-1。0.016/0.016秒的时间阶段,显示运行时间和相应的挂钟时间。
-1。[时报:运用= 0.02 sys = 0.00 millan = 0.02秒)——“*”部分对并发阶段不太有意义的,因为这是测量从一开始的并发标记的工作,包括的不仅仅是并发标记。
 
 
 **Phase 4: Concurrent Abortable Preclean.** Again, a concurrent phase that is not stopping the application’s threads. This one attempts to take as much work off the shoulders of the stop-the-world Final Remark as possible. The exact duration of this phase depends on a number of factors, since it iterates doing the same thing until one of the abortion conditions (such as the number of iterations, amount of useful work done, elapsed wall clock time, etc) is met.
 
-* * 4阶段:并发Abortable Preclean。* *,并发阶段,这并不能阻止应用程序的线程.这一尝试尽可能多的工作的肩膀停止一切最后的话。这一阶段的具体时间取决于很多因素,因为它迭代堕胎做同样的事情,直到其中的一个条件(如迭代的数量,数量的有用的工作,经过挂钟时间,等等)是满足。
+**Phase 4: 并发可取消预清理(Concurrent Abortable Preclean).** 这也是不停止应用程序线程的一个并发阶段. 此阶段尝试在 STW 的 Final Remark 之前尽可能多地做一些工作。这一阶段的具体时间取决于很多因素, 因为它迭代做同样的事情,直到满足某个退出条件( 如迭代次数, 有用工作量,经过的时钟时间,等等)。
 
 
 >
@@ -727,85 +714,67 @@ Additionally, some necessary housekeeping and preparations for the Final Remark 
 >
 2015-05-26T16:23:08.446-0200: 65.550: [CMS-concurrent-abortable-preclean1: 0.167/1.074 secs2] [Times: user=0.20 sys=0.00, real=1.07 secs]3
 
->
-2015 - 05 - 26 - t16:23:07.373 - 0200:64.476:[CMS-concurrent-abortable-preclean-start]
->
-2015 - 05 - 26 - t16:23:08.446 - 0200:65.550:[CMS-concurrent-abortable-preclean1:0.167/1.074 secs2][:用户= 0.20 sys = 0.00,真实= 1.07秒)3
 
 
 >
-> 1. <a>`CMS-concurrent-abortable-preclean`</a> – Phase of the collection “Concurrent Abortable Preclean” in this occasion
-> 1. <a>`0.167/1.074 secs – Duration of the phase, showing elapsed and wall clock time respectively. It is interesting to note that the user time reported is a lot smaller than clock time. Usually we have seen that real time is less than user time, meaning that some work was done in parallel and so elapsed clock time is less than used CPU time. Here we have a little amount of work`</a> – for 0.167 seconds of CPU time, and garbage collector threads were doing a lot of waiting. Essentially, they were trying to stave off for as long as possible before having to do an STW pause. By default, this phase may last for up to 5 seconds.
-> 1. <a>`[Times: user=0.20 sys=0.00, real=1.07 secs]`</a> – The “Times” section is less meaningful for concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
+> 1. <a>`CMS-concurrent-abortable-preclean`</a> – Phase of the collection “Concurrent Abortable Preclean” in this occasion。此阶段的名称: “Concurrent Abortable Preclean”
+> 1. <a>`0.167/1.074 secs`</a> – Duration of the phase, showing elapsed and wall clock time respectively. It is interesting to note that the user time reported is a lot smaller than clock time. Usually we have seen that real time is less than user time, meaning that some work was done in parallel and so elapsed clock time is less than used CPU time. Here we have a little amount of work – for 0.167 seconds of CPU time, and garbage collector threads were doing a lot of waiting. Essentially, they were trying to stave off for as long as possible before having to do an STW pause. By default, this phase may last for up to 5 seconds. 此阶段的持续时间, 运行时间和对应的实际时间。有趣的是, 用户时间明显比时钟时间要小很多。通常情况下我们看到的都是时钟时间小于用户时间, 这意味着因为有一些并行工作, 所以运行时间小于使用的CPU时间。这里只进行了少量的工作 — 0.167秒的CPU时间,GC线程进行了很多系统等待。从本质上讲,他们试图在必须做一个STW暂停之前等待尽可能长的时间。默认情况下,这个阶段可以持续5秒钟。
 
->
-1。CMS-concurrent-abortable-preclean -阶段的集合”并发Abortable Preclean”在这个场合
-1。0.167/1.074秒的时间阶段,分别显示逃逸和挂钟时间。有趣的是,据用户时间比时钟时间小很多.通常我们已经看到实时小于用户时间,这意味着一些并行工作,所以运行时钟时间小于使用的CPU时间.这里我们有少量的工作—CPU时间的0.167秒,垃圾收集器线程所做的很多的等待。本质上,他们试图避免尽可能长时间之前必须做一个STW暂停。默认情况下,这个阶段可能持续5秒。
-1。(时间:用户= 0.20 sys = 0.00,真实= 1.07秒)——“*”部分不太有意义的并发阶段,是测量从一开始的并发标记的工作,包括的不仅仅是并发标记。
+> 1. <a>`[Times: user=0.20 sys=0.00, real=1.07 secs]`</a> – The “Times” section is less meaningful for concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking. Times 这部分对并发阶段来说没多少意义, 因为是从并发标记开始时计算的,而这段时间内不仅是并发标记在运行,程序也在运行
+
 
 
 This phase may significantly impact the duration of the upcoming stop-the-world pause, and has quite a lot of non-trivial configuration options and fail modes.
 
-这个阶段可能的持续时间显著影响即将停止一切停顿,并且有相当多的非平凡的配置选项和失败模式。
+此阶段可能显著影响STW停顿的持续时间, 并且有许多重要的配置选项和失败模式。
 
 
 **Phase 5: Final Remark.** This is the second and last stop-the-world phase during the event. The goal of this stop-the-world phase is to finalize marking all live objects in the Old Generation. Since the previous preclean phases were concurrent, they may have been unable to keep up with the application’s mutating speeds. A stop-the-world pause is required to finish the ordeal.
 
-* *阶段5:最后的评论。* *这是第二个和最后一个在活动期间停止一切阶段。停止一切阶段的目标是完成标志着老年代所有活动对象.并发前preclean阶段以来,他们可能无法跟上应用程序的变异速度。需要停止一切暂停完成考验。
+
+**阶段5: 最终重标记.** 这是本次GC事件中第二次也是最后一次STW阶段。STW阶段的目标是完成老年代中所有存活对象的标记. 因为之前的 preclean 阶段是并发的, 有可能无法跟上应用程序的变异速度。所以需要 STW暂停来解决这种磨难。
 
 
 Usually CMS tries to run final remark phase when Young Generation is as empty as possible in order to eliminate the possibility of several stop-the-world phases happening back-to-back.
 
-通常CMS试图运行最后的话尽可能空阶段当年轻代为了消除几个背靠背停止一切阶段发生的可能性。
+通常CMS会尝试在年轻代尽可能空的情况运行 final remark 阶段, 以避免连续多次 STW 阶段紧挨着发生。
 
 
 This event looks a bit more complex than previous phases:
 
-这个事件看起来有点更复杂的比之前的阶段:
+此事件看起来比之前的阶段要稍微复杂一些:
 
 
->
-2015-05-26T16:23:08.447-0200: 65.5501: [GC (CMS Final Remark2) [YG occupancy: 387920 K (613440 K)3]65.550: [Rescan (parallel) , 0.0085125 secs]465.559: [weak refs processing, 0.0000243 secs]65.5595: [class unloading, 0.0013120 secs]65.5606: [scrub string table, 0.0001759 secs7][1 CMS-remark: 10812086K(11901376K)8] 11200006K(12514816K) 9, 0.0110730 secs10] [[Times: user=0.06 sys=0.00, real=0.01 secs]11
+> <a>`2015-05-26T16:23:08.447-0200: 65.550`</a>: [GC (<a>`CMS Final Remark`</a>) [<a>`YG occupancy: 387920 K (613440 K)`</a>]
+> 65.550: <a>`[Rescan (parallel) , 0.0085125 secs]`</a> 65.559: [<a>`weak refs processing, 0.0000243 secs]65.559`</a>:  [<a>`class unloading, 0.0013120 secs]65.560`</a>: [<a>`scrub string table, 0.0001759 secs`</a>]
+> [1 CMS-remark: <a>`10812086K(11901376K)`</a>] <a>`11200006K(12514816K) `</a>,<a>`0.0110730 secs`</a>] <a>`[Times: user=0.06 sys=0.00, real=0.01 secs]`
 
->
-2015-05-26T16:23:08.447-0200: 65.5501: [GC (CMS Final Remark2) [YG occupancy: 387920 K (613440 K)3]65.550: [Rescan (parallel) , 0.0085125 secs]465.559: [weak refs processing, 0.0000243 secs]65.5595: [class unloading, 0.0013120 secs]65.5606: [scrub string table, 0.0001759 secs7][1 CMS-remark: 10812086K(11901376K)8] 11200006K(12514816K) 9, 0.0110730 secs10] [[Times: user=0.06 sys=0.00, real=0.01 secs]11
-
-
->
-> 1. <a>`2015-05-26T16:23:08.447-0200: 65.550`</a> – Time the GC event started, both clock time and relative to the time from the JVM start.
-> 1. <a>`CMS Final Remark – Phase of the collection – “Final Remark” in this occasion`</a> – that is marking all live objects in the Old Generation, including the references that were created/modified during previous concurrent marking phases.
-> 1. <a>`YG occupancy: 387920 K (613440 K)`</a> – Current occupancy and capacity of the Young Generation.
-> 1. <a>`[Rescan (parallel) , 0.0085125 secs]`</a> – The “Rescan” completes the marking of live objects while the application is stopped. In this case the rescan was done in parallel and took 0.0085125 seconds.
-> 1. <a>`weak refs processing, 0.0000243 secs]65.559`</a> – First of the sub-phases that is processing weak references along with the duration and timestamp of the phase.
-> 1. <a>`class unloading, 0.0013120 secs]65.560`</a> – Next sub-phase that is unloading the unused classes, with the duration and timestamp of the phase.
-> 1. <a>`scrub string table, 0.0001759 secs`</a> – Final sub-phase that is cleaning up symbol and string tables which hold class-level metadata and internalized string respectively. Clock time of the pause is also included.
-> 1. <a>`10812086K(11901376K)`</a> – Occupancy and the capacity of the Old Generation after the phase.
-> 1. <a>`11200006K(12514816K) `</a> – Usage and the capacity of the total heap after the phase.
-> 1. <a>`0.0110730 secs`</a> – Duration of the phase.
-> 1. <a>`[Times: user=0.06 sys=0.00, real=0.01 secs]`</a> – Duration of the pause, measured in user, system and real time categories.
+<br/>
 
 >
-1。2015 - 05 - 26 - t16:23:08.447 - 0200:65.550 - GC事件开始,时钟时间和相对于从JVM开始的时间。
-1。CMS最后评论-阶段的收集在这一次“最后评论”——纪念所有活动对象的老年代,包括引用过程中创建/修改以前的并发标记阶段。
-1。YG入住率:387920 K(613440 K)-目前年轻代的入住率和能力。
-1。(重新扫描(并行),0.0085125秒]——“重新扫描”就完成了活动对象的标记而应用程序停止。在这种情况下,重新扫描并行完成,0.0085125秒。
-1。弱参处理,0.0000243秒]65.559 -第一的sub-phases处理弱引用以及持续时间和时间戳的阶段。
-1。类卸载,0.0013120秒]65.560 -下sub-phase卸载未使用的类,持续时间和时间戳的阶段。
-1。擦洗字符串表,0.0001759秒-最终sub-phase清理象征和字符串表分别持有类级别的元数据和内部化字符串.时钟时间的停顿也包括在内。
-1。10812086 k(11901376 k)-入住率和老一辈的容量后阶段。
-1。11200006 k(12514816 k)——使用和总堆的容量后阶段。
-1。0.0110730秒-持续时间的阶段。
-1。(时间:用户= 0.06 sys = 0.00,真实= 0.01秒)-持续时间的停顿,以用户、系统和实时类别。
+> 1. <a>`2015-05-26T16:23:08.447-0200: 65.550`</a> – Time the GC event started, both clock time and relative to the time from the JVM start. GC事件开始的时间, 包括时钟时间,以及相对于JVM启动时间. 其中`-0200`是时区,而中国所在的东8区为 `+0800`。
+> 1. <a>`CMS Final Remark`</a> – Phase of the collection – “Final Remark” in this occasion – that is marking all live objects in the Old Generation, including the references that were created/modified during previous concurrent marking phases. 此阶段的名称, “Final Remark”, 标记老年代中的所有存活对象，包括在此前的并发标记阶段创建/修改的引用。
+> 1. <a>`YG occupancy: 387920 K (613440 K)`</a> – Current occupancy and capacity of the Young Generation. 当前年轻代的使用量和容量
+> 1. <a>`[Rescan (parallel) , 0.0085125 secs]`</a> – The “Rescan” completes the marking of live objects while the application is stopped. In this case the rescan was done in parallel and took 0.0085125 seconds. 重新扫描(Rescan)在程序暂停时完成存活对象的标记。此次 rescan 为并行执行,消耗的时间为  **0.0085125秒**。
+> 1. <a>`weak refs processing, 0.0000243 secs]65.559`</a> – First of the sub-phases that is processing weak references along with the duration and timestamp of the phase. 第一个子阶段(sub-phases), 处理弱引用, 以及持续时间和开始的时间戳。
+> 1. <a>`class unloading, 0.0013120 secs]65.560`</a> – Next sub-phase that is unloading the unused classes, with the duration and timestamp of the phase. 第二个子阶段, 卸载未使用的类,以及持续时间和开始的时间戳。
+> 1. <a>`scrub string table, 0.0001759 secs`</a> – Final sub-phase that is cleaning up symbol and string tables which hold class-level metadata and internalized string respectively. Clock time of the pause is also included. 最后一个子阶段, 清理持有class级别metadata的符号表(symbol tables),以及内部化字符串的 string tables。包括暂停的时钟时间。
+> 1. <a>`10812086K(11901376K)`</a> – Occupancy and the capacity of the Old Generation after the phase. 此阶段完成后老年代的使用量和容量
+> 1. <a>`11200006K(12514816K) `</a> – Usage and the capacity of the total heap after the phase. 此阶段完成后整个堆内存的使用量和容量
+> 1. <a>`0.0110730 secs`</a> – Duration of the phase. 此阶段的持续时间。
+> 1. <a>`[Times: user=0.06 sys=0.00, real=0.01 secs]`</a> – Duration of the pause, measured in user, system and real time categories. GC事件的持续时间, 通过不同的类别来衡量: user, system and real time。
+
 
 
 After the five marking phases, all live objects in the Old Generation are marked and now garbage collector is going to reclaim all unused objects by sweeping the Old Generation:
 
-五个标记阶段之后,都生活在老年代标记对象,现在垃圾收集器将回收所有未使用的对象通过全面老年代:
+在5个标记阶段之后, 老年代中的所有存活对象都被标记了, 现在垃圾收集器将通过清除老年代来回收所有不使用的对象:
 
 
-Phase 6: Concurrent Sweep. Performed concurrently with the application, without the need for the stop-the-world pauses. The purpose of the phase is to remove unused objects and to reclaim the space occupied by them for future use.
+**Phase 6: Concurrent Sweep.** Performed concurrently with the application, without the need for the stop-the-world pauses. The purpose of the phase is to remove unused objects and to reclaim the space occupied by them for future use.
 
-Phase 6: Concurrent Sweep. Performed concurrently with the application, without the need for the stop - the - world pauses.阶段的目的是删除未使用的对象和收回他们占据的空间,以供将来使用。
+**阶段6:并发清除(Concurrent Sweep)。** 与应用程序并发执行,而不需要STW停顿。阶段的目的是删除未使用的对象并收回他们占据的空间,以供将来使用。
+
 
 
 ![](04_10_g1-10.png)
@@ -814,54 +783,46 @@ Phase 6: Concurrent Sweep. Performed concurrently with the application, without 
 
 
 >
-2015-05-26T16:23:08.458-0200: 65.561: [CMS-concurrent-sweep-start] 2015-05-26T16:23:08.485-0200: 65.588: [CMS-concurrent-sweep1: 0.027/0.027 secs2] [[Times: user=0.03 sys=0.00, real=0.03 secs] 3
+2015-05-26T16:23:08.458-0200: 65.561: [CMS-concurrent-sweep-start] 2015-05-26T16:23:08.485-0200: 65.588: [<a>`CMS-concurrent-sweep`</a>: <a>`0.027/0.027 secs`</a>] <a>`[Times: user=0.03 sys=0.00, real=0.03 secs] `</a>
+
+
 
 >
-2015-05-26T16:23:08.458-0200: 65.561: [CMS-concurrent-sweep-start] 2015-05-26T16:23:08.485-0200: 65.588: [CMS-concurrent-sweep1: 0.027/0.027 secs2] [[Times: user=0.03 sys=0.00, real=0.03 secs] 3
+> 1. <a>`CMS-concurrent-sweep`</a> – Phase of the collection “Concurrent Sweep” in this occasion, sweeping unmarked and thus unused objects to reclaim space. 此阶段的名称, “Concurrent Sweep”, 清除未标记、不使用的对象以释放内存空间。
+> 1. <a>`0.027/0.027 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly. 此阶段的持续时间, 分别是运行时间和对应的实际时间
+> 1. <a>`[Times: user=0.03 sys=0.00, real=0.03 secs] `</a> – “Times” section is less meaningful on concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking. 这部分对并发阶段来说没多少意义, 因为是从并发标记开始时计算的,而这段时间内不仅是并发标记在运行,程序也在运行
 
-
->
-> 1. <a>`CMS-concurrent-sweep`</a> – Phase of the collection “Concurrent Sweep” in this occasion, sweeping unmarked and thus unused objects to reclaim space.
-> 1. <a>`0.027/0.027 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly.
-> 1. <a>`[Times: user=0.03 sys=0.00, real=0.03 secs] `</a> – “Times” section is less meaningful on concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
-
->
-1。CMS-concurrent-sweep -阶段的集合“并发扫描”这一次,彻底的无名,因此未使用的对象回收空间。
-1。0.027/0.027秒的时间阶段,显示运行时间和相应的挂钟时间。
-1。(时间:用户= 0.03 sys = 0.00,真实= 0.03秒)——“*”部分不太有意义的并发阶段,是测量从一开始的并发标记的工作,包括的不仅仅是并发标记。
 
 
 **Phase 7: Concurrent Reset.** Concurrently executed phase, resetting inner data structures of the CMS algorithm and preparing them for the next cycle.
 
-* *阶段7:并发重置。* *并发执行阶段,重置CMS的内部数据结构算法和准备为下一个循环。
+**阶段7:并发重置(Concurrent Reset)。** 并发执行阶段,重置CMS算法的内部数据结构, 为下一次GC循环做准备。
 
 
 >
-2015-05-26T16:23:08.485-0200: 65.589: [CMS-concurrent-reset-start] 2015-05-26T16:23:08.497-0200: 65.601: [CMS-concurrent-reset1: 0.012/0.012 secs2] [[Times: user=0.01 sys=0.00, real=0.01 secs]3
+2015-05-26T16:23:08.485-0200: 65.589: [CMS-concurrent-reset-start] 2015-05-26T16:23:08.497-0200: 65.601: [<a>`CMS-concurrent-reset`</a>: <a>`0.012/0.012 secs`</a>] <a>`[Times: user=0.01 sys=0.00, real=0.01 secs]`</a>
+
+
 
 >
-2015-05-26T16:23:08.485-0200: 65.589: [CMS-concurrent-reset-start] 2015-05-26T16:23:08.497-0200: 65.601: [CMS-concurrent-reset1: 0.012/0.012 secs2] [[Times: user=0.01 sys=0.00, real=0.01 secs]3
+> 1. <a>`CMS-concurrent-reset`</a> – The phase of the collection – “Concurrent Reset” in this occasion – that is resetting inner data structures of the CMS algorithm and preparing for the next collection.此阶段的名称, “Concurrent Reset”, 重置CMS算法的内部数据结构, 为下一次GC循环做准备。
+> 1. <a>`0.012/0.012 secs`</a> – Duration of the the phase, measuring elapsed and wall clock time respectively. 此阶段的持续时间, 分别是运行时间和对应的实际时间
+> 1. <a>`[Times: user=0.01 sys=0.00, real=0.01 secs]`</a> – The “Times” section is less meaningful on concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking. 这部分对并发阶段来说没多少意义, 因为是从并发标记开始时计算的,而这段时间内不仅是并发标记在运行,程序也在运行
 
-
->
-> 1. <a>`CMS-concurrent-reset – The phase of the collection – “Concurrent Reset” in this occasion`</a> – that is resetting inner data structures of the CMS algorithm and preparing for the next collection.
-> 1. <a>`0.012/0.012 secs`</a> – Duration of the the phase, measuring elapsed and wall clock time respectively.
-> 1. <a>`[Times: user=0.01 sys=0.00, real=0.01 secs]`</a> – The “Times” section is less meaningful on concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking.
-
->
-1。CMS-concurrent-reset——集合的阶段——“并发重置”这一次——这是重置CMS的内部数据结构算法和准备下一个集合。
-1。0.012/0.012秒的时间阶段,分别测量运行和挂钟时间。
-1。(时间:用户= 0.01 sys = 0.00,真实= 0.01秒)——“*”部分不太有意义的并发阶段,是测量从一开始的并发标记的工作,包括的不仅仅是并发标记。
 
 
 All in all, the CMS garbage collector does a great job at reducing the pause durations by offloading a great deal of the work to concurrent threads that do not require the application to stop. However, it, too, has some drawbacks, the most notable of them being the Old Generation fragmentation and the lack of predictability in pause durations in some cases, especially on large heaps.
 
-总之,CMS垃圾收集器是一个伟大的工作在减少停顿时间通过出售大量的并发线程的工作不需要应用程序停止.然而,它也有一些缺点,其中最著名的是老的代分裂和缺乏可预测性暂停时间在某些情况下,特别是在大型堆。
+总之, CMS垃圾收集器在减少停顿时间上做了很多给力的工作, 通过大量的并发线程执行不需要暂停应用程序的工作. 然而,它也有一些缺点,其中最著名的是老年代的碎片化, 以及在某些情况下缺乏可预测的暂停时间, 特别是大型堆。
 
 
-## G1 – Garbage First
+## G1 – Garbage First(垃圾优先)
 
-## G1 -垃圾第一
+
+
+<br/><p style="height:1400px;">ccc</p><br/><p style="height:1900px;">ccc</p><br/><p style="height:1800px;">ccc</p><br/><p style="height:1900px;">ccc</p>
+
+
 
 
 One of the key design goals of G1 was to make the duration and distribution of stop-the-world pauses due to garbage collection predictable and configurable. In fact, Garbage-First is a soft real-time garbage collector, meaning that you can set specific performance goals to it. You can request the stop-the-world pauses to be no longer than x milliseconds within any given y-millisecond long time range, e.g. no more than 5 milliseconds in any given second. Garbage-First GC will do its best to meet this goal with high probability (but not with certainty, that would be hard real-time).
