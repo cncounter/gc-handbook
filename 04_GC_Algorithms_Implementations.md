@@ -820,19 +820,19 @@ All in all, the CMS garbage collector does a great job at reducing the pause dur
 
 
 
-<br/><p style="height:1400px;">ccc</p><br/><p style="height:1900px;">ccc</p><br/><p style="height:1800px;">ccc</p><br/><p style="height:1900px;">ccc</p>
+<br/><p style="height:400px;">ccc</p><br/><p style="height:900px;">ccc</p><br/><p style="height:800px;">ccc</p><br/><p style="height:900px;">ccc</p>
 
 
 
 
 One of the key design goals of G1 was to make the duration and distribution of stop-the-world pauses due to garbage collection predictable and configurable. In fact, Garbage-First is a soft real-time garbage collector, meaning that you can set specific performance goals to it. You can request the stop-the-world pauses to be no longer than x milliseconds within any given y-millisecond long time range, e.g. no more than 5 milliseconds in any given second. Garbage-First GC will do its best to meet this goal with high probability (but not with certainty, that would be hard real-time).
 
-G1的主要设计目标之一就是使停止一切停顿的时间和分配由于垃圾收集可预测和可配置的。事实上,garbage first是软实时垃圾收集器,这意味着您可以设置特定的性能目标.你可以要求停止一切停顿不超过x毫秒任何y-millisecond长时间范围内,如不超过5毫秒在任何给定的第二.garbage first GC将尽力满足这个目标有高概率(但不确定,这将是硬实时)。
+G1的主要设计目标就是使的STW停顿的时间和分布变成可预测和可配置的。事实上, G1是一款软实时的垃圾收集器, 这意味着您可以设置特定的性能目标.你可以要求，在给定的任意y 毫秒时间范围内, STW停顿不得超过x毫秒。 例如: 每一秒中不得超过5毫秒. Garbage-First GC将以很大的概率尽力满足这个目标(但也不是完全确定,具体是多少将是真实时[hard real-time])。
 
 
 To achieve this, G1 builds upon a number of insights. First, the heap does not have to be split into contiguous Young and Old generation. Instead, the heap is split into a number (typically about 2048) smaller heap regions that can house objects. Each region may be an Eden region, a Survivor region or an Old region. The logical union of all Eden and Survivor regions is the Young Generation, and all the Old regions put together is the Old Generation:
 
-为了达到这个目标,G1构建在一些见解。首先,堆不需要分成连续的年轻和年老年代。而不是,堆被分成许多小(通常约2048)堆区域可以房子对象。每个地区可能是一个伊甸园地区,幸存者地区或一个旧地区.逻辑联盟的伊甸园和幸存者地区是年轻代,和所有的旧区域放在一起是老年代:
+为了达成这个目标,G1的有一些独特的实现。首先, 堆不需要分成连续的年轻代和老年代空间。而是分成许多个(通常是2048个)可以存放对象的小型堆区域(heap regions)。每个区域都可以是一个Eden区, Survivor区或者Old区. 逻辑上, 所有的Eden区和Survivor区就是年轻代, 所有的Old区放在一起那就是老年代:
 
 
 ![](04_11_g1-011.png)
@@ -842,7 +842,7 @@ To achieve this, G1 builds upon a number of insights. First, the heap does not h
 
 This allows the GC to avoid collecting the entire heap at once, and instead approach the problem incrementally: only a subset of the regions, called the collection set will be considered at a time. All the Young regions are collected during each pause, but some Old regions may be included as well:
 
-这允许GC避免收集整个堆,而以增量的方式进行问题:只有一个子集的区域,称为集将被视为一次集合.收集所有年轻的地区在每个停顿,但一些旧地区可能包括:
+这样划分使得每次GC不必去收集整个堆,而是以增量的方式解决问题: 每次只处理一部分区域,称为回收集(collection set). 每次暂停会收集所有的年轻区域, 但可能只包含一部分老年代区域:
 
 
 ![](04_12_g1-02.png)
@@ -852,12 +852,12 @@ This allows the GC to avoid collecting the entire heap at once, and instead appr
 
 Another novelty of G1 is that during the concurrent phase it estimates the amount of live data that each region contains. This is used in building the collection set: the regions that contain the most garbage are collected first. Hence the name: garbage-first collection.
 
-G1的另一个新奇的是,在并发阶段估计每个区域包含的实时数据。这是用于构建集合集合:区域包含最垃圾的收集。因此,名称:garbage first集合。
+G1的另一个创新, 是在并发阶段估算每个区域存活对象的数量。这用于构建回收集合(collection set): 垃圾最多的区域会被优先收集。这也是G1名称的由来: garbage-first。
 
 
 To run the JVM with the G1 collector enabled, run your application as
 
-启用了G1收集器的JVM运行,运行您的应用程序
+为JVM启用G1收集器, 使用的命令行参数为:
 
 
 	java -XX:+UseG1GC com.mypackages.MyExecutableClass
