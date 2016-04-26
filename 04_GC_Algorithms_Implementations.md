@@ -94,7 +94,11 @@ If the above looks too complex, do not worry. In reality it all boils down to ju
 - Serial GC for both the Young and Old generations
 - Parallel GC for both the Young and Old generations
 - Parallel New for Young + Concurrent Mark and Sweep (CMS) for the Old Generation
-- G1, which encompasses collection of both Young and Old generations
+- 
+- 
+- 
+- 
+- , which encompasses collection of both Young and Old generations
 
 <br/>
 
@@ -819,12 +823,6 @@ All in all, the CMS garbage collector does a great job at reducing the pause dur
 ## G1 – Garbage First(垃圾优先)
 
 
-
-<br/><p style="height:400px;">ccc</p><br/><p style="height:900px;">ccc</p><br/><p style="height:800px;">ccc</p><br/><p style="height:900px;">ccc</p>
-
-
-
-
 One of the key design goals of G1 was to make the duration and distribution of stop-the-world pauses due to garbage collection predictable and configurable. In fact, Garbage-First is a soft real-time garbage collector, meaning that you can set specific performance goals to it. You can request the stop-the-world pauses to be no longer than x milliseconds within any given y-millisecond long time range, e.g. no more than 5 milliseconds in any given second. Garbage-First GC will do its best to meet this goal with high probability (but not with certainty, that would be hard real-time).
 
 G1的主要设计目标就是使的STW停顿的时间和分布变成可预测和可配置的。事实上, G1是一款软实时的垃圾收集器, 这意味着您可以设置特定的性能目标.你可以要求，在给定的任意y 毫秒时间范围内, STW停顿不得超过x毫秒。 例如: 每一秒中不得超过5毫秒. Garbage-First GC将以很大的概率尽力满足这个目标(但也不是完全确定,具体是多少将是真实时[hard real-time])。
@@ -864,139 +862,92 @@ To run the JVM with the G1 collector enabled, run your application as
 
 
 
-
 ### Evacuation Pause: Fully Young
 
-### 疏散暂停:完全年轻
+### 转移暂停(Evacuation Pause): Fully Young 模式
 
 
 In the beginning of the application’s lifecycle, G1 does not have any additional information from the not-yet-executed concurrent phases, so it initially functions in the fully-young mode. When the Young Generation fills up, the application threads are stopped, and the live data inside the Young regions is copied to Survivor regions, or any free regions that thereby become Survivor.
 
-在应用程序的生命周期的开始,G1没有任何额外的信息并未执行并发的阶段,所以它最初功能fully-young模式.年轻代填满时,应用程序线程停止,和年轻的地区内的实时数据复制到幸存者地区,或任何自由地区,从而成为幸存者。
+在应用程序刚启动时, G1还未执行过(not-yet-executed)并发阶段得到其他信息,  所以此时处于 fully-young 模式. 在年轻代用满后, 应用程序线程暂停, 年轻代中的存活数据被复制到存活区, 如果还没有存活区,则任意选择一些空闲的区域作为存活区。
 
 
 The process of copying these is called Evacuation, and it works in pretty much the same way as the other Young collectors we have seen before. The full logs of evacuation pauses are rather large, so, for simplicity’s sake we will leave out a couple of small bits that are irrelevant in the first fully-young evacuation pause. We will get back to them after the concurrent phases are explained in greater detail. In addition, due to the sheer size of the log record, the parallel phase details and “Other” phase details are extracted to separate sections:
 
-复制这些叫做疏散的过程中,它在几乎相同的方式工作的其他年轻收集家我们见过的。疏散的全部日志停顿是相当大的,所以,为简单起见,我们将离开了几小块无关的fully-young疏散暂停.我们将回到他们后并发阶段进行更详细的解释。此外,由于庞大的日志记录,并行阶段细节和“其他”阶段细节提取分离部分:
+复制的过程叫做转移(Evacuation), 它和前面讲过的年轻代收集器几乎是一样的工作方式。转移暂停的日志信息很长,为简单起见, 我们去除了一部分不重要的日志信息. 我们将在并发阶段之后进行更详细的解释。此外, 由于日志记录很多, 所以并行阶段和“其他”阶段的细节将拆分为多个部分进行讲解:
 
 
->
-	0.134: [GC pause (G1 Evacuation Pause) (young), 0.0144119 secs]1
-	    [Parallel Time: 13.9 ms, GC Workers: 8]2
-	        …3
-	    [Code Root Fixup: 0.0 ms]4
-	    [Code Root Purge: 0.0 ms]5
-	    [Clear CT: 0.1 ms]
-	    [Other: 0.4 ms]6
-	        …7
-	    [Eden: 24.0M(24.0M)->0.0B(13.0M) 8Survivors: 0.0B->3072.0K 9Heap: 24.0M(256.0M)->21.9M(256.0M)]10
-	     [Times: user=0.04 sys=0.04, real=0.02 secs] 11
+> <a>`0.134: [GC pause (G1 Evacuation Pause) (young), 0.0144119 secs]`</a> <br/>
+>     <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a><br/>
+>      <a>`…`</a><br/>
+>      <a>`[Code Root Fixup: 0.0 ms]`</a><br/>
+>      <a>`[Code Root Purge: 0.0 ms]`</a><br/>
+>          [Clear CT: 0.1 ms] <br/>
+>          <a>`[Other: 0.4 ms]`</a>
+>      <a>`…`</a><br/>
+>       <a>`[Eden: 24.0M(24.0M)->0.0B(13.0M) `</a> <a>`Survivors: 0.0B->3072.0K `</a>  <a>`Heap: 24.0M(256.0M)->21.9M(256.0M)]`</a>
+>        <a>`[Times: user=0.04 sys=0.04, real=0.02 secs] `</a>
 
->
-0.134:[GC暂停(G1疏散停顿)(年轻),0.0144119秒]1
-(并行时间:13.9毫秒,GC工人:8)2
-3…
-(代码根固定:0.0毫秒)4
-(代码根清洗:0.0毫秒)5
-(明确的CT:0.1毫秒)
-(其他:0.4毫秒)6
-7…
-【伊甸:24.0米(24.0米)- > 0.0 b(13.0米)8幸存者:0.0 b - > 3072.0 k 9堆:24.0米(256.0米)- > 256.0米(256.0米)]10
-[时报:运用sys 0.04 = = = 0.02干燥0.04 millan 11]
 
 
 >
-> 1. <a>`0.134: [GC pause (G1 Evacuation Pause) (young), 0.0144119 secs]`</a> – G1 pause cleaning only (young) regions. The pause started 134ms after the JVM startup and the duration of the pause was 0.0144 seconds measured in wall clock time.
-> 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (real time) the following activities were carried out by 8 threads in parallel
-> 1. <a>`…`</a> – Cut for brevity, see the following section below for the details.
-> 1. <a>`[Code Root Fixup: 0.0 ms]`</a> – Freeing up the data structures used for managing the parallel activities. Should always be near-zero. This is done sequentially.
-> 1. <a>`[Code Root Purge: 0.0 ms]`</a> – Cleaning up more data structures, should also be very fast, but non necessarily almost zero. This is done sequentially.
-> 1. <a>`[Other: 0.4 ms]`</a> – Miscellaneous other activities, many of which are also parallelized
-> 1. <a>`…`</a> – See the section below for details
-> 1. <a>`[Eden: 24.0M(24.0M)->0.0B(13.0M) `</a> – Eden usage and capacity before and after the pause
-> 1. <a>`Survivors: 0.0B->3072.0K `</a> – Space used by Survivor regions before and after the pause
-> 1. <a>`Heap: 24.0M(256.0M)->21.9M(256.0M)]`</a> – Total heap usage and capacity before and after the pause.
+> 1. <a>`0.134: [GC pause (G1 Evacuation Pause) (young), 0.0144119 secs]`</a> – G1 pause cleaning only (young) regions. The pause started 134ms after the JVM startup and the duration of the pause was 0.0144 seconds measured in wall clock time. G1暂停,只清理(年轻代)区域。暂停在JVM启动134 ms 后开始, 持续的系统时间是 **0.0144秒** 。
+> 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (real time) the following activities were carried out by 8 threads in parallel  表明下列活动由8线程并行执行，消耗时间为13.9毫秒(real time)
+> 1. <a>`…`</a> – Cut for brevity, see the following section below for the details. 为阅读方便单而省略,请参考后文。
+> 1. <a>`[Code Root Fixup: 0.0 ms]`</a> – Freeing up the data structures used for managing the parallel activities. Should always be near-zero. This is done sequentially. 释放用于管理并行活动的数据结构。一般都是接近于零。这是串行执行的。
+> 1. <a>`[Code Root Purge: 0.0 ms]`</a> – Cleaning up more data structures, should also be very fast, but non necessarily almost zero. This is done sequentially. 清理更多的数据结构, 也是非常快的, 但如非必要则几乎等于零。这是串行执行的。
+> 1. <a>`[Other: 0.4 ms]`</a> – Miscellaneous other activities, many of which are also parallelized.  其他活动消耗的时间, 其中也有很多是并行执行的。
+> 1. <a>`…`</a> – See the section below for details. 请参考后文
+> 1. <a>`[Eden: 24.0M(24.0M)->0.0B(13.0M) `</a> – Eden usage and capacity before and after the pause. 事件前后新生代的使用量
+> 1. <a>`Survivors: 0.0B->3072.0K `</a> – Space used by Survivor regions before and after the pause. 事件前后存活区的使用量
+> 1. <a>`Heap: 24.0M(256.0M)->21.9M(256.0M)]`</a> – Total heap usage and capacity before and after the pause. 事件前后整个堆内存的使用量与总容量。
 > 1. <a>`[Times: user=0.04 sys=0.04, real=0.02 secs] `</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
  - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
  - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
- - real – Clock time for which your application was stopped. 应用程序被停止的系统时钟时间。. With the parallelizable activities during GC this number is ideally close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount.
+ - real – Clock time for which your application was stopped. With the parallelizable activities during GC this number is ideally close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序被停止的系统时钟时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有固定比例的处理过程是不能并行化的。
 
->
-1。0.134:[GC暂停(G1疏散停顿)(年轻),0.0144119秒]- G1暂停只清洗(年轻)地区。暂停后开始134 ms JVM启动和暂停的持续时间是0.0144秒在挂钟时间测量。
-1。(并行时间:13.9毫秒,GC工人:8]——表明13.9毫秒(实时)以下活动是由8线程并行
-1。…——削减为简便起见,看看下面的部分下面的细节。
-1。(代码根固定:0.0毫秒)——释放数据结构用于管理并行活动。应该是接近于零。这是按顺序来完成的。
-1。(代码根清洗:0.0毫秒)——清理更多的数据结构,也应该非常快,但非必要几乎为零。这是按顺序来完成的。
-1。(其他:0.4毫秒)——各种各样的其他活动,其中许多也并行
-1。有关详细信息,请参阅下面的部分…
-1。【伊甸:24.0米(24.0米)- > 24.0 b(13.0米)——伊甸园前后暂停使用和能力
-1。幸存者:0.0 b - > 3072.0 k -空间由幸存者地区之前和之后暂停使用
-1。堆:24.0米(256.0米)- > 256.0米(256.0米)]——总堆使用情况和能力之前和之后的停顿。
-1。(时间:用户= 0.04 sys = 0.04,真实= 0.02秒)- GC事件期间,测量在不同的类别:
-——用户——总消耗的CPU时间垃圾收集器线程在此集合
-- sys -时间花在操作系统调用或等待系统事件
--真正的时钟时间为您的应用程序被停止了.与并行的活动在GC这个数字最接近(用户时间+系统时间)除以垃圾收集器使用的线程的数量.在这种特殊情况下8线程使用。注意,由于一些活动不是可并行的,它总是超过一定数量的比率。
+
+
+> 说明: 系统时间(wall clock time, elapsed time), 是指一段程序从运行到终止，系统时钟走过的时间。一般来说，系统时间都是要大于CPU时间
+
+
+
+<br/><p style="height:400px;">ccc</p><br/><p style="height:900px;">ccc</p><br/><p style="height:800px;">ccc</p><br/><p style="height:900px;">ccc</p>
+
 
 
 Most of the heavy-lifting is done by multiple dedicated GC worker threads. Their activities are described in the following section of the log:
 
-最繁重的任务由多个专用的GC工作线程。下一节中描述了他们的活动日志:
+最繁重的任务由多个专用的GC worker线程来执行。下面的日志描述了他们的活动:
 
 
->
-	[Parallel Time: 13.9 ms, GC Workers: 8]1
-	     [GC Worker Start (ms)2: Min: 134.0, Avg: 134.1, Max: 134.1, Diff: 0.1]
-	    [Ext Root Scanning (ms)3: Min: 0.1, Avg: 0.2, Max: 0.3, Diff: 0.2, Sum: 1.2]
-	    [Update RS (ms): Min: 0.0, Avg: 0.0, Max: 0.0, Diff: 0.0, Sum: 0.0]
-	        [Processed Buffers: Min: 0, Avg: 0.0, Max: 0, Diff: 0, Sum: 0]
-	    [Scan RS (ms): Min: 0.0, Avg: 0.0, Max: 0.0, Diff: 0.0, Sum: 0.0]
-	    [Code Root Scanning (ms)4: Min: 0.0, Avg: 0.0, Max: 0.2, Diff: 0.2, Sum: 0.2]
-	    [Object Copy (ms)5: Min: 10.8, Avg: 12.1, Max: 12.6, Diff: 1.9, Sum: 96.5]
-	    [Termination (ms)6: Min: 0.8, Avg: 1.5, Max: 2.8, Diff: 1.9, Sum: 12.2]
-	        [Termination Attempts7: Min: 173, Avg: 293.2, Max: 362, Diff: 189, Sum: 2346]
-	    [GC Worker Other (ms)8: Min: 0.0, Avg: 0.0, Max: 0.0, Diff: 0.0, Sum: 0.1]
-	    GC Worker Total (ms)9: Min: 13.7, Avg: 13.8, Max: 13.8, Diff: 0.1, Sum: 110.2]
-	    [GC Worker End (ms)10: Min: 147.8, Avg: 147.8, Max: 147.8, Diff: 0.0]
+> <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> <br/>
+> <a>`[GC Worker Start (ms)`</a>:  Min: 134.0, Avg: 134.1, Max: 134.1, Diff: 0.1] <br/>
+> <a>`[Ext Root Scanning (ms)`</a>: Min: 0.1, Avg: 0.2, Max: 0.3, Diff: 0.2, Sum: 1.2]<br/>	    [Update RS (ms): Min: 0.0, Avg: 0.0, Max: 0.0, Diff: 0.0, Sum: 0.0] <br/>
+> 	    [Processed Buffers: Min: 0, Avg: 0.0, Max: 0, Diff: 0, Sum: 0] <br/>
+> 	    [Scan RS (ms): Min: 0.0, Avg: 0.0, Max: 0.0, Diff: 0.0, Sum: 0.0] <br/>
+>   <a>`[Code Root Scanning (ms)`</a>: Min: 0.0, Avg: 0.0, Max: 0.2, Diff: 0.2, Sum: 0.2] <br/>
+>  <a>`[Object Copy (ms)`</a>: Min: 10.8, Avg: 12.1, Max: 12.6, Diff: 1.9, Sum: 96.5]<br/>
+>  <a>`[Termination (ms)`</a>: Min: 0.8, Avg: 1.5, Max: 2.8, Diff: 1.9, Sum: 12.2] <br/>
+>  <a>`[Termination Attempts`</a>: Min: 173, Avg: 293.2, Max: 362, Diff: 189, Sum: 2346] <br/>
+>  <a>`[GC Worker Other (ms)`</a>: Min: 0.0, Avg: 0.0, Max: 0.0, Diff: 0.0, Sum: 0.1] <br/>
+>  <a>`GC Worker Total (ms)`</a>: Min: 13.7, Avg: 13.8, Max: 13.8, Diff: 0.1, Sum: 110.2] <br/>
+>  <a>`[GC Worker End (ms)`</a>: Min: 147.8, Avg: 147.8, Max: 147.8, Diff: 0.0] <br/>
 
->
-【并行时间:13.9毫秒,GC工人:8]1
-[GC工人开始(ms)2:分钟:134.0,平均值:134.1,马克斯:134.1,差异:0.1)
-(Ext根扫描(ms)3:分钟:0.1,平均值:0.2,马克斯:0.3,差异:0.2,金额:1.2)
-[更新RS(ms):最小值:0.0,平均值:0.0,马克斯:0.0,差异:0.0,金额:0.0)
-【处理缓冲区:分钟:0,Avg:0.0,马克斯:0,Diff:0,金额:0]
-(扫描RS(女士):分钟:0.0,平均值:0.0,马克斯:0.0,差异:0.0,金额:0.0)
-(代码根扫描(ms)4:分钟:0.0,平均值:0.0,马克斯:0.2,差异:0.2,金额:0.2)
-(对象复制(ms)5:分钟:10.8,平均值:12.1,马克斯:12.6,差异:1.9,金额:96.5)
-(终止(ms)6:分钟:0.8,平均值:1.5,马克斯:2.8,差异:1.9,金额:12.2)
-[终止Attempts7:分钟:173年,Avg:293.2,马克斯:362年,Diff:189,金额:2346]
-[GC工人其他(ms)8:分钟:0.0,平均值:0.0,马克斯:0.0,差异:0.0,金额:0.1)
-GC职工总数(ms)9:分钟:13.7,平均值:13.8,马克斯:13.8,差异:0.1,和110.2):
-[GC工作结束(ms)10:分钟:147.8,平均值:147.8,马克斯:147.8,差异:0.0)
-
+<br/>
 
 >
-> 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (clock time) the following activities were carried out by 8 threads in parallel
-> 1. <a>`[GC Worker Start (ms)`</a> – The moment in time at which the workers started their activity, matching the timestamp at the beginning of the pause. If Min and Max differ a lot, then it may be an indication that too many threads are used or other processes on the machine are stealing CPU time from the garbage collection process inside the JVM
-> 1. <a>`[Ext Root Scanning (ms)`</a> – How long it took to scan the external (non-heap) roots such as classloaders, JNI references, JVM system roots, etc. Shows elapsed time, “Sum” is CPU time
-> 1. <a>`[Code Root Scanning (ms)`</a> – How long it took to scan the roots that came from the actual code: local vars, etc.
-> 1. <a>`[Object Copy (ms)`</a> – How long it took to copy the live objects away from the collected regions.
-> 1. <a>`[Termination (ms)`</a> – How long it took for the worker threads to ensure that they can safely stop and that there’s no more work to be done, and then actually terminate
-> 1. <a>`[Termination Attempts`</a> – How many attempts worker threads took to try and terminate. An attempt is failed if the worker discovers that there’s in fact more work to be done, and it’s too early to terminate.
-> 1. <a>`[GC Worker Other (ms)`</a> – Other miscellaneous small activities that do not deserve a separate section in the logs.
-> 1. <a>`GC Worker Total (ms)`</a> – How long the worker threads have worked for in total
-> 1. <a>`[GC Worker End (ms)`</a> – The timestamp at which the workers have finished their jobs. Normally they should be roughly equal, otherwise it may be an indication of too many threads hanging around or a noisy neighbor
+> 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (clock time) the following activities were carried out by 8 threads in parallel。 表明下列活动由8线程并行执行，消耗时间为13.9毫秒(real time)
+> 1. <a>`[GC Worker Start (ms)`</a> – The moment in time at which the workers started their activity, matching the timestamp at the beginning of the pause. If Min and Max differ a lot, then it may be an indication that too many threads are used or other processes on the machine are stealing CPU time from the garbage collection process inside the JVM. workers 开始启动的的时间, 对应于pause开始的时间戳。如果 Min 和 Max 差别很大,则可能是线程数量过多的标识。 使用或窃取其他进程的机器上的CPU时间在JVM的垃圾收集过程
+> 1. <a>`[Ext Root Scanning (ms)`</a> – How long it took to scan the external (non-heap) roots such as classloaders, JNI references, JVM system roots, etc. Shows elapsed time, “Sum” is CPU time. 用了多长时间来扫描外部(non-heap) root, 例如 classloaders, JNI引用,JVM系统 troot等。显示了运行时间, “Sum” 是指CPU时间。
+> 1. <a>`[Code Root Scanning (ms)`</a> – How long it took to scan the roots that came from the actual code: local vars, etc.  用了多长时间来扫描的实际代码中的 root: 例如局部变量等等(local vars)。
+> 1. <a>`[Object Copy (ms)`</a> – How long it took to copy the live objects away from the collected regions. 花费了多少时间来拷贝收集区内的存活对象。
+> 1. <a>`[Termination (ms)`</a> – How long it took for the worker threads to ensure that they can safely stop and that there’s no more work to be done, and then actually terminate. worker 线程用了多长时间来确保可以安全地暂停其他线程, 没有更多的工作要做,然后就终止了。
+> 1. <a>`[Termination Attempts`</a> – How many attempts worker threads took to try and terminate. An attempt is failed if the worker discovers that there’s in fact more work to be done, and it’s too early to terminate. worker 线程尝试多少次try 和 teminate。如果worker 发现实际上有更多的工作要做,则这一次尝试就是失败的, 它还为时过早, 所以终止了。
+> 1. <a>`[GC Worker Other (ms)`</a> – Other miscellaneous small activities that do not deserve a separate section in the logs. 在日志中不配使用一个单独部分的小活动。
+> 1. <a>`GC Worker Total (ms)`</a> – How long the worker threads have worked for in total. worker 线程工作的时间总计
+> 1. <a>`[GC Worker End (ms)`</a> – The timestamp at which the workers have finished their jobs. Normally they should be roughly equal, otherwise it may be an indication of too many threads hanging around or a noisy neighbor. worker 线程完成作业的时间戳。通常来说应该大致相等, 否则可能是表明有太多的线程挂起和唤醒导致的。
 
->
-1。(并行时间:13.9毫秒,GC工人:8]——表明13.9毫秒(时钟时间)以下活动是由8线程并行
-1。[GC工人开始(女士)——的时候工人们开始活动,匹配时间戳开始暂停。如果最小和最大差别很大,它可能是一个迹象表明,太多的线程使用或窃取其他进程的机器上的CPU时间在JVM的垃圾收集过程
-1。(Ext根扫描(女士)——用了多长时间来扫描外部(短命)等根类加载器,JNI引用,JVM系统根,等。显示了运行时间,“和”是CPU时间
-1。(代码根扫描(女士)——用了多长时间扫描的根源来自于实际代码:当地的var,等等。
-1。(对象复制(ms)——用了多长时间复制活动对象从收集到的地区。
-1。(终止(女士)——用了多长时间的工作线程,以确保他们可以安全地停止,没有更多的工作要做,然后终止
-1。(终止尝试多少次工作线程试图终止。一次尝试是失败的,如果工人发现实际上有更多的工作要做,它还为时过早终止。
-1。[GC工人其他杂项(女士)——小活动日志中不配拥有一个单独的部分。
-1。GC职工总数(ms)——工作线程工作多长时间
-1。[gc worker end(ms)- the timestamp at which the workers have人生their jobs。normally they含有be roughly equal,否则它可能是一个迹象表明太多的线程闲逛或吵闹的邻居
 
 
 Additionally, there are some miscellaneous activities that are performed during the Evacuation pause. We will only cover a part of them in this section. The rest will be covered later.
@@ -1004,38 +955,21 @@ Additionally, there are some miscellaneous activities that are performed during 
 此外,有一些杂项疏散期间暂停执行的活动。我们只会讨论的一部分,他们在这一节中。剩下的稍后将覆盖。
 
 
->
-	[Other: 0.4 ms]1
-	    [Choose CSet: 0.0 ms]
-	    [Ref Proc: 0.2 ms]2
-	    [Ref Enq: 0.0 ms]3
-	    [Redirty Cards: 0.1 ms]
-	    [Humongous Register: 0.0 ms]
-	    [Humongous Reclaim: 0.0 ms]
-	    [Free CSet: 0.0 ms]4
-
->
-(其他:0.4毫秒)1
-(选择CSet:0.0毫秒)
-(Ref Proc:0.2毫秒)2
-(Ref询问:0.0毫秒)3
-(女士Redirty卡:0.1)
-(女士巨大无比的寄存器:0.0)
-(女士巨大无比的回收:0.0)
-[自由:0.0 ms他学校均应不加]4
+> <a>`[Other: 0.4 ms]`</a> <br/>
+>    [Choose CSet: 0.0 ms] <br/>
+>    <a>`[Ref Proc: 0.2 ms]`</a> <br/>
+>    <a>`[Ref Enq: 0.0 ms]`</a> <br/>
+>    [Redirty Cards: 0.1 ms] <br/>
+>    [Humongous Register: 0.0 ms] <br/>
+>    [Humongous Reclaim: 0.0 ms] <br/>
+>    <a>`[Free CSet: 0.0 ms]`</a> <br/>
 
 
 >
-> 1. <a>`[Other: 0.4 ms]`</a> – Miscellaneous other activities, many of which are also parallelized
-> 1. <a>`[Ref Proc: 0.2 ms]`</a> – The time it took to process non-strong references: clear them or determine that no clearing is needed.
-> 1. <a>`[Ref Enq: 0.0 ms]`</a> – The time it took to enqueue the remaining non-strong references to the appropriate ReferenceQueue
-> 1. <a>`[Free CSet: 0.0 ms]`</a> – The time it takes to return the freed regions in the collection set so that they are available for new allocations.
-
->
-1。(其他:0.4毫秒)——各种各样的其他活动,其中许多也并行
-1。(Ref Proc:0.2毫秒)——时间过程non-strong引用:明确或确定不需要清理。
-1。(Ref询问:0.0毫秒),剩下的时间来排队non-strong引用适当的ReferenceQueue
-1。(免费CSet:0.0毫秒),所花费的时间返回释放地区收集集,可用于新的分配。
+> 1. <a>`[Other: 0.4 ms]`</a> – Miscellaneous other activities, many of which are also parallelized. 其他活动消耗的时间, 其中也有很多是并行执行的。
+> 1. <a>`[Ref Proc: 0.2 ms]`</a> – The time it took to process non-strong references: clear them or determine that no clearing is needed. 处理非强引用(non-strong)的时间: 清理他们或者决定是否需要清理。
+> 1. <a>`[Ref Enq: 0.0 ms]`</a> – The time it took to enqueue the remaining non-strong references to the appropriate ReferenceQueue  用来排队剩下的 non-strong 引用到合适的 ReferenceQueue。
+> 1. <a>`[Free CSet: 0.0 ms]`</a> – The time it takes to return the freed regions in the collection set so that they are available for new allocations. 用来返回 CSet 中的释放区域, 以便用于新的分配。
 
 
 ### Concurrent Marking
