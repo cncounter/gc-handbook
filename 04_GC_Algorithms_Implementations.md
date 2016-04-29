@@ -912,10 +912,6 @@ The process of copying these is called Evacuation, and it works in pretty much t
 
 
 
-<br/><p style="height:400px;">ccc</p><br/><p style="height:900px;">ccc</p><br/><p style="height:800px;">ccc</p><br/><p style="height:900px;">ccc</p>
-
-
-
 Most of the heavy-lifting is done by multiple dedicated GC worker threads. Their activities are described in the following section of the log:
 
 最繁重的任务由多个专用的GC worker线程来执行。下面的日志描述了他们的活动:
@@ -938,7 +934,7 @@ Most of the heavy-lifting is done by multiple dedicated GC worker threads. Their
 
 >
 > 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (clock time) the following activities were carried out by 8 threads in parallel。 表明下列活动由8线程并行执行，消耗时间为13.9毫秒(real time)
-> 1. <a>`[GC Worker Start (ms)`</a> – The moment in time at which the workers started their activity, matching the timestamp at the beginning of the pause. If Min and Max differ a lot, then it may be an indication that too many threads are used or other processes on the machine are stealing CPU time from the garbage collection process inside the JVM. workers 开始启动的的时间, 对应于pause开始的时间戳。如果 Min 和 Max 差别很大,则可能是线程数量过多的标识。 使用或窃取其他进程的机器上的CPU时间在JVM的垃圾收集过程
+> 1. <a>`[GC Worker Start (ms)`</a> – The moment in time at which the workers started their activity, matching the timestamp at the beginning of the pause. If Min and Max differ a lot, then it may be an indication that too many threads are used or other processes on the machine are stealing CPU time from the garbage collection process inside the JVM. workers 开始启动的的时间, 对应于pause开始的时间戳。如果 Min 和 Max 差别很大,则可能是机器上的其他进程占用线程数量过多的标识。 使用或窃取其他进程的机器上的CPU时间在JVM的垃圾收集过程
 > 1. <a>`[Ext Root Scanning (ms)`</a> – How long it took to scan the external (non-heap) roots such as classloaders, JNI references, JVM system roots, etc. Shows elapsed time, “Sum” is CPU time. 用了多长时间来扫描外部(non-heap) root, 例如 classloaders, JNI引用,JVM系统 troot等。显示了运行时间, “Sum” 是指CPU时间。
 > 1. <a>`[Code Root Scanning (ms)`</a> – How long it took to scan the roots that came from the actual code: local vars, etc.  用了多长时间来扫描的实际代码中的 root: 例如局部变量等等(local vars)。
 > 1. <a>`[Object Copy (ms)`</a> – How long it took to copy the live objects away from the collected regions. 花费了多少时间来拷贝收集区内的存活对象。
@@ -970,6 +966,12 @@ Additionally, there are some miscellaneous activities that are performed during 
 > 1. <a>`[Ref Proc: 0.2 ms]`</a> – The time it took to process non-strong references: clear them or determine that no clearing is needed. 处理非强引用(non-strong)的时间: 清理他们或者决定是否需要清理。
 > 1. <a>`[Ref Enq: 0.0 ms]`</a> – The time it took to enqueue the remaining non-strong references to the appropriate ReferenceQueue  用来排队剩下的 non-strong 引用到合适的 ReferenceQueue。
 > 1. <a>`[Free CSet: 0.0 ms]`</a> – The time it takes to return the freed regions in the collection set so that they are available for new allocations. 用来返回 CSet 中的释放区域, 以便用于新的分配。
+
+
+
+
+<br/><p style="height:400px;">ccc</p><br/><p style="height:900px;">ccc</p><br/><p style="height:800px;">ccc</p><br/><p style="height:900px;">ccc</p>
+
 
 
 ### Concurrent Marking
