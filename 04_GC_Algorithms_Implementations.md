@@ -981,17 +981,19 @@ Additionally, there are some miscellaneous activities that are performed during 
 
 The G1 collector builds up on many concepts of CMS from the previous section, so it is a good idea to make sure that you have a sufficient understanding of it before proceeding. Even though it differs in a number of ways, the goals of the Concurrent Marking are very similar.  G1 Concurrent Marking uses the Snapshot-At-The-Beginning approach that marks all the objects that were live at the beginning of the marking cycle, even if they have turned into garbage meanwhile. The information on which objects are live allows to build up the liveness stats for each region so that the collection set could be efficiently chosen afterwards.
 
-G1收集器建立在许多CMS的前一节的概念,所以它是一个好主意,以确保你有一个充分的理解它之前.虽然它在很多方面不同,并发标记非常相似的目标.G1并发标记使用Snapshot-At-The-Beginning方法标志着所有的对象都是生活在标记的开始循环,即使他们已经变成了垃圾同时.对象是生活的信息允许建立活性统计每个区域,以便收集设置可以有效地选择。
+G1收集器的很多概念建立在CMS的基础上,所以在开始之前请确保你对CMS有了充分的理解.虽然在很多方面有所不同,但并发标记的目标是非常相似的. G1的并发标记使用 **Snapshot-At-The-Beginning** 的方法在标记开始的时候标记所有的存活对象。即使在标记的同时又有一些变成了垃圾.关于哪些对象是存活的,这种信息允许建立每个区域的存活统计, 以便有效地选择回收集合。
 
 
 This information is then used to perform garbage collection in the Old regions. It can happen fully concurrently, if the marking determines that a region contains only garbage, or during a stop-the-world evacuation pause for Old regions that contain both garbage and live objects.
 
-,或停止一切疏散期间暂停旧地区包含垃圾和活动对象。
+
+然后这些信息会被用来执行老年代区域的垃圾收集。这时候就可以完全并发地执行： 如果标记确定了某个区域只包含垃圾,或者在STW转移暂停期间, 同时包含垃圾和存活对象的老年代区域。
+
 
 
 Concurrent Marking starts when the overall occupancy of the heap is large enough. By default, it is 45%, but this can be changed by the InitiatingHeapOccupancyPercent JVM option. Like in CMS, Concurrent Marking in G1 consists of a number of phases, some of them fully concurrent, and some of them requiring the application threads to be stopped.
 
-并发标记开始时的总体占用堆足够大。默认情况下,它是45%,但这可以改变通过InitiatingHeapOccupancyPercent JVM选项。在CMS,并发标记在G1由一系列的阶段,他们中的一些人完全并发,其中的一些要求应用程序线程被阻止。
+在整个堆内存的总体占用空间达到一定比例时就会触发并发标记开始。默认值是45%,但可以通过JVM选项 **InitiatingHeapOccupancyPercent** 来调整。和CMS一样,G1中的并发标记由多个阶段组成, 其中一部分是完全并发的, 而有一部分要求暂停应用程序线程。
 
 
 **Phase 1: Initial Mark.** This phase marks all the objects directly reachable from the GC roots. In CMS, it required a separate stop-the world pause, but in G1 it is typically piggy-backed on an Evacuation Pause, so its overhead is minimal. You can notice this pause in GC logs by the “(initial-mark)” addition in the first line of an Evacuation Pause:
