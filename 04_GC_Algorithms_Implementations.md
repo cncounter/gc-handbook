@@ -998,7 +998,7 @@ Concurrent Marking starts when the overall occupancy of the heap is large enough
 
 **Phase 1: Initial Mark.** This phase marks all the objects directly reachable from the GC roots. In CMS, it required a separate stop-the world pause, but in G1 it is typically piggy-backed on an Evacuation Pause, so its overhead is minimal. You can notice this pause in GC logs by the “(initial-mark)” addition in the first line of an Evacuation Pause:
 
-* *阶段1:最初的标志。* *这个阶段是所有对象直接从GC根可及。在CMS,它需要一个独立的阻止世界暂停,但在G1,它通常是据此设计疏散暂停,所以它的开销是最小的.你可以注意到这个暂停GC日志”(初始标记)除了在第一行的疏散暂停:
+**阶段1: 初始标记(Initial Mark)。** 此阶段标记所有从GC root 直接可及的存活对象。在CMS中, 这个阶段需要一次单独的STW暂停,但在G1中通常是疏散暂停, 所以它的开销是最小的.你可以在 Evacuation Pause 日志的第一行中看到(initial-mark)暂停:
 
 
 	1.631: [GC pause (G1 Evacuation Pause) (young) (initial-mark), 0.0062656 secs]
@@ -1008,7 +1008,7 @@ Concurrent Marking starts when the overall occupancy of the heap is large enough
 
 **Phase 2: Root Region Scan.** This phase marks all the live objects reachable from the so-called root regions, i.e. the ones that are not empty and that we might end up having to collect in the middle of the marking cycle. Since moving stuff around in the middle of concurrent marking will cause trouble, this phase has to complete before the next evacuation pause starts. If it has to start earlier, it will request an early abort of root region scan, and then wait for it to finish. In the current implementation, the root regions are the survivor regions: they are the bits of Young Generation that will definitely be collected in the next Evacuation Pause.
 
-* *第二阶段:根区域扫描。* *此阶段标志着所谓的根可接触的所有活动对象区域,即.那些非空,我们可能最终不得不收集中间的周期。因为搬东西在中间的并发标记会导致麻烦,这一阶段下疏散暂停开始之前完成。如果早些时候开始,它将请求根地区的早期中止扫描,然后等待它完成.在当前实现中,根地区的幸存者区域:他们是年轻代的位,肯定会被收集在未来疏散暂停。
+**第二阶段:根区域扫描。**此阶段标志着所谓的根可接触的所有活动对象区域,即.那些非空,我们可能最终不得不收集中间的周期。因为搬东西在中间的并发标记会导致麻烦,这一阶段下疏散暂停开始之前完成。如果早些时候开始,它将请求根地区的早期中止扫描,然后等待它完成.在当前实现中,根地区的幸存者区域:他们是年轻代的位,肯定会被收集在未来疏散暂停。
 
 
 	1.362: [GC concurrent-root-region-scan-start]
