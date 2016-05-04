@@ -1082,32 +1082,32 @@ In case when some heap regions that only contain garbage were discovered, the pa
 
 It’s a pleasant case when concurrent cleanup can free up entire regions in Old Generation, but it may not always be the case. After Concurrent Marking has successfully completed, G1 will schedule a mixed collection that will not only get the garbage away from the young regions, but also throw in a bunch of Old regions to the collection set.
 
-时这是一个愉快的情况并发清理可以释放整个地区在老年代,但它可能并不总是如此。后并发标记已成功完成,G1将安排一个混合收集,不仅会让垃圾远离年轻的地区,但也扔在一堆旧地区收集集。
+能并发清理老年代中整个整个的区域是一种极好的情况, 但现实可能并不总是如此。在并发标记成功完成之后, G1将安排一次混合收集(mixed collection), 不仅清理年轻代区域的垃圾,也将一部分老年代区域放到collection set中。
 
 
 A mixed Evacuation pause does not always immediately follow the end of the concurrent marking phase. There is a number of rules and heuristics that affect this. For instance, if it was possible to free up a large portion of the Old regions concurrently, then there is no need to do it.
 
-混合疏散立即暂停并不总是遵循并发标记的最后阶段。有许多规则和启发式影响。例如,如果可以腾出很大一部分旧区域的同时,就没有必要去做。
+混合模式的转移暂停(Evacuation pause)不一定紧挨着并发标记阶段。有许多规则和数据支撑影响他的启动时机。例如,如果可以在老年代中并发地腾出很大一部分区域,就没有必要启动。
 
 
 There may, therefore, easily be a number of fully-young evacuation pauses between the end of concurrent marking and a mixed evacuation pause.
 
-因此,有可能容易一些fully-young疏散之间的停顿并发标记和混合疏散暂停。
+因此, 在并发标记,与混合转移暂停之间,很可能有多次的fully-young转移暂停。
 
 
 The exact number of Old regions to be added to the collection set, and the order in which they are added, is also selected based on a number of rules. These include the soft real-time performance goals specified for the application, the liveness and gc efficiency data collected during concurrent marking, and a number of configurable JVM options. The process of a mixed collection is largely the same as we have already reviewed earlier for fully-young gc, but this time we will also cover the subject of remembered sets.
 
-旧区域的确切数字添加到收集集,和他们的顺序,也选择基于规则的数量.其中包括软实时性能目标指定的应用程序中,活性和gc期间收集的数据并发标记效率,和一些可配置JVM选项.混合收集的过程在很大程度上是一样的我们已经回顾了早些时候fully-young gc,但这一次我们还将覆盖记得集的主题。
+添加到回收集合的老年代区域的确切数字,以及他们的顺序,也是基于许多规则来处理的. 其中包括程序指定的软实时性能目标, 存活性和在并发标记期间收集的GC效率的数据, 外加一些可配置的JVM选项. 混合收集的过程在很大程度上和前面的 fully-young gc 是一样的,但这一次我们还将介绍 remembered sets 这个主题。
 
 
 Remembered sets are what allows the independent collection of different heap regions. For instance, when collecting region A,B and C, we have to know whether or not there are references to them from regions D and E to determine their liveness. But traversing the whole heap graph would take quite a while and ruin the whole point of incremental collection, therefore an optimization is employed. Much like we have the Card Table for independently collecting Young regions in other GC algorithms, we have Remembered Sets in G1.
 
-记得设置是允许独立不同的堆区域的集合。例如,当收集区域A、B和C,我们需要知道是否有提到他们从区域D和E来确定他们的活性.但是遍历整个堆图需要相当长一段时间,毁了整个增量收集,因此采用一种优化.就像我们有独立的牌桌收集年轻地区其他GC算法,我们记得在G1组。
+Remembered sets (历史记忆集)是用来支持不同的堆区域独立回收的集合。例如,在收集A、B、C区域时,我们需要知道是否有从区域D和E指向其中的引用, 来确定他们的存活性.但是遍历整个堆需要相当长的一段时间, 这就失去了增量收集的意义, 因此采用一种优化方法. 就像其他GC算法有独立的Card Table 来支持年轻代区域的垃圾收集一样, 在G1中使用的是Remembered Sets。
 
 
 As shown in the illustration below, each region has a remembered set that lists the references pointing to this region from the outside. These references will then be regarded as additional GC roots. Note that objects in Old regions that were determined to be garbage during concurrent marking will be ignored even if there are outside references to them: the referents are also garbage in that case.
 
-下面的插图所示,每个地区都有一组记得列出从外部的引用指向这个地区。这些引用将被视为额外的GC根.注意对象在旧地区被确定为垃圾在并发标记将被忽略,即使有外部引用:在这种情况下参照物也垃圾。
+如下面的插图所示,每个区域都有一个**remembered set**, 列出了从外部的指向本区域的引用。这些引用将被视为额外的GC root. 注意,在并发标记过程中,被确定为垃圾的在老年代对象将被忽略, 即使有外部引用指向他们: 因为在这种情况下引用者也是垃圾。
 
 
 ![](04_13_g1-03.png)
@@ -1117,7 +1117,7 @@ As shown in the illustration below, each region has a remembered set that lists 
 
 What happens next is the same as what other collectors do: multiple parallel GC threads figure out what objects are live and which ones are garbage:
 
-接下来会发生什么其他藏家所做的一样:多个并行的GC线程找出对象是生活和哪些是垃圾:
+接下来和其他垃圾收集器的行为一模一样: 多个并行的GC线程找出哪些是存活的对象,哪些是垃圾:
 
 
 ![](04_14_g1-04.png)
@@ -1127,7 +1127,7 @@ What happens next is the same as what other collectors do: multiple parallel GC 
 
 And, finally, the live objects are moved to survivor regions, creating new if necessary. The now empty regions are freed and can be used for storing objects in again.
 
-最后,活动对象是搬到幸存者”地区,在必要时创建新的。现在空的区域释放,又可以用于存储对象。
+最后, 存活对象被移到存活区, 在必要时会创建新的存活区。现在空的区域被释放, 又可用于存放新的对象。
 
 
 ![](04_15_g1-05-v2.png)
@@ -1137,42 +1137,30 @@ And, finally, the live objects are moved to survivor regions, creating new if ne
 
 To maintain the remembered sets, during the runtime of the application, a Post-Write Barrier is issued whenever a write to a field is performed. If the resulting reference is cross-region, i.e. pointing from one region to another, a corresponding entry will appear in the Remembered Set of the target region. To reduce the overhead that the Write Barrier introduces, the process of putting the cards into the Remembered Set is asynchronous and features quite a number of optimizations. But basically it boils down to the Write Barrier putting the dirty card information into a local buffer, and a specialized GC thread picking it up and propagating the information to the remembered set of the referred region.
 
-保持记忆集,在应用程序的运行时,发出Post-Write障碍只要执行写入一个字段。如果生成的参考区域,即.指从一个地区到另一个地方,会出现一个对应的条目在记得设定的目标地区。写障碍介绍减少开销,将卡片放入记得设置的过程是异步和特性相当多的优化.但基本上它归结为写障碍把脏卡信息到一个本地缓冲区,和一个专门的GC线程,并传播的信息记得集称为区域。
+为了维护 remembered set, 在应用程序运行的过程中, 只要执行写入一个字段,就会发出一次 Post-Write 屏障。如果生成的引用是跨区域的(cross-region),即从一个区指向另一个区, 就会在目标区域的Remembered Set中,出现一个对应的条目。为了减少Write Barrier造成的开销, 将卡片放入Remembered Set 的过程是异步的, 而且经过相当多的优化.但基本上归结为: Write Barrier 把脏卡信息存放到一个本地缓冲区, 有专门的GC线程来收集处理,并传给被引用的区域。
 
 
 In the mixed mode, the logs publish certain new interesting aspects when compared to the fully young mode:
 
-在混合模式下,日志发布某些新的有趣的方面相比完全年轻模式:
+在混合模式下的日志, 和完全年轻代模式相比, 可以发现一些新的有趣的地方:
 
 
->
-	[Update RS (ms)1: Min: 0.7, Avg: 0.8, Max: 0.9, Diff: 0.2, Sum: 6.1]
-	[Processed Buffers2: Min: 0, Avg: 2.2, Max: 5, Diff: 5, Sum: 18]
-	[Scan RS (ms)3: Min: 0.0, Avg: 0.1, Max: 0.2, Diff: 0.2, Sum: 0.8]
-	[Clear CT: 0.2 ms]4
-	[Redirty Cards: 0.1 ms]5
-
->
-[更新RS(ms)1:最小值:0.7,平均值:0.8,马克斯:0.9,差异:0.2,金额:6.1)
-[加工Buffers2:分钟:0,Avg:2.2,马克斯:5,Diff:5,总和:18)
-(扫描RS(ms)3:分钟:0.0,平均值:0.1,马克斯:0.2,差异:0.2,金额:0.8)
-(明确的CT:0.2毫秒)4
-(Redirty卡:0.1毫秒)5
+> [<a>`[Update RS (ms)`</a>: Min: 0.7, Avg: 0.8, Max: 0.9, Diff: 0.2, Sum: 6.1] <br/>
+> <a>`[Processed Buffers`</a>: Min: 0, Avg: 2.2, Max: 5, Diff: 5, Sum: 18]<br/>
+> <a>`[Scan RS (ms)`</a>: Min: 0.0, Avg: 0.1, Max: 0.2, Diff: 0.2, Sum: 0.8]<br/>
+> <a>`[Clear CT: 0.2 ms]`</a> <br/>
+> <a>`[Redirty Cards: 0.1 ms]`</a>
 
 
->
-> 1. <a>`[Update RS (ms)`</a> – Since the Remembered Sets are processed concurrently, we have to make sure that the still-buffered cards are processed before the actual collection begins. If this number is high, then the concurrent GC threads are unable to handle the load. It may be, e.g., because of an overwhelming number of incoming field modifications, or insufficient CPU resources.
-> 1. <a>`[Processed Buffers`</a> – How many local buffers each worker thread has processed.
-> 1. <a>`[Scan RS (ms)`</a> – How long it took to scan the references coming in from remembered sets.
-> 1. <a>`[Clear CT: 0.2 ms]`</a> – Time to clean the cards in the card table. Cleaning simply removes the “dirty” status that was put there to signify that a field was updated, to be used for Remembered Sets.
-> 1. <a>`[Redirty Cards: 0.1 ms]`</a> – The time it takes to mark the appropriate locations in the card table as dirty. Appropriate locations are defined by the mutations to the heap that GC does itself, e.g. while enqueuing references.
 
->
-1。(更新RS(女士)——自记得设置并发处理,我们必须确保still-buffered卡片收集实际开始前处理.如果这个数字很高,并发GC线程无法处理负载。它可能是。的,因为绝大多数的字段的修改,或CPU资源不足。
-1。(处理缓冲区——有多少本地缓冲区每个工作线程处理。
-1。(扫描RS(女士)——用了多长时间扫描的引用来自记忆集。
-1。(明确CT:0.2毫秒)——时间清洁卡在卡表。清洗简单地删除“脏”状态,是表示一个字段更新,用于记忆集。
-1。(女士Redirty卡:0.1),所花费的时间卡表中适当的位置标记为脏。适当的位置是由突变的堆GC本身,如.排队时引用。
+> <hr/>
+> 1. <a>`[Update RS (ms)`</a> – Since the Remembered Sets are processed concurrently, we have to make sure that the still-buffered cards are processed before the actual collection begins. If this number is high, then the concurrent GC threads are unable to handle the load. It may be, e.g., because of an overwhelming number of incoming field modifications, or insufficient CPU resources. 因为 Remembered Sets 是并发处理的,我们必须确保在实际的垃圾收集之前, 处理缓冲区中的 cards 。如果这个时间很长, 并发GC线程可能无法处理负载。造成的原因可能是。有太多的字段被修改, 或者CPU资源不足。
+
+> 1. <a>`[Processed Buffers`</a> – How many local buffers each worker thread has processed. 缓冲区处理,每个 worker 线程处理了多少个本地缓冲区。
+> 1. <a>`[Scan RS (ms)`</a> – How long it took to scan the references coming in from remembered sets. 扫描 RSet, 用了多长时间扫描来自RSet的引用。
+> 1. <a>`[Clear CT: 0.2 ms]`</a> – Time to clean the cards in the card table. Cleaning simply removes the “dirty” status that was put there to signify that a field was updated, to be used for Remembered Sets. 清理 card table 中 cards 的时间。清理工作只是简单地删除“脏”状态, 是用来标识一个字段被更新的, 由Remembered Sets使用。
+> 1. <a>`[Redirty Cards: 0.1 ms]`</a> – The time it takes to mark the appropriate locations in the card table as dirty. Appropriate locations are defined by the mutations to the heap that GC does itself, e.g. while enqueuing references. 将 card table 中适当的位置标记为 dirty 所花费的时间。适当的位置是由GC本身导致的堆内存改变决定的, 例如引用排队等。
+
 
 
 ### 总结
@@ -1193,12 +1181,12 @@ As we have seen, G1 addressed a wide range of problems that CMS has, starting fr
 
 The only viable way to select the right GC algorithm and settings is through trial and errors, but we do give the general guidelines in the next chapter.
 
-唯一可行的方式来选择正确的GC算法和设置是通过尝试和错误,但是我们在下一章给通用的指导原则。
+选择正确的GC算法唯一可行的方式就是通过尝试和错误, 但在下一章我们将给出通用的指导原则。
 
 
 Note that G1 will probably be the default GC for Java 9: http://openjdk.java.net/jeps/248
 
-注意,G1可能会默认GC对于Java 9:http://openjdk.java.net/jeps/248
+注意,G1可能会称为Java 9的默认GC: [http://openjdk.java.net/jeps/248](http://openjdk.java.net/jeps/248)
 
 
 ## Shenandoah 的性能
@@ -1211,7 +1199,7 @@ We have outlined all of the production-ready algorithms in HotSpot that you can 
 
 We are not going to go into the implementation details before the new algorithm is released as production-ready, but it also builds upon many of the ideas already covered in earlier chapters, such as concurrent marking and incremental collecting. It does a lot of things differently, however. It does not split the heap into multiple generations, instead having a single space only. That’s right, Shenandoah is not a generational garbage collector. This allows it to get rid of card tables and remembered sets. It also uses forwarding pointers and a Brooks style read barrier to allow for concurrent copying of live objects, thus reducing the number and duration of pauses.
 
-我们不会去实现细节之前发布的新算法作为生产就绪,但它也构建在许多的想法已经在早些章节覆盖,如并发标记和增量收集。然而,它确实很多事情是不同的。它不将堆分为多个后代,而不是只拥有一个空格.没错,谢南多厄河并不是一个新一代的垃圾收集器。这允许它摆脱卡套表和记忆.它还使用转发指针和布鲁克斯风格阅读障碍允许并发活动对象的复制,从而减少的数量和持续时间停顿。
+在新算法作为 production-ready 发布之前, 我们不去讨论具体的实现细节, 但它也构建在前面章节中提到的很多想法的基础上,例如并发标记和增量收集。然而,其中有很多东西是不同的。它不将堆分为多个代, 而是只有一个空间. 没错,Shenandoah 并不是一个分代垃圾收集器。这允许它摆脱card tables 和 remembered sets. 它还使用转发指针(forwarding pointers)和布鲁克斯风格的读取屏障(Brooks style read barrier)来允许存活对象的并发复制, 从而减少的停顿的次数和持续时间。
 
 
 A lot of more detailed and up-to-date information about Shenandoah is available on the Internet, for instance in this blog: https://rkennke.wordpress.com/
