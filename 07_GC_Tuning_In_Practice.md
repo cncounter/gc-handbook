@@ -3,7 +3,7 @@
 
 This chapter covers several typical performance problems that one may encounter with garbage collection. The examples given here are derived from real applications, but are simplified for the sake of clarity.
 
-本章介绍几种垃圾收集可能导致的典型的性能问题。其中的示例都来自于真实的应用,但做了一定的简化处理。
+本章介绍几种垃圾收集可能导致的典型的性能问题。其中的示例都来自于真实的应用,但为了演示方便,做了一些简化处理。
 
 
 ## 高分配率(High Allocation Rate)
@@ -12,14 +12,14 @@ This chapter covers several typical performance problems that one may encounter 
 Allocation rate is a term used when communicating the amount of memory allocated per time unit. Often it is expressed in MB/sec, but you can use PB/year if you feel like it. So that is all there is – no magic, just the amount of memory you allocate in your Java code measured over a period of time.
 
 
-分配率(Allocation rate)是用来表示每时间单位内,内存分配数量的术语。通常表示为 MB/sec, 但也可以使用 PB/year。就是这么简单, 没有什么奇怪的, 只是在Java代码中通过一段时间来衡量内存分配的数量。
+分配率(Allocation rate)是用来表示每时间单位内,内存分配数量的术语。通常表示为 MB/sec, 但也可以使用 PB/year。很简单, 没什么复杂的, 在Java代码中通过一段时间周期来衡量内存分配的数量。
 
 
 
 
 An excessively high allocation rate can mean trouble for your application’s performance. When running on a JVM, the problem will be revealed by garbage collection posing a large overhead.
 
-过高的分配率可能会严重影响程序的性能。当JVM上运行时, 这个问题表现为带来很大的GC开销。
+过高的分配率可能会严重影响程序的性能。在JVM中, 这个问题的影响是带来大量的GC开销。
 
 
 ### 如何衡量分配率?
@@ -27,7 +27,7 @@ An excessively high allocation rate can mean trouble for your application’s pe
 
 One way to measure the allocation rate is to turn on GC logging by specifying -XX:+PrintGCDetails -XX:+PrintGCTimeStamps flags for the JVM. The JVM now starts logging the GC pauses similar to the following:
 
-测量分配率的一种方法是,通过指定 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` 标志开启JVM的GC日志记录. 则JVM开始记录类似下面这样的GC停顿:
+测量分配率的一种方法是,通过指定 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` 标志开启JVM的GC日志. 则JVM开始记录类似下面这样的GC停顿日志:
 
 
 	0.291: [GC (Allocation Failure) 
@@ -149,7 +149,7 @@ And indeed, when running the same application with different Eden sizes using -X
 <br/>
 
 - 用 100 MB的 Eden 空间来运行, 分配率会低于 **100 MB/秒**。
-- 增加Eden区的大小为 **1 GB**, 分配率也跟着增长,大约是略低于 **200 MB/秒** 的样子。
+- 增加Eden区的大小为 **1 GB**, 分配率也跟着增长,大约是 **200 MB/秒** 的样子。
 
 
 If you are still wondering how this can be true – if you stop your application threads for GC less frequently you can do more useful work. More useful work also happens to create more objects, thus supporting the increased allocation rate.
@@ -166,22 +166,9 @@ Now, before you jump to the conclusion that “bigger Eden is better”, you sho
 ### 示例
 
 
-##
-##
-##
-##
-##
-##
-
-
-
-
-
-
-
 Meet the demo application. Suppose that it works with an external sensor that provides a number. The application continuously updates the value of the sensor in a dedicated thread (to a random value, in this example), and from other threads sometimes uses the most recent value to do something meaningful with it in the processSensorValue() method:
 
-满足演示应用程序。假设它与外部传感器提供一个数字。应用程序不断更新的值传感器在一个专用线程(随机值,在本例中),有时从其他线程使用最近的值用它做一些有意义的processSensorValue()方法:
+为了满足演示的需要。假设应用与提供一个数字的外部传感器协同工作。应用程序通过一个专用线程,不断更新传感器的值,(在本例中使用的是随机值), 有时从其他线程用最新的值来做一些有意义的事情, 调用 `processSensorValue()` 方法:
 
 
 	public class BoxingFailure {
@@ -203,17 +190,25 @@ Meet the demo application. Suppose that it works with an external sensor that pr
 
 As the name of the class suggests, the problem here is boxing. Possibly to accommodate the null check, the author made the sensorValue field a capital-D Double. This example is quite a common pattern of dealing with calculations based on the most recent value, when obtaining this value is an expensive operation. And in the real world, it is usually much more expensive than just getting a random value. Thus, one thread continuously generates new values, and the calculating thread uses them, avoiding the expensive retrieval.
 
-类的名称表明,这里的问题是拳击。可能适应null检查,作者使sensorValue大写d双.这个例子是相当普遍的模式处理的计算基于最近的值,当获取这个值是一项昂贵的操作。和在现实世界中,它通常是昂贵得多比随机值。因此,一个线程不断生成新的值,计算线程使用它们,避免昂贵的检索。
+如同类名所示, 这个示例问题是拳击(boxing)。为了适应 null 检查, 作者将 `sensorValue` 属性设置为包装类型 `Double`. 这个例子是基于最新数值进行计算的普遍模式, 如果获取这个值是一个笨重的操作时。在实际情况下, 通常比获取随机值的代价要高很多。因此,一个线程不断生成新值, 而计算线程使用它们,避免昂贵的检索。
 
 
 The demo application is impacted by the GC not keeping up with the allocation rate. The ways to verify and solve the issue are given in the next sections.
 
-演示应用程序由GC跟不上影响分配率。验证并给出解决问题的方法在接下来的部分。
+演示程序中由于GC跟不上分配率而受到影响。在接下来的部分将验证并给出解决问题的方法。
 
 
 ### Could my JVMs be Affected?
 
-### 我的jvm会受影响吗?
+### 我的 JVM 会受影响吗?
+
+
+##
+##
+##
+##
+##
+##
 
 
 First and foremost, you should only be worried if the throughput of your application starts to decrease. As the application is creating too much objects that are almost immediately discarded, the frequency of minor GC pauses surges. Under enough of a load this can result in GC having a significant impact on throughput.
