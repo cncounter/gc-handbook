@@ -241,25 +241,18 @@ What should immediately grab your attention is the frequency of minor GC events.
 吸引你眼光的应该是小型GC的频率。这表明有很多很多的对象被分配。另外,年轻代的 post-GC 入住率仍然很低,也没有 full GC 发生.这些症状表明, GC对应用程序的吞吐量有重大影响。
 
 
-##
-##
-##
-##
-##
-##
-
 
 ### 解决方案
 
 
 In some cases, reducing the impact of high allocation rates can be as easy as increasing the size of the young generation. Doing so will not reduce the allocation rate itself, but will result in less frequent collections. The benefit of the approach kicks in when there will be only a few survivors every time. As the duration of a minor GC pause is impacted by the number of surviving objects, they will not noticeably increase here.
 
-在某些情况下,减少高分配率的影响也很容易,可以增加年轻一代的大小。这样做不会减少分配率本身,但是会导致少了集合。的好处的方法开始时每次都将只有少数幸存者.轻微的GC暂停时间是影响存活的对象的数量,他们不会明显增加。
+在某些情况下,减少高分配率的影响也很容易,只要增加年轻代的大小即可。这样做不会减少分配率本身,但是会减少垃圾收集的频率。这样的好处是每次都只有少数的存活对象.小型GC的暂停时间受存活对象数量的影响,但这个数量并不会明显增加。
 
 
 The result is visible when we run the very same demo application with increased heap size and, with it, the young generation size, by using the -Xmx64m parameter:
 
-结果是可见的,当我们运行同一与增加堆大小和演示应用程序,,年轻一代的大小,通过使用-Xmx64m参数:
+结果是可见的,当我们增加堆内存的大小来运行 [示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) 时,同时也增大了年轻代的大小,通过使用参数 `-Xmx64m`:
 
 
 	2.808: [GC (Allocation Failure) 
@@ -276,16 +269,25 @@ The result is visible when we run the very same demo application with increased 
 
 However, just throwing more memory at it is not always a viable solution. Equipped with the knowledge on allocation profilers from the previous chapter, we may find out where most of the garbage is produced. Specifically, in this case, 99% are Doubles that are created with the readSensor method. As a simple optimization, the object can be replaced with a primitive double, and the null can be replaced with Double.NaN. Since primitive values are not actually objects, no garbage is produced, and there is nothing to collect. Instead of allocating a new object on the heap, a field in an existing object is directly overwritten.
 
-然而,就向它扔更多的内存并不总是一个可行的解决方案。配备了前一章知识分配分析器,我们可以发现,大部分的垃圾产生。具体地说,在这种情况下,99%是双打与readSensor创建的方法。作为一个简单的优化,对象可以被替换原始的两倍,并与Double.NaN零可以更换。由于原始值是没有对象,不产生垃圾,并没有收集。而不是在堆上分配一个新对象,在现有对象直接覆盖。
+然而,仅仅增加内存的大小,并不总是一个可行的方案。通过前面章节了解到的分配分析器知识,我们可以找到大部分垃圾产生的地方。具体地说,在这种情况下,99%的是 **readSensor** 方法中创建的 **Double** 对象。作为一个简单的优化,对象可以被替换为原生类型 `double` , 而 null 值可以用  [Double.NaN](https://docs.oracle.com/javase/7/docs/api/java/lang/Double.html#NaN) 来替换。由于原始值不是实际的对象,所以不产生垃圾,也就没有垃圾收集。不在堆上分配一个新对象,而是直接覆盖对象的属性域。
 
 
 The simple change (diff) will, in the demo application, almost completely remove GC pauses. In some cases, the JVM may be clever enough to remove excessive allocations itself by using the escape analysis technique. To cut a long story short, the JIT compiler may in some cases prove that a created object never “escapes” the scope it is created in. In such cases, there is no actual need to allocate it on the heap and produce garbage this way, so the JIT compiler does just that: it eliminates the allocation. See this benchmark for an example.
 
-简单的改变(diff),在演示应用程序中,几乎完全去除GC暂停。在某些情况下,JVM可能是够聪明,去除过度分配本身使用escape分析技术。长话短说,JIT编译器可能在某些情况下,创建的对象永远不会“逃”的范围中创建。在这种情况下,没有实际需要分配在堆上和生产垃圾,所以JIT编译器:它消除了分配。看到这个基准测试的一个例子。
+对示例程序进行 [简单的改变](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/FixedBoxing.java)( [diff](https://gist.github.com/gvsmirnov/0270f0f15f9498e3b655) ),几乎完全消除了GC暂停。在某些情况下,JVM可能会足够聪明,通过使用逃离分析技术来避免过度分配。长话短说,JIT编译器在某些情况下,创建的对象可能永远不会“逃出”创建它的作用域。在这种情况下,不需要在堆上进行实际的分配并产生垃圾,所以JIT编译器做的就是: 消除了分配。请参考 这个[基准测试的例子](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/jit/EscapeAnalysis.java)。
 
 
 
 ## 过早的晋升(Premature Promotion)
+
+
+
+##
+##
+##
+##
+##
+##
 
 
 Before explaining the concept of premature promotion, we should familiarize ourselves with the concept it builds upon – the promotion rate. The promotion rate is measured in the amount of data propagated from the young generation to the old generation per time unit. It is often measured in MB/sec, similarly to the allocation rate.
