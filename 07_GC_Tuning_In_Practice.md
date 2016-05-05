@@ -203,22 +203,15 @@ The demo application is impacted by the GC not keeping up with the allocation ra
 ### 我的 JVM 会受影响吗?
 
 
-##
-##
-##
-##
-##
-##
-
 
 First and foremost, you should only be worried if the throughput of your application starts to decrease. As the application is creating too much objects that are almost immediately discarded, the frequency of minor GC pauses surges. Under enough of a load this can result in GC having a significant impact on throughput.
 
-首先,你应该只是担心如果您的应用程序的吞吐量开始减少。为应用程序创建太多的对象几乎立即丢弃,轻微的GC暂停激增的频率。足够的负荷下这会导致GC对吞吐量产生显著影响。
+首先，最重要的是,你应该只关心应用程序的吞吐量是否开始减少。如果程序创建了太多立即丢弃的对象,小型GC暂停就会激增。负荷足够的情况下这会导致GC对吞吐量产生显著的影响。
 
 
 When you run into a situation like this, you would be facing a log file similar to the following short snippet extracted from the GC logs of the demo application introduced in the previous section. The application was launched as with the -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m command line arguments:
 
-当你遇到这种情况下,你将面临类似下面的短片段的日志文件从GC日志中提取在前一节中介绍的演示应用程序.应用程序启动与- xx:+ PrintGCDetails - xx:+ PrintGCTimeStamps -Xmx32m命令行参数:
+当遇到这种情况时,你将看到类似下面这样的日志片段，从前一节中介绍的[示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) 产生的GC日志中提取出来的. 命令行启动参数为 **-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m**:
 
 
 	2.808: [GC (Allocation Failure) 
@@ -245,7 +238,15 @@ When you run into a situation like this, you would be facing a log file similar 
 
 What should immediately grab your attention is the frequency of minor GC events. This indicates that there are lots and lots of objects being allocated. Additionally, the post-GC occupancy of the young generation remains low, and no full collections are happening. These symptoms indicate that the GC is having significant impact to the throughput of the application at hand.
 
-应立即吸引你的注意力是次要的GC事件的频率。这表明有很多很多的对象被分配。另外,年轻一代的post-GC入住率仍然很低,也没有完整的集合是发生.这些症状表明,GC有重大影响应用程序的吞吐量。
+吸引你眼光的应该是小型GC的频率。这表明有很多很多的对象被分配。另外,年轻代的 post-GC 入住率仍然很低,也没有 full GC 发生.这些症状表明, GC对应用程序的吞吐量有重大影响。
+
+
+##
+##
+##
+##
+##
+##
 
 
 ### 解决方案
