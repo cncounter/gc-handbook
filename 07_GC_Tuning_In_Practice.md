@@ -278,31 +278,37 @@ The simple change (diff) will, in the demo application, almost completely remove
 
 
 
-## 过早的晋升(Premature Promotion)
+## 过早晋升(Premature Promotion)
 
 
-
-##
-##
-##
-##
-##
-##
 
 
 Before explaining the concept of premature promotion, we should familiarize ourselves with the concept it builds upon – the promotion rate. The promotion rate is measured in the amount of data propagated from the young generation to the old generation per time unit. It is often measured in MB/sec, similarly to the allocation rate.
 
-Before explaining the concept of premature promotion, we should familiarize ourselves with the concept of it builds upon - the promotion rate.促进率测量的数据从旧一代的年轻一代传播/时间单位。通常以MB /秒,同样分配率。
+解释过早提升的概念之前,我们应该熟悉基本的概念 —— 提升率。提升率衡量每单位时间内从年轻代传播到老年代的数量。单位一般是 MB/秒, 类似于分配率。
+
 
 
 Promoting long-lived objects from the young generation to the old is how JVM is expected to behave. Recalling the generation hypothesis we can now construct a situation where not only long-lived objects end up in the old generation. Such a situation, where objects with a short life expectancy are not collected in the young generation and get promoted to the old generation, is called premature promotion.
 
-促进长寿对象从年轻一代老预计JVM是如何表现的.回忆一代假设我们现在可以构建一个情况不仅长寿对象最终在旧的一代。这种情况下,对象的短寿命没有收集在年轻一代和老一代得到提升,被称为过早晋升。
+
+从年轻代提升存活时间长的对象到老年代是JVM期待的行为。回忆分代假设,我们现在可以假设一种情况,不仅仅只有存活时间长的对象最终在老年代中。这种情况下,存活时间的对象不收集在年轻代中收集,而且会提升到老年代,这种现象被称为过早晋升。
+
 
 
 Cleaning these short-lived objects now becomes a job for major GC, which is not designed for frequent runs and results in longer GC pauses. This significantly affects the throughput of the application.
 
-清理这些短暂的对象现在成为主要的GC工作,这不是专为频繁运行,导致GC暂停时间长.这大大影响应用程序的吞吐量。
+
+清理这些生命短暂的对象现在成为了大型GC的工作,大型GC不是专为频繁运行设计的,所以会导致GC暂停时间很长。这大大影响应用程序的吞吐量。
+
+
+
+##
+##
+##
+##
+##
+##
 
 
 ### How to Measure Promotion Rate
