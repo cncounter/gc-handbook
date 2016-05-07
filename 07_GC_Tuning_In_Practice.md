@@ -6,28 +6,28 @@ This chapter covers several typical performance problems that one may encounter 
 本章介绍几种垃圾收集可能导致的典型的性能问题。其中的示例都来自于真实的应用,但为了演示方便,做了一些简化处理。
 
 
-## 高分配率(High Allocation Rate)
+## 高分配速率(High Allocation Rate)
 
 
 Allocation rate is a term used when communicating the amount of memory allocated per time unit. Often it is expressed in MB/sec, but you can use PB/year if you feel like it. So that is all there is – no magic, just the amount of memory you allocate in your Java code measured over a period of time.
 
 
-分配率(Allocation rate)是用来表示每时间单位内,内存分配数量的术语。通常表示为 MB/sec, 但也可以使用 PB/year。很简单, 没什么复杂的, 在Java代码中通过一段时间周期来衡量内存分配的数量。
+分配速率(Allocation rate)是用来表示每时间单位内,内存分配数量的术语。通常表示为 MB/sec, 但也可以使用 PB/year。很简单, 没什么复杂的, 在Java代码中通过一段时间周期来衡量内存分配的数量。
 
 
 
 
 An excessively high allocation rate can mean trouble for your application’s performance. When running on a JVM, the problem will be revealed by garbage collection posing a large overhead.
 
-过高的分配率可能会严重影响程序的性能。在JVM中, 这个问题的影响是带来大量的GC开销。
+过高的分配速率可能会严重影响程序的性能。在JVM中, 这个问题的影响是带来大量的GC开销。
 
 
-### 如何衡量分配率?
+### 如何衡量分配速率?
 
 
 One way to measure the allocation rate is to turn on GC logging by specifying -XX:+PrintGCDetails -XX:+PrintGCTimeStamps flags for the JVM. The JVM now starts logging the GC pauses similar to the following:
 
-测量分配率的一种方法是,通过指定 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` 标志开启JVM的GC日志. 则JVM开始记录类似下面这样的GC停顿日志:
+测量分配速率的一种方法是,通过指定 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` 标志开启JVM的GC日志. 则JVM开始记录类似下面这样的GC停顿日志:
 
 
 	0.291: [GC (Allocation Failure) 
@@ -48,7 +48,7 @@ One way to measure the allocation rate is to turn on GC logging by specifying -X
 
 From the GC log above, we can calculate the allocation rate as the difference between the sizes of the young generation after the completion of the last collection and before the start of the next one. Using the example above, we can extract the following information:
 
-从上面的GC日志中,我们就可以计算出分配率. 通过上一次垃圾收集之后,与下一次GC开始之前的年轻代大小的差值. 比如上面的示例中, 我们可以得到如下信息:
+从上面的GC日志中,我们就可以计算出分配速率. 通过上一次垃圾收集之后,与下一次GC开始之前的年轻代大小的差值. 比如上面的示例中, 我们可以得到如下信息:
 
 
 - At 291 ms after the JVM was launched, 33,280 K of objects were created. The first minor GC event cleaned the young generation, after which there were 5,088 K of objects in the young generation left.
@@ -58,14 +58,14 @@ From the GC log above, we can calculate the allocation rate as the difference be
 <br/>
 
 - 在JVM启动后 **291ms**, 创建了 `33,280 KB` 的对象。 第一次清理年轻代的 Minor GC(小型GC)事件, 完成之后还有 `5,088 KB` 的对象存在于年轻代中。
-- 在启动 **446 ms**之后, 年轻一代使用量增长至 `38,368 KB`,触发了下一次GC, 然后让年轻代使用量减少到了 `5120 KB`。
+- 在启动 **446 ms**之后, 年轻代使用量增长至 `38,368 KB`,触发了下一次GC, 然后让年轻代使用量减少到了 `5120 KB`。
 - 在启动后 **829 ms**, 年轻代的大小为 `71,680 KB`, GC后再让其减少到 `5,120 KB`。
 
 
 
 This data can then be expressed in the following table calculating the allocation rate as deltas of the young occupancy:
 
-然后可以通过年轻代的变化来计算出分配率,如下表所示:
+然后可以通过年轻代的变化来计算出分配速率,如下表所示:
 
 
 <table class="data compact">
@@ -120,27 +120,27 @@ This data can then be expressed in the following table calculating the allocatio
 
 Having this information allows us to say that this particular piece of software had the allocation rate of 161 MB/sec during the period of measurement.
 
-通过这个信息,我们可以说在测量期间, 该软件的分配率是 **161 MB/秒**。。
+通过这个信息,我们可以说在测量期间, 该软件的分配速率是 **161 MB/秒**。。
 
 
 
-### 为什么要关心分配率?
+### 为什么要关心分配速率?
 
 
 After measuring the allocation rate we can understand how the changes in allocation rate affect application throughput by increasing or reducing the frequency of GC pauses. First and foremost, you should notice that only minor GC pauses cleaning the young generation are affected. Neither the frequency nor duration of the GC pauses cleaning the old generation are directly impacted by the allocation rate, but instead by the promotion rate, a term that we will cover separately in the next section.
 
 
-测量分配率之后,我们就可以理解分配率的变化是如何影响应用程序的吞吐量的: 因为分配率会增加或减少GC暂停的频率。首先,也是最重要的,你应该注意到,只有清理年轻代的 minor GC pauses 受影响.而清理老年代的GC暂停, 其频率和持续时间都不受分配率的直接影响, 而是受**提升率**(promotion rate,晋升率)的影响,在下一节中我们将单独介绍这个术语。
+测量分配速率之后,我们就可以理解分配速率的变化是如何影响应用程序的吞吐量的: 因为分配速率会增加或减少GC暂停的频率。首先,也是最重要的,你应该注意到,只有清理年轻代的 minor GC pauses 受影响.而清理老年代的GC暂停, 其频率和持续时间都不受分配速率的直接影响, 而是受**提升速率**(promotion rate,晋升速率)的影响,在下一节中我们将单独介绍这个术语。
 
 
 Knowing that we can focus only on Minor GC pauses, we should next look into the different memory pools inside the young generation. As the allocation takes place in Eden, we can immediately look into how sizing Eden can impact the allocation rate. So we can hypothesize that increasing the size of Eden will reduce the frequency of minor GC pauses and thus allow the application to sustain faster allocation rates.
 
-这里我们只关心 Minor GC 暂停, 接下来应该考虑的是年轻代中的不同内存池。因为分配发生在 Eden 区, 我们可以立即调查如何设置 Eden 的大小来影响分配率. 所以我们可以增加 Eden 的大小来看看是否会减少 Minor GC 暂停的频率, 从而使程序能够维持更快的分配率。
+这里我们只关心 Minor GC 暂停, 接下来应该考虑的是年轻代中的不同内存池。因为分配发生在 Eden 区, 我们可以立即调查如何设置 Eden 的大小来影响分配速率. 所以我们可以增加 Eden 的大小来看看是否会减少 Minor GC 暂停的频率, 从而使程序能够维持更快的分配速率。
 
 
 And indeed, when running the same application with different Eden sizes using -XX:NewSize -XX:MaxNewSize & -XX:SurvivorRatio parameters, we can see a two-fold difference in allocation rates.
 
-的确,当通过 `-XX:NewSize -XX:MaxNewSize & -XX:SurvivorRatio` 参数设置不同的 Eden 空间来运行同一应用程序时, 我们可以看到分配率有两种不同的差别。
+的确,当通过 `-XX:NewSize -XX:MaxNewSize & -XX:SurvivorRatio` 参数设置不同的 Eden 空间来运行同一应用程序时, 我们可以看到分配速率有两种不同的差别。
 
 
 - Re-running with 100 M of Eden reduces the allocation rate to below 100 MB/sec.
@@ -148,19 +148,19 @@ And indeed, when running the same application with different Eden sizes using -X
 
 <br/>
 
-- 用 100 MB的 Eden 空间来运行, 分配率会低于 **100 MB/秒**。
-- 增加Eden区的大小为 **1 GB**, 分配率也跟着增长,大约是 **200 MB/秒** 的样子。
+- 用 100 MB的 Eden 空间来运行, 分配速率会低于 **100 MB/秒**。
+- 增加Eden区的大小为 **1 GB**, 分配速率也跟着增长,大约是 **200 MB/秒** 的样子。
 
 
 If you are still wondering how this can be true – if you stop your application threads for GC less frequently you can do more useful work. More useful work also happens to create more objects, thus supporting the increased allocation rate.
 
 
-为什么会这样? —— 因为减少暂停所有线程的GC次数，则可以做更多有用功。更有用的工作也创造了更多的对象, 因此同样的程序,分配率增加是挺好的事情。
+为什么会这样? —— 因为减少暂停所有线程的GC次数，则可以做更多有用功。更有用的工作也创造了更多的对象, 因此同样的程序,分配速率增加是挺好的事情。
 
 
 Now, before you jump to the conclusion that “bigger Eden is better”, you should notice that the allocation rate might and probably does not directly correlate with the actual throughput of your application. It is a technical measurement contributing to throughput. The allocation rate can and will have an impact on how frequently your minor GC pauses stop application threads, but to see the overall impact, you also need to take into account major GC pauses and measure throughput not in MB/sec but in the business operations your application provides.
 
-那么, 在得出 “Eden去越大越好” 这种结论之前, 你应该注意到分配率可能会,也可能不会直接影响到程序的实际吞吐量。 这是和吞吐量有关系的一个技术指标. 分配率会影响让所以线程停止的 minor GC暂停, 但对于总体影响, 还要考虑 Major GC(大型GC)暂停, 而且衡量吞吐量的单位不是 **MB/秒**， 而是程序处理的业务量。
+那么, 在得出 “Eden去越大越好” 这种结论之前, 你应该注意到分配速率可能会,也可能不会直接影响到程序的实际吞吐量。 这是和吞吐量有关系的一个技术指标. 分配速率会影响让所以线程停止的 minor GC暂停, 但对于总体影响, 还要考虑 Major GC(大型GC)暂停, 而且衡量吞吐量的单位不是 **MB/秒**， 而是程序处理的业务量。
 
 
 ### 示例
@@ -195,7 +195,7 @@ As the name of the class suggests, the problem here is boxing. Possibly to accom
 
 The demo application is impacted by the GC not keeping up with the allocation rate. The ways to verify and solve the issue are given in the next sections.
 
-演示程序中由于GC跟不上分配率而受到影响。在接下来的部分将验证并给出解决问题的方法。
+演示程序中由于GC跟不上分配速率而受到影响。在接下来的部分将验证并给出解决问题的方法。
 
 
 ### Could my JVMs be Affected?
@@ -247,7 +247,7 @@ What should immediately grab your attention is the frequency of minor GC events.
 
 In some cases, reducing the impact of high allocation rates can be as easy as increasing the size of the young generation. Doing so will not reduce the allocation rate itself, but will result in less frequent collections. The benefit of the approach kicks in when there will be only a few survivors every time. As the duration of a minor GC pause is impacted by the number of surviving objects, they will not noticeably increase here.
 
-在某些情况下,减少高分配率的影响也很容易,只要增加年轻代的大小即可。这样做不会减少分配率本身,但是会减少垃圾收集的频率。这样的好处是每次都只有少数的存活对象.小型GC的暂停时间受存活对象数量的影响,但这个数量并不会明显增加。
+在某些情况下,减少高分配速率的影响也很容易,只要增加年轻代的大小即可。这样做不会减少分配速率本身,但是会减少垃圾收集的频率。这样的好处是每次都只有少数的存活对象.小型GC的暂停时间受存活对象数量的影响,但这个数量并不会明显增加。
 
 
 The result is visible when we run the very same demo application with increased heap size and, with it, the young generation size, by using the -Xmx64m parameter:
@@ -285,7 +285,7 @@ The simple change (diff) will, in the demo application, almost completely remove
 
 Before explaining the concept of premature promotion, we should familiarize ourselves with the concept it builds upon – the promotion rate. The promotion rate is measured in the amount of data propagated from the young generation to the old generation per time unit. It is often measured in MB/sec, similarly to the allocation rate.
 
-解释过早提升的概念之前,我们应该熟悉基本的概念 —— 提升率。提升率衡量每单位时间内从年轻代传播到老年代的数量。单位一般是 MB/秒, 类似于分配率。
+解释过早提升的概念之前,我们应该熟悉基本的概念 —— 提升速率。提升速率衡量每单位时间内从年轻代传播到老年代的数量。单位一般是 MB/秒, 类似于分配速率。
 
 
 
@@ -302,23 +302,15 @@ Cleaning these short-lived objects now becomes a job for major GC, which is not 
 清理这些生命短暂的对象现在成为了大型GC的工作,大型GC不是专为频繁运行设计的,所以会导致GC暂停时间很长。这大大影响应用程序的吞吐量。
 
 
-
-##
-##
-##
-##
-##
-##
-
-
 ### How to Measure Promotion Rate
 
-### 如何衡量促销利率
+### 如何衡量提升速率
 
 
 One of the ways you can measure the promotion rate is to turn on GC logging by specifying -XX:+PrintGCDetails -XX:+PrintGCTimeStamps flags for the JVM. The JVM now starts logging the GC pauses just like in the following snippet:
 
-你可以测量提升速度的方法之一是打开GC日志记录通过指定- xx:+ PrintGCDetails - xx:+ PrintGCTimeStamps旗帜的JVM.JVM现在开始记录GC暂停就像在以下代码片段:
+
+测量提升速率的一种方法是指定JVM参数 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` 来启用GC日志记录. 则JVM开始记录GC停顿信息,像以下代码片段:
 
 
 	0.291: [GC (Allocation Failure) 
@@ -339,7 +331,7 @@ One of the ways you can measure the promotion rate is to turn on GC logging by s
 
 From the above we can extract the size of the young Generation and the total heap both before and after the collection event. Knowing the consumption of the young generation and the total heap, it is easy to calculate the consumption of the old generation as just the delta between the two. Expressing the information in GC logs as:
 
-从上面我们可以提取年轻一代的大小和总堆前后收集的事件。了解年轻一代的消费和总堆,很容易计算旧一代的消费只是两者之间的增量。GC日志中的信息表达为:
+从上面的信息我们可以得出, 在垃圾收集前后的 年轻代大小和总堆内存的大小。根据年轻代和整个堆的使用情况, 很容易计算出老年代的使用量就是是两者之间的差值。GC日志中的信息表示为:
 
 
 <table class="data compact">
@@ -351,6 +343,14 @@ From the above we can extract the size of the young Generation and the total hea
 <th><strong>Total decreased</strong></th>
 <th><strong>Promoted</strong></th>
 <th><strong>Promotion rate</strong></th>
+</tr>
+<tr>
+<th><strong>(事件)</strong></th>
+<th><strong>(耗时)</strong></th>
+<th><strong>(年轻代减少)</strong></th>
+<th><strong>(整个堆内存减少)</strong></th>
+<th><strong>(提升量)</strong></th>
+<th><strong>(提升速率)</strong></th>
 </tr>
 </thead>
 <tbody>
@@ -394,20 +394,21 @@ From the above we can extract the size of the young Generation and the total hea
 
 will allow us to extract the promotion rate for the measured period. We can see that on average the promotion rate was 92 MB/sec, peaking at 140.95 MB/sec for a while.
 
-将使我们能够提取的晋升速度测量。我们可以看到,平均提升率为92 MB /秒,峰值为140.95 MB /秒。
+根据观测时间内提取出晋升速度。我们可以看到,平均提升速率为92 MB/秒,峰值为140.95 MB/秒。
 
 
 Notice that you can extract this information only from minor GC pauses. Full GC pauses do not expose the promotion rate as the change in the old generation usage in GC logs also includes objects cleaned by the major GC.
 
-请注意,您可以提取这些信息只能从次要的GC暂停.完整GC暂停不公开促进率的改变在旧一代使用GC日志中还包括清洗的对象主要的GC。
+请注意, 只能从小型GC暂停中提取到这些信息. 完整GC暂停不公开提升速率的改变在老年代使用GC日志中还包括清洗的对象主要的GC。
 
 
-### 为什么要关心
+### 提升速率的意义
 
 
 Similarly to the allocation rate, the main impact of the promotion rate is the change of frequency in GC pauses. But as opposed to the allocation rate that affects the frequency of minor GC events, the promotion rate affects the frequency of major GC events. Let me explain – the more stuff you promote to the old generation the faster you will fill it up. Filling the old generation faster means that the frequency of the GC events cleaning the old generation will increase.
 
-同样的分配率,促进率的主要影响是GC暂停时间频率的变化。但随着反对分配率影响很小的GC事件的频率,促进利率影响重大GC事件的频率。让我解释——更多的东西你促进旧一代越快你就会把它填平.填补旧一代更快意味着GC事件清理旧一代的频率将会增加。
+和分配速率类似,  提升速率主要影响的也是GC暂停出现的频率。但分配速率主要是影响小型GC事件的触发频率, 而提升速率影响的是大型GC事件的频率。有更多的东西提升到老年代,自然会很快就会把它填满. 老年代填充的越快,就意味着清理老年代的GC事件频率将会增加。
+
 
 
 ![](07_01_how-java-garbage-collection-works.png)
@@ -417,7 +418,7 @@ Similarly to the allocation rate, the main impact of the promotion rate is the c
 
 As we have shown in earlier chapters, full garbage collections typically require much more time, as they have to interact with many more objects, and perform additional complex activities such as defragmentation.
 
-在之前的章节中所示,完整的垃圾收集通常需要更多的时间,与更多的对象进行交互,并执行碎片整理等附加的复杂活动。
+在之前的章节中,我们说过,完整GC通常需要更多的时间, 因为必须处理更多的对象, 还要执行额外的碎片整理等复杂活动。
 
 
 ### 示例
@@ -425,7 +426,7 @@ As we have shown in earlier chapters, full garbage collections typically require
 
 Let us look at a demo application suffering from premature promotion. This app obtains chunks of data, accumulates them, and, when a sufficient number is reached, processes the whole batch at once:
 
-让我们看一个演示应用程序遭受过早晋升。这个程序获得的大量数据,积累,当达到足够数量时,整个批处理流程:
+让我们看一个蕴含遭受过早提升的演示程序。这个程序获取并持有大量的数据,积累到一定数量时,才进行一次批量处理:
 
 
 	public class PrematurePromotion {
@@ -448,7 +449,7 @@ Let us look at a demo application suffering from premature promotion. This app o
 
 The demo application is impacted by premature promotion by the GC. The ways to verify and solve the issue are given in the next sections.
 
-演示应用程序由GC过早促进影响。验证并给出解决问题的方法在接下来的部分。
+演示程序受过早提升和GC的影响。在接下来的部分将验证并给出解决问题的方法。
 
 
 ### Could my JVMs be Affected?
@@ -458,22 +459,24 @@ The demo application is impacted by premature promotion by the GC. The ways to v
 
 In general, the symptoms of premature promotion can take any of the following forms:
 
-一般来说,过早的症状促销可以采取下列形式:
+一般来说,过早提升的症状可能表现为以下形式:
 
 
 - The application goes through frequent full GC runs over a short period of time.
 - The old generation consumption after each full GC is low, often under 10-20% of the total size of the old generation.
 - Facing the promotion rate approaching the allocation rate.
 
-- 应用程序通过频繁的完整GC运行在很短的时间内。
-- 旧一代消费每满GC很低,通常在10 - 20%的总大小的一代。
-- 面临着晋升率接近分配率。
+<br/>
+
+- 在很短的时间内应用程序频繁地进行完整GC。
+- 每次GC过后老年代的使用率都很低, 通常在10-20%的左右。
+- 提升速率接近分配速率。
 
 
 
 Showcasing this in a short and easy-to-understand demo application is a bit tricky, so we will cheat a little by making the objects tenure to the old generation a bit earlier than it happens by default. If we ran the demo with a specific set of GC parameters (-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1), we would see this in the garbage collection logs:
 
-在短和易于理解的演示应用程序展示这是有点棘手,所以我们将作弊通过使对象任期早一点旧一代比默认情况下发生。如果我们的演示与一组特定的GC参数(-Xmx24m - xx:NewSize = 16 m - xx:MaxTenuringThreshold = 1),我们可以看到这个垃圾收集日志:
+要展示这种情况的代码有点麻烦,  所以我们使用作弊手段, 让对象晋升到老年代的生存周期比默认情况要小很多。如果我们指定这样的GC参数来运行示例程序(`-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1`), 则可以看到下面这样的垃圾收集日志:
 
 
 	2.176: [Full GC (Ergonomics) 
@@ -498,12 +501,12 @@ Showcasing this in a short and easy-to-understand demo application is a bit tric
 
 At first glance it may seem that premature promotion is not the issue here. Indeed, the occupancy of the old generation seems to be decreasing on each cycle. However, if few or no objects were promoted, we would not be seeing a lot of full garbage collections.
 
-乍一看似乎过早促销不是问题。事实上,老一辈的入住率似乎减少在每个周期。然而,如果很少或根本没有对象被提升,我们将不会看到很多垃圾收集。
+乍一看似乎过早提升不是问题。事实上,在每次GC周期中老年代的入住率似乎在减少。然而,如果很少或根本没有对象被提升, 则我们基本上不会看到有很多次垃圾收集。
 
 
 There is a simple explanation for this GC behavior: while many objects are being promoted to the old generation, some existing objects are collected. This gives the impression that the old generation usage is decreasing, while in fact, there are objects that are constantly being promoted, triggering full GC.
 
-有一个简单的解释GC行为:虽然许多对象被提升为旧的一代,收集一些现有的对象.这给了旧一代使用减少的印象,而事实上,有对象,不断提升,引发完整GC。
+对这种GC行为有一个简单的解释: 在很多对象被提升到老年代的同时, 也有很多现有的对象被回收了. 这造成了老年代使用量减少的印象, 而事实上,有很多对象不断地被提升, 进而触发完整GC。
 
 
 ### 解决方案
@@ -511,7 +514,8 @@ There is a simple explanation for this GC behavior: while many objects are being
 
 In a nutshell, to fix this problem, we would need to make the buffered data fit into the young generation. There are two simple approaches for doing this. The first is to increase the young generation size by using -Xmx64m -XX:NewSize=32m parameters at JVM startup. Running the application with this change in configuration will make Full GC events much less frequent, while barely affecting the duration of minor collections:
 
-简而言之,为了解决这个问题,我们需要使缓冲数据符合年轻一代。有两个简单的方法来做这个.第一是增加年轻一代的大小通过-Xmx64m - xx:NewSize = 32 m参数在JVM启动时.
+简而言之,为了解决这个问题,我们需要让年轻代存放得下缓存数据。有两个简单的方法来. 第一是增加年轻代的大小, 例如设置JVM启动参数 ` -Xmx64m -XX:NewSize=32m` . 这样在程序运行时就会让 Full  GC事件减少很多, 而仅仅是影响小型GC的持续时间:
+
 
 
 	2.251: [GC (Allocation Failure) 
@@ -526,17 +530,28 @@ In a nutshell, to fix this problem, we would need to make the buffered data fit 
 
 Another approach in this case would be to simply decrease the batch size, which would also give a similar result. Picking the right solution heavily depends on what is really happening in the application. In some cases, business logic does not permit decreasing batch size. In this case, increasing available memory or redistributing in favor of the young generation might be possible.
 
-另一种方法在这种情况下,就是简单地减少批量大小,这也会给一个类似的结果.选择正确的解决方案很大程度上取决于应用程序中真正发生了什么。在某些情况下,业务逻辑不允许减少批量大小。在这种情况下,增加可用内存或重新分配支持年轻一代的可能。
+另一种解决办法, 是减少每次批处理的数量, 这也能得到类似的结果. 哪种解决方案更好,很大程度上取决于应用程序中真正发生了什么。在某些情况下, 业务逻辑不允许减少批处理的数量。那种情况下, 增加可用内存或者重新分配年轻代的大小可能更恰当一些。
 
 
 If neither is a viable option, then perhaps data structures can be optimized to consume less memory. But the general goal in this case remains the same: make transient data fit into the young generation.
 
-如果没有一个可行的选择,那么也许可以优化消耗更少的内存数据结构。但在这种情况下,总体目标是相同的:使瞬态数据符合年轻一代。
+如果没有一个可行的选择, 那么优化数据结构也能消耗更少的内存。但在这种情况下,总体目标依然是相同的: 使瞬态数据能存放在年轻代。
+
+
+
+
+
+##
+##
+##
+##
+##
+##
 
 
 ## Weak, Soft and Phantom References
 
-## Phantom薄弱、软性和参考文献
+## Weak, Soft 以及 Phantom 引用
 
 
 Another class of issues affecting GC is linked to the use of non-strong references in the application. While this may help to avoid an unwanted OutOfMemoryError in many cases, heavy usage of such references may significantly impact the way garbage collection affects the performance of your application.
@@ -564,7 +579,7 @@ Weak references are actually a lot more common than you might think. Many cachin
 
 When using soft references, you should bear in mind that soft references are collected much less eagerly than the weak ones. The exact point at which it happens is not specified and depends on the implementation of the JVM. Typically the collection of soft references happens only as a last ditch effort before running out of memory. What it implies is that you might find yourself in situations where you face either more frequent or longer full GC pauses than expected, since there are more objects resting in the old generation.
 
-当使用软引用,你应该记住,软引用比弱的收集更热切.它发生的精确的点没有指定,取决于JVM的实现.通常只会发生软引用的集合作为最后放弃努力之前耗尽内存.这意味着,你可能会发现自己在你面临的情况下更频繁或完整GC暂停时间比预期更长的时间,因为有更多的对象在旧的一代。
+当使用软引用,你应该记住,软引用比弱的收集更热切.它发生的精确的点没有指定,取决于JVM的实现.通常只会发生软引用的集合作为最后放弃努力之前耗尽内存.这意味着,你可能会发现自己在你面临的情况下更频繁或完整GC暂停时间比预期更长的时间,因为有更多的对象在老年代。
 
 
 When using phantom references, you have to literally do manual memory management in regards of flagging such references eligible for garbage collection. It is dangerous, as a superficial glance at the javadoc may lead one to believe they are the completely safe to use:
@@ -632,7 +647,7 @@ Full collections are quite rare in this case. However, if the application also s
 
 As we can see, there are now many full collections, and the duration of the collections is an order of magnitude longer! Another case of premature promotion, but this time a tad trickier. The root cause, of course, lies with the weak references. Before we added them, the objects created by the application were dying just before being promoted to the old generation. But with the addition, they are now sticking around for an extra GC round so that the appropriate cleanup can be done on them. Like before, a simple solution would be to increase the size of the young generation by specifying -Xmx64m -XX:NewSize=32m:
 
-我们可以看到,现在有完整的集合,集合时间是一个数量级了!过早推广的另一个例子,但这次有点棘手.当然,问题的根源在于弱引用。我们添加了他们之前,应用程序创建的对象的死前被提升为旧的一代.但是,他们现在粘在一个额外的GC轮,这样可以做适当的清理。像以前一样,一个简单的解决方案是增加年轻一代的大小通过指定-Xmx64m - xx:NewSize = 32 m:
+我们可以看到,现在有完整的集合,集合时间是一个数量级了!过早推广的另一个例子,但这次有点棘手.当然,问题的根源在于弱引用。我们添加了他们之前,应用程序创建的对象的死前被提升为老年代.但是,他们现在粘在一个额外的GC轮,这样可以做适当的清理。像以前一样,一个简单的解决方案是增加年轻代的大小通过指定-Xmx64m - xx:NewSize = 32 m:
 
 
 	2.328: [GC (Allocation Failure)  38940K->13596K(61440K), 0.0012818 secs]
@@ -760,7 +775,7 @@ When you have verified the application actually is suffering from the mis-, ab- 
 - Phantom references – make sure you are actually clearing the references. It is easy to dismiss certain corner cases and have the clearing thread to not being able to keep up with the pace the queue is filled or to stop clearing the queue altogether, putting a lot of pressure to GC and creating a risk of ending up with an OutOfMemoryError.
 - Soft references – when soft references are identified as the source of the problem, the only real way to alleviate the pressure is to change the application’s intrinsic logic.
 
-- 弱引用,如果问题是引发了消费的增加一个特定的内存池,增加相应的池(也可能是总堆随之)可以帮助你。正如在此示例中所看到的部分,增加总堆和年轻一代的大小来减轻疼痛。
+- 弱引用,如果问题是引发了消费的增加一个特定的内存池,增加相应的池(也可能是总堆随之)可以帮助你。正如在此示例中所看到的部分,增加总堆和年轻代的大小来减轻疼痛。
 - 幻影引用——确保你实际上是清除引用。很容易忽略某些角落病例和清理线程无法跟上步伐的队列或完全停止清除队列,施加很多压力GC和创建一个可能到最后只能依靠一个OutOfMemoryError。
 - 软引用,当软引用被认为是问题的根源,唯一真正的缓解压力的方法是改变应用程序的内在逻辑。
 
@@ -788,7 +803,7 @@ When your application is publishing or consuming services over RMI, the JVM peri
 
 The problem is exposed by seemingly unnecessary and periodic full GC pauses. When you check the old generation consumption, there is often no pressure to the memory as there is plenty of free space in the old generation, but full GC is triggered, stopping the application threads.
 
-暴露的问题看似不必要的GC暂停时间和周期。当你检查旧一代消费,通常是没有内存的压力,有足够的自由空间在旧的一代,但完整的GC被触发,停止应用程序线程。
+暴露的问题看似不必要的GC暂停时间和周期。当你检查老年代消费,通常是没有内存的压力,有足够的自由空间在老年代,但完整的GC被触发,停止应用程序线程。
 
 
 This behavior of removing remote references via System.gc() is triggered by the sun.rmi.transport.ObjectTable class requesting garbage collection to be run periodically as specified in the sun.misc.GC.requestLatency() method.

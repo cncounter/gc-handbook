@@ -1,7 +1,19 @@
 # 1. 垃圾回收简介
 
 
-> **说明**: 在本文中, `Garbage Collection` 翻译为 “`垃圾收集`”, `garbage collector` 翻译为 “`垃圾收集器`”, **垃圾回收** 和 **垃圾收集**在GC中一般是同一个意思。
+> **说明**: 在本文中, `Garbage Collection` 翻译为 “`垃圾收集`”, `garbage collector` 翻译为 “`垃圾收集器`”; 一般来说, **垃圾回收** 和 **垃圾收集** 是同义词。
+>
+> `Minor GC` 翻译为： **小型GC**; 而不是 <del>次要GC</del>
+>
+> `Major GC` 翻译为： **大型GC**; 而不是 <del>主要GC</del>
+>
+> 原因在于,大部分情况下, 发生在年轻代的 `Minor GC` 次数要多很多,翻译为次要GC明显不对。
+>
+> `Full GC` 翻译为： **完整GC**; 其中大型GC和完整GC差不多, 这些术语出自官方的各种分析工具和垃圾收集日志。并不是很统一。
+>
+> 
+
+
 
 At the first sight, garbage collection should be dealing with what the name suggests – finding and throwing away the garbage. In reality it is doing exactly the opposite. Garbage Collection is tracking down all the objects which are still used and marks the rest as garbage. Bearing this in mind, we start digging into more details of how the process of automated memory reclamation called ‘Garbage Collection’ is implemented for Java Virtual Machine.
 
