@@ -556,7 +556,7 @@ If neither is a viable option, then perhaps data structures can be optimized to 
 
 Another class of issues affecting GC is linked to the use of non-strong references in the application. While this may help to avoid an unwanted OutOfMemoryError in many cases, heavy usage of such references may significantly impact the way garbage collection affects the performance of your application.
 
-另一类问题影响GC与non-strong引用在应用程序的使用。虽然这可能有助于避免在许多情况下,一个不受欢迎的OutOfMemoryError,应当参照使用重型garbage切尔诺贝利影响传媒may收藏有关业绩的你的执行。
+另一类影响GC的问题与程序中的non-strong引用有关。虽然这些类可能在许多情况下能避免 **OutOfMemoryError**,  但使用过当也有可能会严重影响垃圾收集器的行为, 进而影响系统性能。
 
 
 ## 为什么要关心
@@ -564,48 +564,48 @@ Another class of issues affecting GC is linked to the use of non-strong referenc
 
 When using weak references, you should be aware of the way the weak references are garbage-collected. Whenever GC discovers that an object is weakly reachable, that is, the last remaining reference to the object is a weak reference, it is put onto the corresponding ReferenceQueue, and becomes eligible for finalization. One may then poll this reference queue and perform the associated cleanup activities. A typical example for such cleanup would be the removal of the now missing key from the cache.
 
-使用弱引用时,您应该知道的弱引用的垃圾收集。每当GC发现弱可及对象,,的最后一个对象的引用是一个弱引用,放在相应的ReferenceQueue,成为合格的终结.一个可能会调查这个引用队列并执行相关的清理活动。等清理一个典型的例子是现在失踪的删除键从缓存中。
+在使用**弱引用**(weak reference)时,您应该知道, 弱引用是允许被垃圾收集器强行回收的。每当GC发现一个弱可及对象(weakly reachable),即最后一个指向该对象的引用是一个弱引用, 则会将其置入相应的ReferenceQueue 中, 成为可以终结的对象. 之后可能会轮询这个引用队列,并执行相关的清理活动。一个典型的例子是从缓存中清理当前不再引用的KEY。
 
 
 The trick here is that at this point you can still create new strong references to the object, so before it can be, at last, finalized and reclaimed, GC has to check again that it really is okay to do this. Thus, the weakly referenced objects are not reclaimed for an extra GC cycle.
 
-这里的诀窍是,此时,您仍然可以创建新的强引用对象,所以它可以之前,最后,完成和回收,GC再次检查,真的很好。因此,弱引用的对象不是一个GC循环再生。
+这里的诀窍是,此时,您仍然可以创建该对象的新的强引用, 在最后的终结和回收之前, GC会再次检查,是否真的可以回收。因此, 弱引用对象不是在单个特定的GC循环中回收的。
 
 
 Weak references are actually a lot more common than you might think. Many caching solutions build the implementations using weak referencing, so even if you are not directly creating any in your code, there is a strong chance your application is still using weakly referenced objects in large quantities.
 
-弱引用实际上是很多比你想象的更常见。许多缓存解决方案构建实现使用弱引用,所以即使你不直接在代码中创建任何,应用程序有一种强烈的机会仍在大量使用弱引用的对象。
+弱引用实际上比你想象的更常见。许多缓存解决方案都是基于弱引用实现的, 所以虽然你没有直接在代码中创建任何弱引用, 但程序仍然有可能在大量使用弱引用对象。
 
 
 When using soft references, you should bear in mind that soft references are collected much less eagerly than the weak ones. The exact point at which it happens is not specified and depends on the implementation of the JVM. Typically the collection of soft references happens only as a last ditch effort before running out of memory. What it implies is that you might find yourself in situations where you face either more frequent or longer full GC pauses than expected, since there are more objects resting in the old generation.
 
-当使用软引用,你应该记住,软引用比弱的收集更热切.它发生的精确的点没有指定,取决于JVM的实现.通常只会发生软引用的集合作为最后放弃努力之前耗尽内存.这意味着,你可能会发现自己在你面临的情况下更频繁或完整GC暂停时间比预期更长的时间,因为有更多的对象在老年代。
+在使用**软引用**(soft reference)时,你应该记住,软引用比弱引用更容易被垃圾收集器回收. 它发生的时间点没有确切指定,取决于JVM的实现. 通常软引用的收集只会在即将耗尽内存之前,作为最后的手段. 这意味着,你可能会发现自己面临着更频繁的完整GC, 暂停时间也比预期的时间更长, 因为有更多的对象在老年代。
 
 
 When using phantom references, you have to literally do manual memory management in regards of flagging such references eligible for garbage collection. It is dangerous, as a superficial glance at the javadoc may lead one to believe they are the completely safe to use:
 
-使用幻影引用时,你必须做手动内存管理关于资格垃圾收集的萎靡不振的引用。是很危险的,表面看一眼javadoc可能让人相信它们是完全安全的使用:
+在使用**虚引用**(phantom reference)时,你必须手动进行内存管理,以标记这些引用是否可以进行垃圾收集。这是很危险的,虽然表面上,看一眼javadoc可能会让人相信使用它们是完全安全的:
 
 
 In order to ensure that a reclaimable object remains so, the referent of a phantom reference may not be retrieved: The get method of a phantom reference always returns null.
 
-为了确保可教化的对象仍是如此,幻影的referent参考不得检索:幽灵的get方法参考总是返回null。
+为了防止可回收对象的残留, 虚引用不应该被获取到: 虚引用的 get 方法总是返回 null。
 
 
 Surprisingly, many developers skip the very next paragraph in the same javadoc (emphasis added):
 
-令人惊讶的是,许多开发人员跳过第二段在同一javadoc(重点):
+令人惊讶的是,许多开发者忽略了在同一javadoc中的下一段内容(**这是重点**):
 
 
 Unlike soft and weak references, phantom references are not automatically cleared by the garbage collector as they are enqueued. An object that is reachable via phantom references will remain so until all such references are cleared or themselves become unreachable.
 
-与柔软和弱引用,幻影引用不会自动被垃圾收集器清除队列.虚引用一个对象,可以通过将继续,直到所有这些引用被清除或自己成为遥不可及的。
+与软引用和弱引用不同, 虚引用不会被垃圾收集器自动清除, 因为他们被放入了队列. 一个通过虚引用可及的对象将会继续留在内存, 直到这些引用被清除, 或者自身变为不可及对象。
 
 
 That is right, we have to manually clear() up phantom references or risk facing a situation where the JVM starts dying with an OutOfMemoryError. The reason why the Phantom references are there in the first place is that this is the only way to find out when an object has actually become unreachable via the usual means. Unlike with soft or weak references, you cannot resurrect a phantom-reachable object.
  
 
-这是正确的,我们必须手动清楚()幻影引用或面临情况JVM开始死亡风险OutOfMemoryError.虚引用的原因是首先是,这是唯一的方法来找出当一个对象通过通常意味着实际上已经成为遥不可及的.与软或弱引用,不能复活phantom-reachable对象。
+也就是说,我们必须手动调用 clear() 来清除虚引用, 否则可能会造成JVM 因为OutOfMemoryError 而挂掉的风险.  使用虚引用的原因是, 通常这是唯一可以用编程来跟踪某个对象真正地变为不可及对象的手段. 和软引用/弱引用不同, 你不能复活虚可及(phantom-reachable)对象。
 
 
 ## 示例
@@ -613,7 +613,7 @@ That is right, we have to manually clear() up phantom references or risk facing 
 
 Let us take a look at another demo application that allocates a lot of objects, which are successfully reclaimed during minor garbage collections. Bearing in mind the trick of altering the tenuring threshold from the previous section on promotion rate, we could run this application with -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1 and see this in GC logs:
 
-让我们看看另一个演示应用程序分配的对象,这是小垃圾收集期间成功再生.牢记的技巧改变任期阈值前一节的推广速度,我们可以运行这个应用程序与-Xmx24m - xx:NewSize = 16 m - xx:MaxTenuringThreshold = 1,看看这个GC日志:
+让我们看看另一个分配大量对象的示例, 其在小型GC期间成功回收. 请记得像上一小节一样,修改提升阀值。使用参数 ` -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1` 来运行程序,那么GC日志如下所示:
 
 
 	2.330: [GC (Allocation Failure)  20933K->8229K(22528K), 0.0033848 secs]
@@ -632,7 +632,7 @@ Let us take a look at another demo application that allocates a lot of objects, 
 
 Full collections are quite rare in this case. However, if the application also starts creating weak references (-Dweak.refs=true) to these created objects, the situation may change drastically. There may be many reasons to do this, starting from using the object as keys in a weak hash map and ending with allocation profiling. In any case, making use of weak references here may lead to this:
 
-在这种情况下完整的集合是相当罕见的。然而,如果应用程序也开始创建弱引用(-Dweak.refs = true)来创建这些对象,这种情况可能会改变显著.可能有很多原因,从使用弱散列映射中的对象作为键,最后分配分析。在任何情况下,利用弱引用在这里可能会导致:
+此时完整GC次数很少。然而,如果对这些创建的对象, 也使用弱引用来指向他们 (-Dweak.refs=true), 则情况可能会显著改变. 可能有很多原因, 比如在weak hash map中使用对象作为Key, 最后进行分配分析。在任何情况下,利用弱引用可能会导致如下的结果:
 
 
 	2.059: [Full GC (Ergonomics)  20365K->19611K(22528K), 0.0654090 secs]
@@ -647,7 +647,7 @@ Full collections are quite rare in this case. However, if the application also s
 
 As we can see, there are now many full collections, and the duration of the collections is an order of magnitude longer! Another case of premature promotion, but this time a tad trickier. The root cause, of course, lies with the weak references. Before we added them, the objects created by the application were dying just before being promoted to the old generation. But with the addition, they are now sticking around for an extra GC round so that the appropriate cleanup can be done on them. Like before, a simple solution would be to increase the size of the young generation by specifying -Xmx64m -XX:NewSize=32m:
 
-我们可以看到,现在有完整的集合,集合时间是一个数量级了!过早推广的另一个例子,但这次有点棘手.当然,问题的根源在于弱引用。我们添加了他们之前,应用程序创建的对象的死前被提升为老年代.但是,他们现在粘在一个额外的GC轮,这样可以做适当的清理。像以前一样,一个简单的解决方案是增加年轻代的大小通过指定-Xmx64m - xx:NewSize = 32 m:
+我们可以看到, 现在有很多次完整GC, 而且GC时间比上一个示例增加了一个数量级! 这是过早提升的另一个例子, 但这次的情况有点棘手. 当然,问题的根源在于弱引用。在添加他们之前,这些临死的对象被提升到老年代. 但是,他们现在粘在一个额外的GC循环中,这样可以对他们做适当的清理。像以前一样,一个简单的解决方案就是增加年轻代的大小, 指定参数 `-Xmx64m -XX:NewSize=32m`:
 
 
 	2.328: [GC (Allocation Failure)  38940K->13596K(61440K), 0.0012818 secs]
@@ -662,12 +662,12 @@ As we can see, there are now many full collections, and the duration of the coll
 
 The objects are now once again reclaimed during minor garbage collection.
 
-回收的对象现在再次在次要的垃圾收集。
+现在对象又能在小型GC中被回收了。
 
 
 The situation is even worse when soft references are used as seen in the next demo application. The softly-reachable objects are not reclaimed until the application risks getting an OutOfMemoryError. Replacing weak references with soft references in the demo application immediately surfaces many more Full GC events:
 
-情况更糟的是当使用软引用见下一个演示应用程序。软可及的对象不回收,直到应用程序可能会获得一个OutOfMemoryError.取代弱引用和软引用演示应用程序立即表面更多的完整GC事件:
+更坏的情况是使用软引用,例如下面的程序。如果程序不面临OutOfMemoryError, 软可及的对象就不会被回收. 在程序中,用软引用代替弱引用和, 立即面临更多的完整GC事件:
 
 
 	2.162: [Full GC (Ergonomics)  31561K->12865K(61440K), 0.0181392 secs]
@@ -683,12 +683,12 @@ The situation is even worse when soft references are used as seen in the next de
 
 And the king here is the phantom reference as seen in the third demo application. Running the demo with the same sets of parameters as before would give us results that are pretty similar as the results in the case with weak references. The number of full GC pauses would, in fact, be much smaller because of the difference in the finalization described in the beginning of this section.
 
-这里的国王是幻影参考见第三个演示应用程序.运行演示与同一组参数之前会给我们的结果是非常相似的结果与弱引用。完整的GC暂停的数量,实际上,小得多,因为不同的终结中描述这一节的开始。
+最关键的是第三个示例中的虚引用. 使用和之前一样的JVM启动参数,结果与弱引用的示例非常相似。完整的GC暂停的次数,实际上,会小得多,原因在本节开始的地方说过,他们有不同的终结方式。
 
 
 However, adding one flag that disables phantom reference clearing (-Dno.ref.clearing=true) would quickly give us this:
 
-然而,添加一个标志,禁用幻影参考结算(-Dno.ref.clearing = true)将很快给我们:
+然而,添加一个 禁用虚引用清理的参数 (-Dno.ref.clearing=true), 则可以看到:
 
 
 	4.180: [Full GC (Ergonomics)  57343K->57087K(61440K), 0.0879851 secs]
@@ -700,12 +700,12 @@ However, adding one flag that disables phantom reference clearing (-Dno.ref.clea
 
 Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 
-异常的线程“主要”. lang。OutOfMemoryError:Java堆空间
+main 线程中抛出异常 ` java.lang.OutOfMemoryError: Java heap space`.
 
 
 One must exercise extreme caution when using phantom references and always clear up the phantom reachable objects in a timely manner. Failing to do so will likely end up with an OutOfMemoryError. And trust us when we say that it is quite easy to fail at this: one unexpected exception in the thread that processes the reference queue, and you will have a dead application at your hand.
 
-一个使用幻时必须非常谨慎引用,总是及时清理幽灵的可访问的对象。未能这样做,可能会得到一个OutOfMemoryError.和相信我们,当我们说很容易失败在这个:一个意想不到的异常处理引用队列的线程,你将有一个死去的应用程序在你的手。
+使用虚引用时必须非常谨慎, 并及时清理虚可及的对象。如果不这样做,可能就会发生 **OutOfMemoryError**. 请相信我们的教训: 如果处理引用队列的线程抛出的 unexpected exception 没处理好, 那你的系统很快就挂了。
 
 
 ### Could my JVMs be Affected?
@@ -768,7 +768,7 @@ As always, this information should only be analyzed when you have identified tha
 
 When you have verified the application actually is suffering from the mis-, ab- or overuse of either weak, soft or phantom references, the solution often involves changing the application’s intrinsic logic. This is very application specific and generic guidelines are thus hard to offer. However, some generic solutions to bear in mind are:
 
-当你有验证应用程序实际上是遭受mis - ab -或过度使用弱,软或幻影引用,解决方案通常需要改变应用程序的内在逻辑。这是非常特定于应用程序的,因此很难提供通用的指导方针。然而,要记住一些通用的解决方案是:
+当你有验证应用程序实际上是遭受mis - ab -或过度使用弱,软或虚引用,解决方案通常需要改变应用程序的内在逻辑。这是非常特定于应用程序的,因此很难提供通用的指导方针。然而,要记住一些通用的解决方案是:
 
 
 - Weak references – if the problem is triggered by increased consumption of a specific memory pool, an increase in the corresponding pool (and possibly the total heap along with it) can help you out. As seen in the example section, increasing the total heap and young generation sizes alleviated the pain.
@@ -776,7 +776,7 @@ When you have verified the application actually is suffering from the mis-, ab- 
 - Soft references – when soft references are identified as the source of the problem, the only real way to alleviate the pressure is to change the application’s intrinsic logic.
 
 - 弱引用,如果问题是引发了消费的增加一个特定的内存池,增加相应的池(也可能是总堆随之)可以帮助你。正如在此示例中所看到的部分,增加总堆和年轻代的大小来减轻疼痛。
-- 幻影引用——确保你实际上是清除引用。很容易忽略某些角落病例和清理线程无法跟上步伐的队列或完全停止清除队列,施加很多压力GC和创建一个可能到最后只能依靠一个OutOfMemoryError。
+- 虚引用——确保你实际上是清除引用。很容易忽略某些角落病例和清理线程无法跟上步伐的队列或完全停止清除队列,施加很多压力GC和创建一个可能到最后只能依靠一个OutOfMemoryError。
 - 软引用,当软引用被认为是问题的根源,唯一真正的缓解压力的方法是改变应用程序的内在逻辑。
 
 
