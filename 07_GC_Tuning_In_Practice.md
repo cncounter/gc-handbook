@@ -540,15 +540,6 @@ If neither is a viable option, then perhaps data structures can be optimized to 
 
 
 
-
-##
-##
-##
-##
-##
-##
-
-
 ## Weak, Soft and Phantom References
 
 ## Weak, Soft 以及 Phantom 引用
@@ -715,7 +706,7 @@ One must exercise extreme caution when using phantom references and always clear
 
 As a general recommendation, consider enabling the -XX:+PrintReferenceGC JVM option to see the impact that different references have on garbage collection. If we add this to the application from the WeakReference example, we will see this:
 
-一般建议,考虑启用- xx:+ PrintReferenceGC JVM选项看到引用对垃圾收集的影响不同.如果我们添加这个WeakReference引用的应用程序示例中,我们将会看到:
+一般建议,启用 `-XX:+PrintReferenceGC` 这个 JVM选项来看看不同的引用对垃圾收集的影响. 如果我们添加这个参数到 WeakReference 的例子, 我们将会看到:
 
 
 	2.173: [Full GC (Ergonomics) 
@@ -760,7 +751,17 @@ As a general recommendation, consider enabling the -XX:+PrintReferenceGC JVM opt
 
 As always, this information should only be analyzed when you have identified that GC is having impact to either the throughput or latency of your application. In such case you may want to check these sections of the logs. Normally, the number of references cleared during each GC cycle is quite low, in many cases exactly zero. If this is not the case, however, and the application is spending a significant period of time clearing references, or just a lot of them are being cleared, then further investigation is required.
 
-像往常一样,这些信息只能当你已经确定了GC分析有影响应用程序的吞吐量和延迟.在这样的情况下,您可能希望查看这些部分的日志。通常情况下,引用了在每一个GC循环的数量很低,在许多情况下完全零。如果不是这种情况,然而,支出过很长一段时间才清理应用程序引用,或者只是被清除的很多人,然后还需要进一步调查。
+像往常一样, 只有当你已经确定GC对应用程序的吞吐量和延迟有影响之后, 才应该分析这些信息. 在这样的情况下,您可能希望查看这些部分的日志。通常情况下, 每次GC循环中清理引用的数量都是很少的, 在许多情况下完全是0。如果不是这种情况, 而且花了比较多的时间来清理引用, 或者清除了很多引用, 那么还需要进一步调查分析。
+
+
+
+
+##
+##
+##
+##
+##
+##
 
 
 ### 解决方案
