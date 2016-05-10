@@ -775,15 +775,6 @@ When you have verified the application actually is suffering from the mis-, ab- 
 
 
 
-
-##
-##
-##
-##
-##
-##
-
-
 ## Other Examples
 
 ## 其他的例子
@@ -791,32 +782,30 @@ When you have verified the application actually is suffering from the mis-, ab- 
 
 Previous chapters covered the most common problems related to poorly behaving GC. Unfortunately, there is a long list of more specific cases, where you cannot apply the knowledge from previous chapters. This section describes a few of the more unusual problems that you may face.
 
-之前的章节涵盖最常见的问题表现不佳的GC。不幸的是,有一长串的更具体的情况,你不能应用知识从先前的章节。本节描述的一些更不寻常的你可能会面临的问题。
+前面的章节涵盖了最常见的GC表现不佳的问题。不幸的是, 有很多更具体的情况没有列举出来, 从先前的章节你不能很好地了解。本节描述一些不常发生但你可能会碰到的问题。
 
 
 ### RMI & GC
 
-### RMI和GC
-
 
 When your application is publishing or consuming services over RMI, the JVM periodically launches full GC to make sure that locally unused objects are also not taking up space on the other end. Bear in mind that even if you are not explicitly publishing anything over RMI in your code, third party libraries or utilities can still open RMI endpoints. One such common culprit is for example JMX, which, if attached to remotely, will use RMI underneath to publish the data.
 
-当你的应用程序发布在RMI或消费服务,定期JVM启动完整GC确保本地未使用的对象也不占用空间的另一端.记住,即使你没有明确发布任何在RMI在代码中,第三方库或工具仍然可以打开RMI端点.例如JMX,就是这样一个常见的罪魁祸首,如果连接到远程,将使用RMI在发布数据。
+当你的系统通过 RMI 提供或者消费服务, JVM会定期启动 full GC 来确保本地未使用的对象在另一端也不占用空间. 记住, 即使你没有明确地在代码中发布任何 RMI 服务, 但第三方或者工具库仍然可能打开RMI 终端. 最常见的罪魁祸首就是 JMX,  如果通过JMX连接到远端, 则会在底层使用RMI来发布数据。
 
 
 The problem is exposed by seemingly unnecessary and periodic full GC pauses. When you check the old generation consumption, there is often no pressure to the memory as there is plenty of free space in the old generation, but full GC is triggered, stopping the application threads.
 
-暴露的问题看似不必要的GC暂停时间和周期。当你检查老年代消费,通常是没有内存的压力,有足够的自由空间在老年代,但完整的GC被触发,停止应用程序线程。
+暴露的问题是很多不必要的周期性的GC暂停。如果检查老年代的使用情况, 通常是没有内存压力, 其中还有足够的空闲区域,但 full GC 就是被触发了, 也就暂停了应用程序的线程。
 
 
 This behavior of removing remote references via System.gc() is triggered by the sun.rmi.transport.ObjectTable class requesting garbage collection to be run periodically as specified in the sun.misc.GC.requestLatency() method.
 
-这种行为将通过远程引用system . gc()是sun.rmi.transport引发的。ObjectTable类请求垃圾收集运行定期sun.misc中指定.GC.requestLatency()方法。
+这种删除远程引用的行为, 是由  `sun.rmi.transport.ObjectTable` 类调用  `sun.misc.GC.requestLatency()` 方法, 周期性地通过  **System.gc()**  触发的。
 
 
 For many applications, this is not necessary or outright harmful. To disable such periodic GC runs, you can set up the following for your JVM startup scripts:
 
-对于许多应用程序,这是没有必要的或完全有害的。禁用这种周期性GC运行时,您可以设置为您的JVM启动脚本如下:
+对许多应用程序来说, 这是没有必要或完全有害的。禁止执行这种周期性的 GC , 可以使用以下的 JVM 脚本:
 
 
 	java -Dsun.rmi.dgc.server.gcInterval=9223372036854775807L 
@@ -825,15 +814,15 @@ For many applications, this is not necessary or outright harmful. To disable suc
 
 
 
-
 This sets the period after which System.gc() is run to Long.MAX_VALUE; for all practical matters, this equals eternity.
 
-这System.gc which之后至sets)is赛跑长期(。MAX_VALUE;所有自由,equals实用事项。
+这让 **Long.MAX_VALUE** 之后才触发 **System.gc()** , 对于现实世界来说, 也就是永远不触发。
+
 
 
 An alternative solution for the problem would to disable explicit calls to System.gc() by specifying -XX:+DisableExplicitGC in the JVM startup parameters. We do not however recommend this solution as it can have other side effects.
 
-另一种解决方案的问题会禁用显式地调用system . gc()通过指定- xx:+ DisableExplicitGC JVM启动参数.然而我们不推荐这种解决方案,因为它有其他的副作用。
+另一种解决方式是指定 **-XX:+DisableExplicitGC**, 来禁止显式地调用 `System.gc()`.  然而我们**不推荐**这种解决方式,因为它有其他的副作用。
 
 
 ### JVMTI tagging & GC
@@ -866,32 +855,34 @@ If you are not the author of the agent yourself, fixing the problem is often out
 如果你没有代理的作者自己,解决问题往往是遥不可及的。除了联系供应商特定的代理你不能做太多.如果你在这种情况下,建议供应商清除不再需要的标签。
 
 
-### Humongous Allocations
 
-### 巨大无比的分配
+### 巨无霸对象的分配(Humongous Allocations)
 
 
 Whenever your application is using the G1 garbage collection algorithm, a phenomenon called humongous allocations can impact your application performance in regards of GC. To recap, humongous allocations are allocations that are larger than 50% of the region size in G1.
 
-当您的应用程序使用G1垃圾收集算法,这种现象称为巨大无比的分配会影响应用程序性能的GC。回顾一下,巨大无比的分配是分配在G1大于50%的区域大小。
+如果使用G1算法来进行垃圾收集, 这种被称为巨无霸对象的分配就会因为GC影响程序的性能。回顾一下,  在G1中巨无霸对象是指超过 region size 50% 的空间分配。
 
 
 Having frequent humongous allocations can trigger GC performance issues, considering the way that G1 handles such allocations:
 
-频繁的巨大无比的分配可以触发GC性能问题,考虑到G1在处理这样的分配方法:
+频繁的巨无霸对象分配会引起GC的性能问题, 看看G1处理这种分配的方式:
 
 
 - If the regions contain humongous objects, space between the last humongous object in the region and the end of the region will be unused. If all the humongous objects are just a bit larger than a factor of the region size, this unused space can cause the heap to become fragmented.
 - Collection of the humongous objects is not as optimized by the G1 as with regular objects. It was especially troublesome with early Java 8 releases – until Java 1.8u40 the reclamation of humongous regions was only done during full GC events. More recent releases of the Hotspot JVM free the humongous regions at the end of the marking cycle during the cleanup phase, so the impact of the issue has been reduced significantly for newer JVMs.
 
-- 
-- 
+<br/>
+
+- 如果某个 region 包含巨无霸对象, 则最后一个巨无霸对象到该区域结尾之间的(空闲)空间将不会被使用。如果所有的巨无霸对象都只是比 region size 的某个因子大一点, 则未使用的空间将会导致堆内存碎片问题。
+- 对巨无霸对象的垃圾收集没有被 G1 优化。这在Java 8的早期版本中是特别麻烦的 —— 在 **Java 1.8u40** 之前, 巨无霸对象所在区域的回收都只能在完整GC事件中进行。最新版本的 Hotspot JVM 在marking 阶段的结尾, cleanup phase 释放巨无霸空间, 所以这个问题的影响在新版的JVM中已经大大减小了。
+
 
 
 
 To check whether or not your application is allocating objects in humongous regions, the first step would be to turn on GC logs similar to the following:
 
-检查应用程序是否分配对象在巨大无比的地区,第一步是打开GC日志类似如下:
+要检查是否有对象分配在巨无霸区域, 第一步是打开GC日志， 类似下面这样:
 
 
 	java -XX:+PrintGCDetails -XX:+PrintGCTimeStamps 
@@ -904,7 +895,7 @@ To check whether or not your application is allocating objects in humongous regi
 
 Now, when you check the logs and discover sections like these:
 
-现在,当您检查日志,发现这样的部分:
+现在, 在检查日志时, 会发现类似这样的部分:
 
 
 	 0.106: [G1Ergonomics (Concurrent Cycles) 
@@ -936,22 +927,23 @@ Now, when you check the logs and discover sections like these:
 
 you have evidence that the application is indeed allocating humongous objects. The evidence is visible in the cause for a GC pause being identified as G1 Humongous Allocation and in the “allocation request: 1048592 bytes” section, where we can see that the application is trying to allocate an object with the size of 1,048,592 bytes, which is 16 bytes larger than the 50% of the 2 MB size of the humongous region specified for the JVM.
 
-你有确实证据表明应用程序分配巨大无比的对象.证据是可见的GC暂停的原因被确定为G1巨大无比的分配和在“分配请求:1048592字节”部分,在那里我们可以看到应用程序试图分配1048592字节大小的一个对象,这是16字节大于50%的2 MB大小的巨型地区指定JVM。
+现在有证据表明, 应用程序确实分配了巨无霸对象.  **G1 Humongous Allocation ** 这个GC暂停的原因就是证据, 在 “allocation request: 1048592 bytes” 这一节, 在这里我们可以看到程序试图分配一个 `1,048,592` 字节大小的对象, 这比JVM指定的巨无霸区域大小(**2MB**)的 50% 多出了 16 个字节。
 
 
 The first solution for humongous allocation is to change the region size so that (most) of the allocations would not exceed the 50% limit triggering allocations in the humongous regions. The region size is calculated by the JVM during startup based on the size of the heap. You can override the size by specifying -XX:G1HeapRegionSize=XX in the startup script. The specified region size must be between 1 and 32 megabytes and has to be a power of two.
 
-巨大无比的分配第一个解决方案是修改区域大小,以便(大多数)的分配将不超过50%的限制引发极大的地区分配.计算区域大小由JVM启动期间基于堆的大小。你可以覆盖大小通过指定- XX:G1HeapRegionSize = XX在启动脚本.指定的区域大小必须介于1和32字节,必须是2的幂。
+处理巨无霸对象分配的第一种方式, 是修改 region size , 使得(大多数的)分配不超过50%的限制, 引起在大对象区域的分配. 区域大小是由JVM在启动期间基于堆的大小计算得出的。你可以通过指定 `-XX:G1HeapRegionSize=XX`  启动参数来覆盖默认设置. 指定的区域大小必须介于 **1~32MB** 之间, 还必须是2的幂。
 
 
 This solution can have side effects – increasing the region size reduces the number of regions available so you need to be careful and run extra set of tests to see whether or not you actually improved the throughput or latency of the application.
 
-这个解决方案可以有副作用,增加区域大小减少可用区域的数量你需要小心和运行额外设置的测试是否你真的 提高了应用程序的吞吐量和延迟。
+这个解决方案也有副作用, 增加区域大小也就减少了可用区域的数量, 你需要注意, 最好执行额外的测试来看看是否真的改善了吞吐量和延迟。
 
 
 A more time-consuming but potentially better solution would be to understand whether or not the application can limit the size of allocations. The best tools for the job in this case are profilers. They can give you information about humongous objects by showing their allocation sources with stack traces.
 
-更耗费时间,但潜在的更好的解决方案是了解应用程序是否可以限制分配的大小。最好的工具工作在这种情况下是分析器.他们可以给你巨大无比的对象通过展示它们的分配信息来源和堆栈跟踪。
+更耗费时间, 但可能更好的解决方式是了解程序是否可以限制分配的大小。对付这种情况，最好的工具是分析器. 他们可以给你巨无霸对象的信息, 通过堆栈跟踪展示它们是在哪里分配的。
+
 
 
 
@@ -960,7 +952,7 @@ A more time-consuming but potentially better solution would be to understand whe
 
 With the enormous number of possible applications that one may run on the JVM, coupled with the hundreds of JVM configuration parameters that one may tweak for GC, there are astoundingly many ways in which the GC may impact your application’s performance.
 
-因为有很多各种各样的程序在JVM上运行, 加上有几百个 JVM 参数, 其中很多会影响到 GC, 所以有很多方法可以调优程序的GC性能。
+因为有很多各种各样的程序在JVM上运行, 还有上百个 JVM 参数, 其中很多会影响到 GC, 所以有很多方法可以调优程序的GC性能。
 
 
 Therefore, there is no real silver bullet approach to tuning the JVM to match the performance goals you have to fulfill. What we have tried to do here is walk you through some common (and not so common) examples to give you a general idea of how problems like these can be approached. Coupled with the tooling overview and with a solid understanding of how the GC works, you have all the chances of successfully tuning garbage collection to boost the performance of your application.
