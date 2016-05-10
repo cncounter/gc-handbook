@@ -754,32 +754,34 @@ As always, this information should only be analyzed when you have identified tha
 像往常一样, 只有当你已经确定GC对应用程序的吞吐量和延迟有影响之后, 才应该分析这些信息. 在这样的情况下,您可能希望查看这些部分的日志。通常情况下, 每次GC循环中清理引用的数量都是很少的, 在许多情况下完全是0。如果不是这种情况, 而且花了比较多的时间来清理引用, 或者清除了很多引用, 那么还需要进一步调查分析。
 
 
-
-
-##
-##
-##
-##
-##
-##
-
-
 ### 解决方案
 
 
 When you have verified the application actually is suffering from the mis-, ab- or overuse of either weak, soft or phantom references, the solution often involves changing the application’s intrinsic logic. This is very application specific and generic guidelines are thus hard to offer. However, some generic solutions to bear in mind are:
 
-当你有验证应用程序实际上是遭受mis - ab -或过度使用弱,软或虚引用,解决方案通常需要改变应用程序的内在逻辑。这是非常特定于应用程序的,因此很难提供通用的指导方针。然而,要记住一些通用的解决方案是:
+当你验证程序确实遭受了 `mis-`,  `ab-` 或者是过度使用了 weak, soft or phantom  引用, 解决方案通常是需要修改程序的内部逻辑。每个程序都是不一样的, 因此很难提供通用的指导方针。然而, 应该记住一些通用的解决方式:
 
 
 - Weak references – if the problem is triggered by increased consumption of a specific memory pool, an increase in the corresponding pool (and possibly the total heap along with it) can help you out. As seen in the example section, increasing the total heap and young generation sizes alleviated the pain.
 - Phantom references – make sure you are actually clearing the references. It is easy to dismiss certain corner cases and have the clearing thread to not being able to keep up with the pace the queue is filled or to stop clearing the queue altogether, putting a lot of pressure to GC and creating a risk of ending up with an OutOfMemoryError.
 - Soft references – when soft references are identified as the source of the problem, the only real way to alleviate the pressure is to change the application’s intrinsic logic.
 
-- 弱引用,如果问题是引发了消费的增加一个特定的内存池,增加相应的池(也可能是总堆随之)可以帮助你。正如在此示例中所看到的部分,增加总堆和年轻代的大小来减轻疼痛。
-- 虚引用——确保你实际上是清除引用。很容易忽略某些角落病例和清理线程无法跟上步伐的队列或完全停止清除队列,施加很多压力GC和创建一个可能到最后只能依靠一个OutOfMemoryError。
-- 软引用,当软引用被认为是问题的根源,唯一真正的缓解压力的方法是改变应用程序的内在逻辑。
+<br/>
 
+- **弱引用**(Weak references) —— 如果问题是由于某个特定的内存池使用量的增长触发的, 那么增加相应池的大小(可能也需要增加总的堆内存大小)。正如在示例中所看到的, 增加总的堆内存以及年轻代的大小可以减轻症状。
+- **虚引用**(Phantom references) —— 请确保真正地清除了引用。编程中很容易忽略某些角落的虚引用, 或者在运行时清理线程无法跟上生产者队列的步伐,  或者完全停止清除队列,  就会对GC施加很多压力, 并且可能到最后会引起 **OutOfMemoryError**。
+- **软引用**(Soft references) ——  如果确定问题的根源是软引用, 真正缓解压力的办法就是修改源码,改变应用程序的内部逻辑。
+
+
+
+
+
+##
+##
+##
+##
+##
+##
 
 
 ## Other Examples
