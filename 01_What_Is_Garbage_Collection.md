@@ -106,6 +106,7 @@ The `shared_ptr` that we are making use of keeps track of the number of referenc
 
 
 
+
 ## Automated Memory Management
 
 ## 自动内存管理
@@ -118,9 +119,9 @@ In the C++ code above, we still had to explicitly say when we want to have memor
 
 
 
-## Reference Counting
+### Reference Counting
 
-## 引用计数
+### 引用计数
 
 
 The idea that we have demonstrated with the shared pointers of C++ can be applied to all objects. Many languages such as Perl, Python or PHP take this approach. This is best illustrated with a picture:
@@ -170,7 +171,8 @@ There are some ways to overcome this, such as using special ‘weak’ reference
 
 
 
-###Mark and Sweep
+
+### Mark and Sweep
 
 ### 标记清除
 
