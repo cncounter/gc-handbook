@@ -1,7 +1,14 @@
 #  Java垃圾收集指南
 
 
-Github项目地址: [https://github.com/cncounter/gc-handbook](https://github.com/cncounter/gc-handbook)
+> Github项目地址: [https://github.com/cncounter/gc-handbook](https://github.com/cncounter/gc-handbook)
+>
+> 时间: 2016年5月10日
+>
+> 版本: <V0.01>
+>
+> 状态: 未校对
+
 
 ## 目录
 
