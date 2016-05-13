@@ -26,5 +26,12 @@ Github项目地址: [https://github.com/cncounter/gc-handbook](https://github.co
 <a target="_blank" href="https://github.com/cncounter/gc-handbook/raw/master/Plumbr_Handbook_Java_Garbage_Collection.pdf">Plumbr_Java_GC手册_英文版.pdf</a>
 
 
+## 相关链接
+
+翻译人员: [铁锚 http://blog.csdn.net/renfufei](http://blog.csdn.net/renfufei)
+
+加入【[CNC开源组件交流群: 316630025](http://jq.qq.com/?_wv=1027&k=2FzyKg3)】
+
+
 
 <div style="page-break-after : always;"> </div>

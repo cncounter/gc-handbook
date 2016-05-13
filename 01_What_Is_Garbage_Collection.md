@@ -243,3 +243,8 @@ In this handbook, we will explain how Garbage Collection works in the JVM and ho
 
 原文链接: [What Is Garbage Collection?](https://plumbr.eu/handbook/what-is-garbage-collection)
 
+
+
+<div style="page-break-after : always;"> </div>
+
+
