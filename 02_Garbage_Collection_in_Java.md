@@ -4,7 +4,7 @@
 The introduction to Mark and Sweep Garbage Collection is a mostly theoretical one. When things come to practice, numerous adjustments need to be done to accommodate for real-world scenarios and needs. For a simple example, let us take a look at what sorts of bookkeeping the JVM needs to do so that we can safely continue allocating objects.
 
 
-标记-清扫算法是垃圾收集的一个主要理论。当理论需要实践, 很多东西需要做调整,以适应现实场景和需求。最简单的例子,让我们用小本本记下JVM需要做哪些事, 才能够安全地继续分配对象存储空间。
+标记-清除(Mark and Sweep)是最经典的垃圾收集算法。当一个理论用到生产实践中, 就有很多东西需要优化调整, 来适应现实环境的需求。最简单的例子,让我们用小本本记下,如何才能保证JVM长期安全地分配对象。
 
 
 
@@ -17,26 +17,30 @@ Fragmenting and Compacting
 Whenever sweeping takes place, the JVM has to make sure the areas filled with unreachable objects can be reused. This can (and eventually will) lead to memory fragmentation which, similarly to disk fragmentation, leads to two problems:
 
 
-每发生一次清除(sweeping), JVM 必须确保不可达对象所占用的内存区域可以被重用。这可能(最终)产生内存碎片(类似于磁盘碎片的东西),并导致两个问题:
+每发生一次清除(sweeping), JVM 必须确保不可达对象占用的内存可以被重用。但这可能(最终)会产生内存碎片(类似于磁盘碎片的东西), 引发两种问题:
 
 
 - Write operations become more time-consuming as finding the next free block of sufficient size is no longer a trivial operation.
 
 - When creating new objects, JVM is allocating memory in contiguous blocks. So if fragmentation escalates to a point where no individual free fragment is large enough to accommodate the newly created object, an allocation error occurs.
 
-- 写操作变得更加耗时, 因为寻找下一个足够大的空闲内存块不再是一个简单的操作。
+- 写操作变得更加耗时, 因为寻找一个足够大的空闲内存块不再是一件简单的事情。
 
-- 在创建新对象时,JVM在相邻的块分配内存。如果碎片问题升级到没有任何一个空闲的片段来容纳新创建的对象,就会发生内存分配错误(allocation error)。
+- 当创建新对象时,JVM在相邻的块中分配内存。如果碎片问题很严重,没有空闲的片段可以存放新创建的对象,就会发生内存分配错误(allocation error)。
 
 
 
 To avoid such problems, the JVM is making sure the fragmenting does not get out of hand. So instead of just marking and sweeping, a ‘memory defrag’ process also happens during garbage collection. This process relocates all the reachable objects next to each other, eliminating (or reducing) the fragmentation. Here is an illustration of that:
 
 
-为了避免这些问题,JVM 必须确保碎片问题不失控。因此不仅仅是标记和清除, 一个“内存碎片整理”的过程也需要在垃圾收集过程中执行。这个过程让所有可访问的对象一个挨着一个,以消除(或减少)的碎片。示意图如下:
+要避免这类问题,JVM 必须确保碎片问题不失控。因此不单是标记和清除, 在垃圾收集过程中还需要执行 “内存碎片整理” 程序。这个过程让所有可达对象(reachable objects)依次排列, 以消除(或减少)碎片。示意图如下所示:
 
 
 ![](02_01_fragmented-vs-compacted-heap.png)
+
+<br/>
+## !!!!!!!!!!!!1校对到此处
+<br/>
 
 
 
