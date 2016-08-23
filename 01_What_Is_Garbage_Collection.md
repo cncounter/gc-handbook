@@ -235,7 +235,7 @@ A crucially important thing about this approach is that the cycles are no longer
 The not-so-good thing is that the application threads need to be stopped for the collection to happen as you cannot really count references if they keep changing all the time. Such a situation when the application is temporarily stopped so that the JVM can indulge in housekeeping activities is called a **`Stop The World pause`**. They may happen for many reasons, but garbage collection is by far the most popular one.
 
 
-不好的地方是, 在垃圾收集的过程中, 需要暂停所有线程。假如引用一直不停地变化, 那就没法进行统计了。这种情况叫做 **STW停顿**(**`Stop The World pause`**, 全线暂停), 让应用程序暂时停止的，以便JVM可以进行清理工作。有很多原因可能触发 STW停顿,  但垃圾收集是最主要的原因。
+不好的地方是, 在垃圾收集的过程中, 需要暂停所有线程。假如引用一直不停地变化, 那就没法进行统计了。这种情况叫做 **STW停顿**(**`Stop The World pause`**, 全线暂停), 让应用程序暂时停止的，以便JVM可以进行清理工作。有很多原因可能触发 STW停顿,  其中垃圾收集是最主要的原因。
 
 
 
