@@ -38,20 +38,18 @@ To avoid such problems, the JVM is making sure the fragmenting does not get out 
 
 ![](02_01_fragmented-vs-compacted-heap.png)
 
-<br/>
-## !!!!!!!!!!!!1校对到此处
-<br/>
+
 
 
 
 Generational Hypothesis
 
-分代假说(Generational Hypothesis)
+分代假设(Generational Hypothesis)
 
 
 As we have mentioned before, doing a garbage collection entails stopping the application completely. It is also quite obvious that the more objects there are the longer it takes to collect all the garbage. But what if we would have a possibility to work with smaller memory regions? Investigating the possibilities, a group of researchers has observed that most allocations inside applications fall into two categories:
 
-正如我们之前提到过的,执行垃圾收集需要完全停止应用程序。很明显,对象越多则收集所有垃圾的时间就越长。但可不可以只收集处理一个较小的内存区域呢?为了调查这种可能性,研究人员观察到,程序中的大多数内部分配可以归为两类:
+我们前面提到过,执行垃圾收集需要停止整个应用。很明显,对象越多则收集所有垃圾消耗的时间就越长。但可不可以只处理一个较小的内存区域呢? 为了探究这种可能性,研究人员发现,程序中的大多数可回收的内存可归为两类:
 
 
 - Most of the objects become unused quickly
@@ -59,33 +57,36 @@ As we have mentioned before, doing a garbage collection entails stopping the app
 - The ones that do not usually survive for a (very) long time
 
 
-- 大多数对象很快就不再使用
+- 大部分对象很快就不再使用
 
-- 有一部分并不会(很)长时间地生存
+- 还有一部分不会立即无用,但也不会持续(太)长时间
 
 
 
 These observations come together in the Weak Generational Hypothesis. Based on this hypothesis, the memory inside the VM is divided into what is called the Young Generation and the Old Generation. The latter is sometimes also called Tenured.
 
-这些观察形成了 **弱代假设**(Weak Generational Hypothesis)。基于这一假设, VM中的内存被分为 年轻代(Young Generation)和老年代(Old Generation)。老年代有时候也称为年老区(Tenured)。
+这些观测形成了 **弱代假设**(Weak Generational Hypothesis)。基于这一假设, VM中的内存被分为**年轻代(Young Generation)**和**老年代(Old Generation)**。老年代有时候也称为年老区(Tenured)。
 
 ![](02_02_object-age-based-on-GC-gen-hypothesis.png)
 
 
 Having such separate and individually cleanable areas allows for a multitude of different algorithms that have come a long way in improving the performance of the GC.
 
-分为这样两个单独的清理区域，允许各自采用不同的算法来大幅度改善GC的性能。
+拆分为这样两个可清理的单独区域，允许采用不同的算法来大幅提高GC的性能。
 
 
 This is not to say there are no issues with such an approach. For one, objects from different generations may in fact have references to each other that also count as ‘de facto’ GC roots when collecting a generation.
 
-这并不是说这种方法没有问题。例如，在不同分代中的对象有可能相互引用, 在收集某一个分代时也可以算是“实际上的”GC root。
+这种方法也不是没有问题。例如，在不同分代中的对象可能会互相引用, 在收集某一个分代时就会成为 "事实上的" GC root。
 
 
 But most importantly, the generational hypothesis may in fact not hold for some applications. Since the GC algorithms are optimized for objects which either ‘die young’ or ‘are likely to live forever’, the JVM behaves rather poorly with objects with ‘medium’ life expectancy.
 
-但最重要的是,分代假说可能并不适用于某些程序。因为GC算法是针对“要么英年早逝”，“要么得到永生”的对象来进行优化的, JVM有时候对那种活到半途的对象就显得黔驴技穷了。
+当然,要着重强调的是,分代假设并不适用于所有程序。因为GC算法专门针对“要么死得快”，“否则活得长” 这类特征的对象来进行优化, JVM对收集那种存活时间半长不长的对象就显得非常尴尬了。
 
+<br/>
+## !!!!!!!!!!!!1校对到此处
+<br/>
 
 Memory Pools
 
@@ -160,7 +161,7 @@ The empty Survivor space will start having residents next time the Young generat
 
 This process of copying the live objects between the two Survivor spaces is repeated several times until some objects are considered to have matured and are ‘old enough’. Remember that, based on the generational hypothesis, objects which have survived for some time are expected to continue to be used for very long time.
 
-在两个存活区之间拷贝对象的过程会重复多次, 直到某些对象存活的时间已经足够 “老了”。请记住,分代假说认为, 存活超过一定次数的对象会继续存活更长时间。
+在两个存活区之间拷贝对象的过程会重复多次, 直到某些对象存活的时间已经足够 “老了”。请记住,分代假设认为, 存活超过一定次数的对象会继续存活更长时间。
 
 
 Such ‘tenured’ objects can thus be promoted to the Old Generation. When this happens, objects are not moved from one survivor space to another but instead to the Old space, where they will reside until they become unreachable.
