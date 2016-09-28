@@ -84,18 +84,15 @@ But most importantly, the generational hypothesis may in fact not hold for some 
 
 当然,要着重强调的是,分代假设并不适用于所有程序。因为GC算法专门针对“要么死得快”，“否则活得长” 这类特征的对象来进行优化, JVM对收集那种存活时间半长不长的对象就显得非常尴尬了。
 
-<br/>
-## !!!!!!!!!!!!1校对到此处
-<br/>
 
 Memory Pools
 
-内存池
+内存池(Memory Pools)
 
 
 The following division of memory pools within the heap should be familiar. What is not so commonly understood is how Garbage Collection performs its duties within the different memory pools. Notice that in different GC algorithms some implementation details might vary but, again, the concepts in this chapter remain effectively the same.
 
-堆内存中内存池的划分也是类似的。不太容易理解的是在不同的内存池中垃圾收集是如何进行的。请注意,不同的GC算法在实现细节上可能会有所不同,但相关概念都和本章所介绍的是一致的。
+堆内存中的内存池划分也是类似的。不太容易理解的地方在于各个内存池中的垃圾收集是如何运行的。请注意,不同的GC算法在实现细节上可能会有所不同,但和本章所介绍的相关概念都是一致的。
 
 
 ![](02_03_java-heap-eden-survivor-old.png)
@@ -104,30 +101,30 @@ The following division of memory pools within the heap should be familiar. What 
 
 Eden
 
-新生儿(Eden,伊甸园)
+新生代(Eden,伊甸园)
 
 
 Eden is the region in memory where the objects are typically allocated when they are created. As there are typically multiple threads creating a lot of objects simultaneously, Eden is further divided into one or more Thread Local Allocation Buffer (TLAB for short) residing in the Eden space. These buffers allow the JVM to allocate most objects within one thread directly in the corresponding TLAB, avoiding the expensive synchronization with other threads.
 
-Eden 是内存中的一个区域, 通常新创建的对象都是在这个区域分配内存。通常会有多个线程同时创建多个对象, 所以 Eden 一般会被进一步划分成一到多个线程本地分配缓冲区(Thread Local Allocation Buffer, 简称TLAB)。这些缓冲区允许JVM直接在线程对应的TLAB中分配大部分对象, 避免昂贵的同步操作。
+Eden 是内存中的一个区域, 用来分配新创建的对象。通常会有多个线程同时创建多个对象, 所以 Eden 区被划分为多个 线程本地分配缓冲区(Thread Local Allocation Buffer, 简称TLAB)。通过这种缓冲区划分,大部分对象直接由JVM 在对应线程的TLAB中分配, 避免与其他线程的同步操作。
 
 
 
 When allocation inside a TLAB is not possible (typically because there’s not enough room there), the allocation moves on to a shared Eden space. If there’s not enough room in there either, a garbage collection process in Young Generation is triggered to free up more space. If the garbage collection also does not result in sufficient free memory inside Eden, then the object is allocated in the Old Generation.
 
-如果不能继续在 TLAB 中分配内存(通常因为没有足够的空间),就会在共享Eden空间(shared Eden space)中分配。如果还没有足够的空间, 就会触发一次 年轻代垃圾收集过程, 以释放更多的空间。如果垃圾收集后在 Eden 区还没有足够的空闲内存, 那么对象就会被分配到老年代之中。
+如果 TLAB 中没有足够的内存空间, 就会在共享Eden区(shared Eden space)之中分配。如果共享Eden区也没有足够的空间, 就会触发一次 年轻代GC 来释放内存空间。如果GC之后 Eden 区依然没有足够的空闲内存区域, 则对象就会被分配到老年代空间(Old Generation)。
 
 
 
 When Eden is being collected, GC walks all the reachable objects from the roots and marks them as alive.
 
-在 Eden 区垃圾回收时, GC将所有从 root 可达的对象过一遍, 并标记为存活对象。
+当 Eden 区进行垃圾收集时, GC将所有从 root 可达的对象过一遍, 并标记为存活对象。
 
 
 
 We have previously noted that objects can have cross-generational links so a straightforward approach would have to check all the references from other generations to Eden. Doing so would unfortunately defeat the whole point of having generations in the first place. The JVM has a trick up its sleeve: card-marking. Essentially, the JVM just marks the rough location of ‘dirty’ objects in Eden that may have links to them from the Old Generation. You can read more on that in Nitsan’s blog entry.
 
-我们曾指出,对象可能会存在跨代引用, 所以需要一个简单的方法来检查所有从其他分代中指向Eden的引用。这样做又会遭遇各个分代之间一遍又一遍的引用。JVM在小包包里面有一件法宝: 卡片标记(card-marking)。从本质上讲,JVM只需要记住Eden区中 “脏”对象的粗略位置,可能有老年代的引用指向这些地方。你可以从 [Nitsan 的博客](http://psy-lob-saw.blogspot.com/2014/10/the-jvm-write-barrier-card-marking.html) 中深入了解。
+我们曾指出,对象间可能会有跨代的引用, 所以需要一种方法来标记从其他分代中指向Eden的所有引用。这样做又会遭遇各个分代之间一遍又一遍的引用。JVM在实现时采用了一些绝招: 卡片标记(card-marking)。从本质上讲,JVM只需要记住Eden区中 “脏”对象的粗略位置, 可能有老年代的对象引用指向这部分区间。更多细节请参考: [Nitsan 的博客](http://psy-lob-saw.blogspot.com/2014/10/the-jvm-write-barrier-card-marking.html) 中深入了解。
 
 
 ![](02_04_TLAB-in-Eden-memory.png)
@@ -136,7 +133,12 @@ We have previously noted that objects can have cross-generational links so a str
 
 After the marking phase is completed, all the live objects in Eden are copied to one of the Survivor spaces. The whole Eden is now considered to be empty and can be reused to allocate more objects. Such an approach is called “Mark and Copy”: the live objects are marked, and then copied (not moved) to a survivor space.
 
-标记阶段完成后, Eden中所有存活的对象都会被复制到存活区(Survivor spaces)中的一个。整个Eden接着被认为是空的,可以用来分配其他新对象。这种方法被称为“标记-复制”(Mark and Copy): 存活的对象被标记, 然后复制到一个存活区空间(注意,是复制,不是移动)。
+标记阶段完成后, Eden中所有存活的对象都会被复制到存活区(Survivor spaces)里面。整个Eden区就可以被认为是空的, 然后就能用来分配新对象。这种方法叫做 “标记-复制”(Mark and Copy): 存活的对象被标记, 然后拷贝到一个存活区(注意,是复制,而不是移动)。
+
+
+<br/>
+## !!!!!!!!!!!!1校对到此处
+<br/>
 
 
 Survivor Spaces
