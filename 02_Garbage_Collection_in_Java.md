@@ -167,24 +167,24 @@ Such ‘tenured’ objects can thus be promoted to the Old Generation. When this
 这类“ 年老” 的对象因此被提升到老年代。提升的时候， 存活区的对象不再是拷贝到另一个存活区,而是迁移到老年代, 并在老年代一直驻留, 直到变为不可达对象。
 
 
-<br/>
-## !!!!!!!!!!!!1校对到此处
-<br/>
-
 To determine whether the object is ‘old enough’ to be considered ready for propagation to Old space, GC tracks the number of collections a particular object has survived. After each generation of objects finishes with a GC, those still alive have their age incremented. Whenever the age exceeds a certain tenuring threshold the object will be promoted to Old space.
 
-为了判断一个对象是否“足够老”, 可以提升(Promotion)到老年代，GC跟踪每个特定对象存活的次数。每次分代GC完成后,那些仍然存活的对象的年龄就会递增。当年龄超过一定的阈值, 对象将被提升到老年代空间。
+为了确定一个对象是否“足够老”, 可以被提升(Promotion)到老年代，GC模块跟踪记录每个存活区对象存活的次数。每次分代GC完成后,存活对象的年龄就会增长。当年龄超过提升阈值, 就会被提升到老年代区域。
 
 
 The actual tenuring threshold is dynamically adjusted by the JVM, but specifying -XX:+MaxTenuringThreshold sets an upper limit on it. Setting -XX:+MaxTenuringThreshold=0 results in immediate promotion without copying it between Survivor spaces. By default, this threshold on modern JVMs is set to 15 GC cycles. This is also the maximum value in HotSpot.
 
-实际的提升阈值是由JVM动态调整的,但可以手动指定 `-XX:+MaxTenuringThreshold` 作为上限。设置 `-XX:+MaxTenuringThreshold=0` 的结果是不在存活区之间拷贝，直接提升到老年代。在现代 JVM 中这个阈值默认设置为**15**个 GC周期。在HotSpot中这也是最大值。
+具体的提升阈值由JVM动态调整,但也可以用参数 `-XX:+MaxTenuringThreshold` 来指定上限。如果设置 `-XX:+MaxTenuringThreshold=0` , 则GC时存活对象不在存活区之间拷贝，直接提升到老年代。现代 JVM 中这个阈值默认设置为**15**个 GC周期。这也是HotSpot中的最大值。
 
 
 Promotion may also happen prematurely if the size of the Survivor space is not enough to hold all of the live objects in the Young generation.
 
-如果存活区空间不足以存放年轻代中的存活对象，提升(Promotion)也可能发生更早地发生。
+如果存活区空间不够存放年轻代中的存活对象，提升(Promotion)也可能更早地进行。
 
+
+<br/>
+## !!!!!!!!!!!!1校对到此处
+<br/>
 
 Old Generation
 
