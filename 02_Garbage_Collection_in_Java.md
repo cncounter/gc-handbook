@@ -1,4 +1,4 @@
-# 2. Java的垃圾收集
+# 2. Java垃圾收集简介
 
 
 The introduction to Mark and Sweep Garbage Collection is a mostly theoretical one. When things come to practice, numerous adjustments need to be done to accommodate for real-world scenarios and needs. For a simple example, let us take a look at what sorts of bookkeeping the JVM needs to do so that we can safely continue allocating objects.
@@ -124,7 +124,7 @@ When Eden is being collected, GC walks all the reachable objects from the roots 
 
 We have previously noted that objects can have cross-generational links so a straightforward approach would have to check all the references from other generations to Eden. Doing so would unfortunately defeat the whole point of having generations in the first place. The JVM has a trick up its sleeve: card-marking. Essentially, the JVM just marks the rough location of ‘dirty’ objects in Eden that may have links to them from the Old Generation. You can read more on that in Nitsan’s blog entry.
 
-我们曾指出,对象间可能会有跨代的引用, 所以需要一种方法来标记从其他分代中指向Eden的所有引用。这样做又会遭遇各个分代之间一遍又一遍的引用。JVM在实现时采用了一些绝招: 卡片标记(card-marking)。从本质上讲,JVM只需要记住Eden区中 “脏”对象的粗略位置, 可能有老年代的对象引用指向这部分区间。更多细节请参考: [Nitsan 的博客](http://psy-lob-saw.blogspot.com/2014/10/the-jvm-write-barrier-card-marking.html) 中深入了解。
+我们曾指出,对象间可能会有跨代的引用, 所以需要一种方法来标记从其他分代中指向Eden的所有引用。这样做又会遭遇各个分代之间一遍又一遍的引用。JVM在实现时采用了一些绝招: 卡片标记(card-marking)。从本质上讲,JVM只需要记住Eden区中 “脏”对象的粗略位置, 可能有老年代的对象引用指向这部分区间。更多细节请参考: [Nitsan 的博客](http://psy-lob-saw.blogspot.com/2014/10/the-jvm-write-barrier-card-marking.html) 。
 
 
 ![](02_04_TLAB-in-Eden-memory.png)
@@ -136,25 +136,21 @@ After the marking phase is completed, all the live objects in Eden are copied to
 标记阶段完成后, Eden中所有存活的对象都会被复制到存活区(Survivor spaces)里面。整个Eden区就可以被认为是空的, 然后就能用来分配新对象。这种方法叫做 “标记-复制”(Mark and Copy): 存活的对象被标记, 然后拷贝到一个存活区(注意,是复制,而不是移动)。
 
 
-<br/>
-## !!!!!!!!!!!!1校对到此处
-<br/>
-
 
 Survivor Spaces
 
-存活区空间
+存活区(Survivor Spaces)
 
 
 Next to the Eden space reside two Survivor spaces called from and to. It is important to notice that one of the two Survivor spaces is always empty.
 
-Eden 区的旁边是两个存活区, 称为 from 空间和 to 空间。重要的是请注意, 两个存活区空间中总有一个是空闲的(empty)。
+Eden 区的旁边是两个存活区, 称为 from 空间和 to 空间。需要着重强调的的是, 其中总有一个存活区是空的(empty)。
 
 
 
 The empty Survivor space will start having residents next time the Young generation gets collected. All of the live objects from the whole of the Young generation (that includes both the Eden space and the non-empty ‘from’ Survivor space) are copied to the ‘to’ survivor space. After this process has completed, ‘to’ now contains objects and ‘from’ does not. Their roles are switched at this time.
 
-空闲的那个存活区是下一次年轻代垃圾收集时的存放空间。年轻代()(包括伊甸园空间和非空”从“幸存者空间)中的所有存活对象都会被复制到 ”to“ 存活区。这个过程完成后, ”to“ 区包含对象而 'from' 区没有。两者的角色进行调换。
+空的那个存活区用于在下一次年轻代GC时存放收集的对象。年轻代中所有的存活对象(包括Edenq区和非空的那个 "from" 存活区)都会被复制到 ”to“ 存活区。GC过程完成后, ”to“ 区有对象,而 'from' 区里没有对象。两者的角色进行正好切换 。
 
 
 ![](02_05_how-java-gc-works.png)
@@ -163,13 +159,17 @@ The empty Survivor space will start having residents next time the Young generat
 
 This process of copying the live objects between the two Survivor spaces is repeated several times until some objects are considered to have matured and are ‘old enough’. Remember that, based on the generational hypothesis, objects which have survived for some time are expected to continue to be used for very long time.
 
-在两个存活区之间拷贝对象的过程会重复多次, 直到某些对象存活的时间已经足够 “老了”。请记住,分代假设认为, 存活超过一定次数的对象会继续存活更长时间。
+存活的对象会在两个存活区之间拷贝多次, 直到某些对象的存活 时间达到一定的阀值。分代理论假设, 存活超过一定时间的对象很可能会继续存活更长时间。
 
 
 Such ‘tenured’ objects can thus be promoted to the Old Generation. When this happens, objects are not moved from one survivor space to another but instead to the Old space, where they will reside until they become unreachable.
 
-这类“终身”的对象可以被提升到老年代。这种情况下, 存活区的对象不是被移动到另一个存活区,而是迁移到老年代, 在老年代一直驻留, 直到变为不可达对象。
+这类“ 年老” 的对象因此被提升到老年代。提升的时候， 存活区的对象不再是拷贝到另一个存活区,而是迁移到老年代, 并在老年代一直驻留, 直到变为不可达对象。
 
+
+<br/>
+## !!!!!!!!!!!!1校对到此处
+<br/>
 
 To determine whether the object is ‘old enough’ to be considered ready for propagation to Old space, GC tracks the number of collections a particular object has survived. After each generation of objects finishes with a GC, those still alive have their age incremented. Whenever the age exceeds a certain tenuring threshold the object will be promoted to Old space.
 
