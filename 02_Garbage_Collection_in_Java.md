@@ -182,10 +182,6 @@ Promotion may also happen prematurely if the size of the Survivor space is not e
 如果存活区空间不够存放年轻代中的存活对象，提升(Promotion)也可能更早地进行。
 
 
-<br/>
-## !!!!!!!!!!!!1校对到此处
-<br/>
-
 Old Generation
 
 老年代(Old Generation)
@@ -195,13 +191,13 @@ Old Generation
 
 The implementation for the Old Generation memory space is much more complex. Old Generation is usually significantly larger and is occupied by objects that are less likely to be garbage.
 
-老年代内存空间的GC实现要复杂得多。老年代通常会越来越大，其中的对象可能是垃圾的概率也越来越小。
+老年代的GC实现要复杂得多。老年代内存空间通常会更大，里面的对象是垃圾的概率也更小。
 
 
 
 GC in the Old Generation happens less frequently than in the Young Generation. Also, since most objects are expected to be alive in the Old Generation, there is no Mark and Copy happening. Instead, the objects are moved around to minimize fragmentation. The algorithms cleaning the Old space are generally built on different foundations. In principle, the steps taken go through the following:
 
-老年代GC发生的频率比年轻代小很多。同时, 因为在老年代中的大多数对象都是存活的, 所以就没有标记和复制(Mark and Copy)。相反,对象会被移动以实现内存碎片最小化。清理老年代空间的算法通常是建立在不同的基础上的。原则上,会采取以下这些步骤:
+老年代GC发生的频率比年轻代小很多。同时, 因为预期老年代中的对象大部分是存活的, 所以不再使用标记和复制(Mark and Copy)算法。而是采用移动对象的方式来实现最小化内存碎片。老年代空间的清理算法通常是建立在不同的基础上的。原则上,会执行以下这些步骤:
 
 
 
@@ -211,17 +207,21 @@ GC in the Old Generation happens less frequently than in the Young Generation. A
 
 - Compact the content of old space by copying the live objects contiguously to the beginning of the Old space
 
-- 通过标志位(marked bit) 标记所有通过 GC roots 可访问的对象.
+- 通过标志位(marked bit),标记所有通过 GC roots 可达的对象.
 
 - 删除所有不可达对象
 
-- 整理老年代空间中的内容，将所有存活对象连续地复制到老年代空间开始的地方。
+- 整理老年代空间中的内容，方法是将所有的存活对象复制,从老年代空间开始的地方,依次存放。
 
 
 As you can see from the description, GC in Old Generation has to deal with explicit compacting to avoid excessive fragmentation.
 
-正如你所看到的描述, 老年代GC必须明确地进行整理,以避免碎片过多。
+通过上面的描述可知, 老年代GC必须明确地进行整理,以避免内存碎片过多。
 
+
+<br/>
+## !!!!!!!!!!!!1校对到此处
+<br/>
 
 PermGen
 
