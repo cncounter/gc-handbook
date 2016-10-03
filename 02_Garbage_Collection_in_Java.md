@@ -219,10 +219,6 @@ As you can see from the description, GC in Old Generation has to deal with expli
 通过上面的描述可知, 老年代GC必须明确地进行整理,以避免内存碎片过多。
 
 
-<br/>
-## !!!!!!!!!!!!1校对到此处
-<br/>
-
 PermGen
 
 永久代(PermGen)
@@ -231,7 +227,7 @@ PermGen
 
 Prior to Java 8 there existed a special space called the ‘Permanent Generation’. This is where the metadata such as classes would go. Also, some additional things like internalized strings were kept in Permgen. It actually used to create a lot of trouble to Java developers, since it is quite hard to predict how much space all of that would require. Result of these failed predictions took the form of java.lang.OutOfMemoryError: Permgen space. Unless the cause of such OutOfMemoryError was an actual memory leak, the way to fix this problem was to simply increase the permgen size similar to the following example setting the maximum allowed permgen size to 256 MB: 
 
-在Java 8之前存在一个特殊的空间,叫做“永久代”(Permanent Generation)。这是元数据(metadata)存放的区域,如 class 信息等。此外,其他一些额外的信息也存放在这个区域中, 例如内部化的字符串(internalized strings)等。实际上这给Java开发者造成了很多麻烦,因为很难预测到底需要占用多少空间。这些失败的预测导致的就是 `java.lang.OutOfMemoryError: Permgen space`这种形式的错误。除非导致 OutOfMemoryError 的原因确实是内存泄漏,否则就只需要增加 permgen 的大小，例如下面的示例就是设置 permgen 最大允许的空间为 256 MB:
+在Java 8 之前有一个特殊的空间,叫做“永久代”(Permanent Generation)。这是存储元数据(metadata)的地方,比如 class 信息等。此外,这个区域中也保存有其他的数据和信息, 包括 内部化的字符串(internalized strings)等等。实际上这给Java开发者造成了很多麻烦,因为很难去计算这块区域到底需要占用多少内存空间。预测失败导致的结果就是产生 `java.lang.OutOfMemoryError: Permgen space` 这种形式的错误。除非 ·OutOfMemoryError· 确实是内存泄漏导致的,否则就只能增加 permgen 的大小，例如下面的示例，就是设置 permgen 最大空间为 256 MB:
 
 
 	java -XX:MaxPermSize=256m com.mycompany.MyApplication
@@ -246,21 +242,25 @@ Metaspace
 
 As predicting the need for metadata was a complex and inconvenient exercise, the Permanent Generation was removed in Java 8 in favor of the Metaspace. From this point on, most of the miscellaneous things were moved to regular Java heap.
 
-预测元数据需要多大的空间是一个很复杂的事, 所以在Java 8之中删除了永久代(Permanent Generation)，改用了 Metaspace。从此以后, 很多杂七杂八的东西都被移动到了常规的Java堆里面。
+既然估算元数据所需空间那么复杂, Java 8直接删除了永久代(Permanent Generation)，改用 Metaspace。从此以后, Java 中很多杂七杂八的东西都放置到普通的堆内存里。
 
 
 The class definitions, however, are now loaded into something called Metaspace. It is located in the native memory and does not interfere with the regular heap objects. By default, Metaspace size is only limited by the amount of native memory available to the Java process. This saves developers from a situation when adding just one more class to the application results in the java.lang.OutOfMemoryError: Permgen space. Notice that having such seemingly unlimited space does not ship without costs – letting the Metaspace to grow uncontrollably you can introduce heavy swapping and/or reach native allocation failures instead.
 
-当然，类定义(class definitions)现在会被加载到 Metaspace 里面。它位于本地内存(native memory),不再影响到常规的对象。默认情况下, Metaspace的大小只由Java进程可用的本地内存大小限制。这让程序员不再因为加载了几个类就导致 `java.lang.OutOfMemoryError: Permgen space. ` 这种问题。注意, 这种看似无限的空间也不是没有成本—— 如果 Metaspace 增长失控则可能会导致很严重的内存交换(swapping) 或者 引起本地内存分配失败。
+当然，像类定义(class definitions)之类的信息会被加载到 Metaspace 中。元数据区位于本地内存(native memory),不再影响到普通的Java对象。默认情况下, Metaspace的大小只受限于 Java进程可用的本地内存。这样程序就不再因为多加载了几个类/JAR包就导致 `java.lang.OutOfMemoryError: Permgen space. ` 。注意, 这种不受限制的空间也不是没有代价的 —— 如果 Metaspace 失控, 则可能会导致很严重的内存交换(swapping), 或者导致本地内存分配失败。
 
 
 In case you still wish to protect yourself for such occasions you can limit the growth of Metaspace similar to following, limiting Metaspace size to 256 MB:
 
-如果你仍然希望在这样的场合保护机器，那可以使用下面这样的方式来限制 Metaspace 的增长, 如 256 MB:
+如果需要避免这种最坏情况，那么可以通过下面这样的方式来限制 Metaspace 的大小, 如 256 MB:
 
 
 	java -XX:MaxMetaspaceSize=256m com.mycompany.MyApplication
 
+
+<br/>
+## !!!!!!!!!!!!1校对到此处
+<br/>
 
 
 Minor GC vs Major GC vs Full GC
