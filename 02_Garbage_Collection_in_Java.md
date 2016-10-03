@@ -258,33 +258,37 @@ In case you still wish to protect yourself for such occasions you can limit the 
 	java -XX:MaxMetaspaceSize=256m com.mycompany.MyApplication
 
 
-<br/>
-## !!!!!!!!!!!!1校对到此处
-<br/>
-
 
 Minor GC vs Major GC vs Full GC
 
-对比: Minor GC vs Major GC vs Full GC
+Minor GC vs Major GC vs Full GC
 
-> Minor GC(小型GC,小型GC) - 大型GC(Major GC) - 以及完全GC(Full GC)
+> 小型GC(Minor GC)
+> 
+> 大型GC(Major GC)
+> 
+> 完全GC(Full GC)
 
 
 
 The Garbage Collection events cleaning out different parts inside heap memory are often called Minor, Major and Full GC events. In this section we cover the differences between these events. Along the way we can hopefully see that this distinction is actually not too relevant.
 
-清理堆内存中不同部分的垃圾收集事件(Garbage Collection events)通常称为: 小型GC(Minor GC) - 大型GC(Major GC) - 和完全GC(Full GC) 事件。本节介绍这些事件的区别。在此过程 我们可以看到这些区别并不是完全相关。
+垃圾收集事件(Garbage Collection events)通常分为: 小型GC(Minor GC) - 大型GC(Major GC) - 和完全GC(Full GC) 事件。本节介绍这些事件及其区别。然后你会发现这些区别也不是特别清晰。
 
 
 What typically is relevant is whether the application meets its SLAs, and to see that you monitor your application for latency or throughput. And only then are GC events linked to the results. What is important about these events is whether they stopped the application and how long it took.
 
-而且你可以通过监控程序的延迟和吞吐量看到, 是否满足SLA(Service Level Agreement，服务水平协议)和这个是有关系的。也只有那时候GC事件才关联到其结果。重要的是这些事件是否停止整个程序,以及耗费多长时间。
+最重要的是,应用程序是否满足 服务级别协议(Service Level Agreement, SLA), 并通过监控程序查看响应延迟和吞吐量。也只有那时候才能看到GC事件相关的结果。重要的是这些事件是否停止整个程序,以及持续多长时间。
 
 
 But as the terms Minor, Major and Full GC are widely used and without a proper definition, let us look into the topic in a bit more detail.
 
-虽然 Minor, Major and Full GC 这些术语被广泛应用, 也没有标准的定义, 但我们还是来深入地了解一下这个话题吧。
+虽然 Minor, Major 和 Full GC 这些术语被广泛应用, 但并没有标准的定义, 我们还是来深入了解一下具体的细节吧。
 
+
+<br/>
+## !!!!!!!!!!!!1校对到此处
+<br/>
 
 Minor GC
 
