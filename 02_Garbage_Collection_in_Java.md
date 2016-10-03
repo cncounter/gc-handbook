@@ -133,7 +133,7 @@ We have previously noted that objects can have cross-generational links so a str
 
 After the marking phase is completed, all the live objects in Eden are copied to one of the Survivor spaces. The whole Eden is now considered to be empty and can be reused to allocate more objects. Such an approach is called “Mark and Copy”: the live objects are marked, and then copied (not moved) to a survivor space.
 
-标记阶段完成后, Eden中所有存活的对象都会被复制到存活区(Survivor spaces)里面。整个Eden区就可以被认为是空的, 然后就能用来分配新对象。这种方法叫做 “标记-复制”(Mark and Copy): 存活的对象被标记, 然后拷贝到一个存活区(注意,是复制,而不是移动)。
+标记阶段完成后, Eden中所有存活的对象都会被复制到存活区(Survivor spaces)里面。整个Eden区就可以被认为是空的, 然后就能用来分配新对象。这种方法称为 “标记-复制”(Mark and Copy): 存活的对象被标记, 然后拷贝到一个存活区(注意,是复制,而不是移动)。
 
 
 
@@ -227,7 +227,7 @@ PermGen
 
 Prior to Java 8 there existed a special space called the ‘Permanent Generation’. This is where the metadata such as classes would go. Also, some additional things like internalized strings were kept in Permgen. It actually used to create a lot of trouble to Java developers, since it is quite hard to predict how much space all of that would require. Result of these failed predictions took the form of java.lang.OutOfMemoryError: Permgen space. Unless the cause of such OutOfMemoryError was an actual memory leak, the way to fix this problem was to simply increase the permgen size similar to the following example setting the maximum allowed permgen size to 256 MB: 
 
-在Java 8 之前有一个特殊的空间,叫做“永久代”(Permanent Generation)。这是存储元数据(metadata)的地方,比如 class 信息等。此外,这个区域中也保存有其他的数据和信息, 包括 内部化的字符串(internalized strings)等等。实际上这给Java开发者造成了很多麻烦,因为很难去计算这块区域到底需要占用多少内存空间。预测失败导致的结果就是产生 `java.lang.OutOfMemoryError: Permgen space` 这种形式的错误。除非 ·OutOfMemoryError· 确实是内存泄漏导致的,否则就只能增加 permgen 的大小，例如下面的示例，就是设置 permgen 最大空间为 256 MB:
+在Java 8 之前有一个特殊的空间,称为“永久代”(Permanent Generation)。这是存储元数据(metadata)的地方,比如 class 信息等。此外,这个区域中也保存有其他的数据和信息, 包括 内部化的字符串(internalized strings)等等。实际上这给Java开发者造成了很多麻烦,因为很难去计算这块区域到底需要占用多少内存空间。预测失败导致的结果就是产生 `java.lang.OutOfMemoryError: Permgen space` 这种形式的错误。除非 ·OutOfMemoryError· 确实是内存泄漏导致的,否则就只能增加 permgen 的大小，例如下面的示例，就是设置 permgen 最大空间为 256 MB:
 
 
 	java -XX:MaxPermSize=256m com.mycompany.MyApplication
@@ -261,14 +261,7 @@ In case you still wish to protect yourself for such occasions you can limit the 
 
 Minor GC vs Major GC vs Full GC
 
-Minor GC vs Major GC vs Full GC
-
-> 小型GC(Minor GC)
-> 
-> 大型GC(Major GC)
-> 
-> 完全GC(Full GC)
-
+小型GC-大型GC-完全GC事件
 
 
 The Garbage Collection events cleaning out different parts inside heap memory are often called Minor, Major and Full GC events. In this section we cover the differences between these events. Along the way we can hopefully see that this distinction is actually not too relevant.
@@ -286,43 +279,43 @@ But as the terms Minor, Major and Full GC are widely used and without a proper d
 虽然 Minor, Major 和 Full GC 这些术语被广泛应用, 但并没有标准的定义, 我们还是来深入了解一下具体的细节吧。
 
 
-<br/>
-## !!!!!!!!!!!!1校对到此处
-<br/>
-
 Minor GC
 
-小型GC
+小型GC(Minor GC)
 
 
 Collecting garbage from the Young space is called Minor GC. This definition is both clear and uniformly understood. But there are still some interesting takeaways you should be aware of when dealing with Minor Garbage Collection events:
 
-收集年轻代内存空间的事件叫做小型GC。这个定义既清晰又得到广泛共识。但在处理小型GC事件时有一些是有趣的事情你应该了解一下:
+年轻代内存的垃圾收集事件称为小型GC。这个定义既清晰又得到广泛共识。对于小型GC事件,有一些有趣的事情你应该了解一下:
 
 
 Minor GC is always triggered when the JVM is unable to allocate space for a new object, e.g. Eden is getting full. So the higher the allocation rate, the more frequently Minor GC occurs.
 
-Minor GC总是在JVM无法为新对象分配内存空间时触发,如 Eden 区占满。所以新对象分配频率越高, Minor GC 就越频繁。
+当JVM无法为新对象分配内存空间时总会触发 Minor GC,比如 Eden 区占满时。所以(新对象)分配频率越高, Minor GC 的频率就越高。
 
 
 During a Minor GC event, Tenured Generation is effectively ignored. References from Tenured Generation to Young Generation are considered to be GC roots. References from Young Generation to Tenured Generation are simply ignored during the mark phase.
 
-Minor GC 事件实际上忽略老年代。从老年代指向年轻代的引用都被认为是GC Root。从年轻代指向老年代的引用在标记阶段被完全忽略。
+Minor GC 事件实际上忽略了老年代。从老年代指向年轻代的引用都被认为是GC Root。而从年轻代指向老年代的引用在标记阶段全部被忽略。
 
 
 Against common belief, Minor GC does trigger stop-the-world pauses, suspending the application threads. For most applications, the length of the pauses is negligible latency-wise if most of the objects in the Eden can be considered garbage and are never copied to Survivor/Old spaces. If the opposite is true and most of the newborn objects are not eligible for collection, Minor GC pauses start taking considerably more time.
 
-与一般的认识相反, Minor GC 每次都会触发全线停顿(stop-the-world ), 暂停所有的应用程序线程。对大多数程序而言, 如果 Eden 区的对象基本上都是垃圾, 也不怎么拷贝到存活区/老年代的话，那么暂停时长是可以忽略的。如果情况不是这样, 大多数新创建对象不被垃圾回收清理掉, 那么 Minor GC的停顿就会花费更多时间。
+与一般的认识相反, Minor GC 每次都会引起全线停顿(stop-the-world ), 暂停所有的应用线程。对大多数程序而言,暂停时长基本上是可以忽略不计的, 因为 Eden 区的对象基本上都是垃圾, 也不怎么拷贝到存活区/老年代。如果情况不是这样, 大部分新创建的对象不能被垃圾回收清理掉, 则 Minor GC的停顿就会持续更长的时间。
 
 
 So defining Minor GC is easy – Minor GC cleans the Young Generation.
 
-所以 Minor GC 的定义很简单 —— Minor GC 清理的是年轻代。
+所以 Minor GC 的定义很简单 —— Minor GC 清理的就是年轻代。
 
+
+<br/>
+## !!!!!!!!!!!!1校对到此处
+<br/>
 
 Major GC vs Full GC
 
-对比: Major GC vs Full GC
+Major GC 与 Full GC 对比
 
 
 
