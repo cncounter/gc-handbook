@@ -309,10 +309,6 @@ So defining Minor GC is easy – Minor GC cleans the Young Generation.
 所以 Minor GC 的定义很简单 —— Minor GC 清理的就是年轻代。
 
 
-<br/>
-## !!!!!!!!!!!!1校对到此处
-<br/>
-
 Major GC vs Full GC
 
 Major GC 与 Full GC 对比
@@ -321,13 +317,15 @@ Major GC 与 Full GC 对比
 
 It should be noted that there are no formal definitions for those terms – neither in the JVM specification nor in the Garbage Collection research papers. But on the first glance, building these definitions on top of what we know to be true about Minor GC cleaning Young space should be simple:
 
-值得一提的是, 这些术语并没有正式的定义 —— 无论是在JVM规范还是在GC相关的论文中。我们知道,  Minor GC是清理年轻代空间的，对应的 Major GC 定义应该也是很简单的:
+值得一提的是, 这些术语并没有正式的定义 —— 无论是在JVM规范还是在GC相关论文中。
+
+我们知道,  Minor GC 清理的是年轻代空间(Young space)，相应的,其他定义也很简单:
 
 
 Major GC is cleaning the Old space.
 
-大型GC(Major GC) 清理的是老年代空间(Old space)。
-
+Major GC(大型GC) 清理的是老年代空间(Old space)。
+wq234
 
 Full GC is cleaning the entire Heap – both Young and Old spaces.
 
@@ -336,19 +334,19 @@ Full GC is cleaning the entire Heap – both Young and Old spaces.
 
 Unfortunately it is a bit more complex and confusing. To start with – many Major GCs are triggered by Minor GCs, so separating the two is impossible in many cases. On the other hand – modern garbage collection algorithms like G1 perform partial garbage cleaning so, again, using the term ‘cleaning’ is only partially correct.
 
-杯具的是又有更复杂和混乱的了。很多 Major GC 是由 Minor GC触发的, 所以在很多情况下分离这两者是不可能的。另一方面, 像G1这样的现代垃圾收集算法执行的是部分垃圾清理, 所以，额，使用术语“cleaning”并不是完全的准确。
+杯具的是更复杂的情况出现了。很多 Major GC 是由 Minor GC 触发的, 所以很多情况下这两者是不可分离的。另一方面, 像G1这样的垃圾收集算法执行的是部分区域垃圾回收, 所以，额，使用术语“cleaning”并不是非常准确。
 
 
 
 This leads us to the point where instead of worrying about whether the GC is called Major or Full GC, you should focus on finding out whether the GC at hand stopped all the application threads or was able to progress concurrently with the application threads.
 
-这也教育我们,不要再去操心是应该叫 Major GC 呢还是应该叫 Full GC, 你应该考虑的是 这次GC 是停止所有线程呢还是与其他线程一起执行的呢。
+这也让我们认识到,不应该去操心是叫 Major GC 呢还是叫 Full GC, 我们应该关注的是: 某次GC事件 是否停止所有线程,或者是与其他线程并发执行。
 
 
 This confusion is even built right into the JVM standard tools. What I mean by that is best explained via an example. Let us compare the output of two different tools tracing the GC on a JVM running with Concurrent Mark and Sweep collector (-XX:+UseConcMarkSweepGC)
 
 
-这种混淆甚至根植于标准的JVM工具中。我的意思是最好通过实例来说明。让我们来比较跟踪使用 同一个JVM中GC信息的两个不同工具的输出吧。这个JVM使用的是**并发标记和清除收集器*（Concurrent Mark and Sweep collector，`-XX:+UseConcMarkSweepGC`).
+这些混淆甚至根植于标准的JVM工具中。我的意思可以通过实例来说明。让我们来对比同一JVM中两款工具的GC信息输出吧。这个JVM使用的是 **并发标记和清除收集器**（Concurrent Mark and Sweep collector，`-XX:+UseConcMarkSweepGC`).
 
 
 
@@ -376,6 +374,10 @@ First attempt is to get the insight via the jstat output:
 	16.7 34048.0 34048.0 34047.0  0.0   272640.0 48378.0  1756416.0   838594.4  22268.0 21003.5 3200.0 2813.2     16    1.433   2      0.050    1.484
 
 
+
+<br/>
+## !!!!!!!!!!!!1校对到此处
+<br/>
 
 
 This snippet is extracted from the first 17 seconds after the JVM was launched. Based on this information we could conclude that after 12 Minor GC runs two Full GC runs were performed, spanning 50ms in total. You would get the same confirmation via GUI-based tools, such as the jconsole or jvisualvm.
