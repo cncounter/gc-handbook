@@ -359,7 +359,7 @@ First attempt is to get the insight via the jstat output:
 
 
 
-	Time S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT   
+	Time   S0C    S1C     S0U    S1U      EC       EU        OC         OU       MC       MU     CCSC   CCSU     YGC    YGCT    FGC    FGCT     GCT   
 	 5.7 34048.0 34048.0  0.0   34048.0 272640.0 194699.7 1756416.0   181419.9  18304.0 17865.1 2688.0 2497.6      3    0.275   0      0.000    0.275
 	 6.7 34048.0 34048.0 34048.0  0.0   272640.0 247555.4 1756416.0   263447.9  18816.0 18123.3 2688.0 2523.1      4    0.359   0      0.000    0.359
 	 7.7 34048.0 34048.0  0.0   34048.0 272640.0 257729.3 1756416.0   345109.8  19072.0 18396.6 2688.0 2550.3      5    0.451   0      0.000    0.451
@@ -382,7 +382,7 @@ First attempt is to get the insight via the jstat output:
 
 This snippet is extracted from the first 17 seconds after the JVM was launched. Based on this information we could conclude that after 12 Minor GC runs two Full GC runs were performed, spanning 50ms in total. You would get the same confirmation via GUI-based tools, such as the jconsole or jvisualvm.
 
-这个片段是从JVM启动后的第17秒开始截取的。根据这些信息我们可以得出这样的结论: 经过12次 Minor GC之后执行了2次Full GC, 总计耗时 50ms。通过基于GUI的工具也会得出相同的结论, 比如 jconsole 或者 jvisualvm (或者最新的 jmc)。
+此片段截取自JVM启动后的前17秒。根据这些信息我们可以得出下面的结论: 在12次 Minor GC之后执行了2次Full GC, 总计耗时 50ms。通过基于GUI的工具也会得出相同的结论, 比如 jconsole 或者 jvisualvm (或者最新的 jmc)。
 
 
 Before nodding at this conclusion, let’s look at the output of the garbage collection logs gathered from the same JVM launch. Apparently -XX:+PrintGCDetails tells us a different and a more detailed story:
