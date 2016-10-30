@@ -374,20 +374,14 @@ First attempt is to get the insight via the jstat output:
 	16.7 34048.0 34048.0 34047.0  0.0   272640.0 48378.0  1756416.0   838594.4  22268.0 21003.5 3200.0 2813.2     16    1.433   2      0.050    1.484
 
 
-
-<br/>
-## !!!!!!!!!!!!1校对到此处
-<br/>
-
-
 This snippet is extracted from the first 17 seconds after the JVM was launched. Based on this information we could conclude that after 12 Minor GC runs two Full GC runs were performed, spanning 50ms in total. You would get the same confirmation via GUI-based tools, such as the jconsole or jvisualvm.
 
-此片段截取自JVM启动后的前17秒。根据这些信息我们可以得出下面的结论: 在12次 Minor GC之后执行了2次Full GC, 总计耗时 50ms。通过基于GUI的工具也会得出相同的结论, 比如 jconsole 或者 jvisualvm (或者最新的 jmc)。
+此片段截取自JVM启动后的前17秒。根据这些信息可以得知: 有2次Full GC在12次Minor GC(YGC)之后触发执行, 总计耗时 50ms。当然,也可以通过具备图形界面的工具得出同样的信息, 比如 jconsole 或者 jvisualvm (或者最新的 jmc)。
 
 
 Before nodding at this conclusion, let’s look at the output of the garbage collection logs gathered from the same JVM launch. Apparently -XX:+PrintGCDetails tells us a different and a more detailed story:
 
-在同意这个结论之前, 让我们看看从同一个JVM进程收集到的GC日志。显然 `-XX:+PrintGCDetails` 讲述的是另外一个更详细的故事:
+在下结论之前, 让我们看看此JVM进程的GC日志。显然需要配置 `-XX:+PrintGCDetails` 参数,GC日志的内容更详细,结果也有一些不同:
 
 
 > `java -XX:+PrintGCDetails -XX:+UseConcMarkSweepGC eu.plumbr.demo.GarbageProducer`
@@ -417,41 +411,41 @@ Before nodding at this conclusion, let’s look at the output of the garbage col
 
 Based on this information we can see that after 12 Minor GC runs ‘something different’ indeed started happening. But instead of two Full GC runs, this ‘different thing’ was in reality just a single GC running in Old generation and consisting of different phases:
 
-根据这些信息我们可以看到,在12 次 Minor GC之后发生了一些 "不同的事情"。不是两个 Full GC, 而是只在老年代执行了单次 GC, 并且由多个不同的阶段组成:
+通过GC日志可以看到, 在12 次 Minor GC之后发生了一些 "不同的事情"。并不是两个 Full GC, 而是在老年代执行了一次 GC, 分为多个阶段执行:
 
 
 
 
 Initial Mark phase, spanning for 0.0041705 seconds or approximately 4ms. This phase is a stop-the-world event stopping all application threads for initial marking.
 
-初始标记阶段,跨越大约0.0041705秒或4 ms。这个阶段是一个停止一切事件停止所有应用程序线程初始标记。
+初始标记阶段(Initial Mark phase),耗时 0.0041705秒(约4ms)。此阶段是全线停顿(STW)事件,暂停所有应用线程,以便执行初始标记。
 
 
 Markup and Preclean phases. were executed concurrently with the application threads.
 
-标记和预清理阶段(Markup and Preclean)。是和应用程序线程并发执行的。
+标记和预清理阶段(Markup and Preclean phase)。和应用线程并发执行。
 
 
 Final Remark phase, spanning for 0.0462010 seconds or approximately 46ms. This phase is again stop-the-world event.
 
-最终评价阶段(Final Remark), 持续大约 0.0462010秒, 约 46ms。这一阶段又是一次全线停工事件(stop-the-world event)。
+最终标记阶段(Final Remark phase), 耗时 0.0462010秒(约46ms)。此阶段也是全线停顿(STW)事件。
 
 
 
 Sweep operation was executed concurrently, without stopping the application threads.
 
-清除操作是并发执行的, 没有停止应用程序线程。
+清除操作是并发执行的, 不需要暂停应用线程。
 
 
 So what we see from the actual garbage collection logs is that, instead of two Full GC operations, just one Major GC cleaning Old space was actually executed.
 
-所以我们从实际的垃圾收集日志看到, 并不是两个 Full GC操作,实际上只执行了一次清理老年代空间的 Major GC 。
+所以从实际的GC日志可以看到, 并不是执行了两次 Full GC操作, 而是只执行了一次清理老年代空间的 Major GC 。
 
 
 If you were after latency then the data revealed by jstat would have led you towards correct decisions. It correctly listed the two stop-the-world events totaling 50ms affecting the latency for all the active threads at that very moment. But if you were trying to optimize for throughput, you would have been misguided – listing just the stop-the-world initial mark and final remark phases, the jstat output completely hides the concurrent work being done.
 
 
-如果程序有延迟，那么使用 jstat 显示的数据也能让你得出正确的结果。它正确地列出了两次  stop-the-world 事件总计 50 ms。所有活动线程在那一刻受到了影响发生延迟。但如果你需要优化吞吐量, 你就会被误导 —— 清单只显示了 stop-the-world 的初始标记阶段和最终评价阶段, 而 jstat 的输出完全隐藏了其他并发执行的GC过程。
+如果只关心延迟, 通过后面 jstat 显示的数据, 也能得出正确的结果。它正确地列出了两次  STW 事件,总计耗时 50 ms。这段时间影响了所有应用线程的延迟。如果想要优化吞吐量, 这个结果就会有误导性 —— jstat 只列出初始标记阶段和最终标记阶段, 而 jstat 的输出则完全隐藏了并发执行的GC阶段。
 
 
 原文链接: [Garbage Collection in Java](https://plumbr.eu/handbook/garbage-collection-in-java)
