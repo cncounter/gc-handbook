@@ -3,7 +3,7 @@
 
 Before diving into the practical implementation details of Garbage Collection algorithms it will be beneficial to define the required terminology and to understand the basic principles supporting the implementations. Specific details vary from collector to collector but in general all collectors focus in two areas
 
-在深入实际的垃圾收集算法实现细节前, 先过一遍相关的术语定义以及理解其基本原则是很有用的。具体的细节每一款垃圾收集器(collector)都不一样,但总的来说所有垃圾收集器都集中在两个领域:
+我们先介绍GC的的相关术语和基本原理,然后再详细探讨GC算法的具体实现。每一款垃圾收集器(collector)的具体实现都不相同,但总体来说,所有垃圾收集器都关心下面两件事:
 
 
 - find out all objects that are still alive
