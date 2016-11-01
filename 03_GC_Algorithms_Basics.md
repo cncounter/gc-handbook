@@ -10,14 +10,14 @@ Before diving into the practical implementation details of Garbage Collection al
 - get rid of everything else – the supposedly dead and unused objects.
 
 - 找出所有存活对象
-- 丢弃其余部分(get rid of everything else) -- 所谓的死对象和不使用的对象。
+- 抛弃其余部分(get rid of everything else) -- 所谓的死对象,不再使用的对象。
 
 
 
 
 First part, the census on live objects, is implemented in all collectors with the help of a process called Marking.
 
-第一部分, 统计(census)存活的对象, 所有垃圾收集器都会使用一个叫做 **标记(Marking)** 的过程。
+第一部分, 统计(census)存活的对象, 垃圾收集器都有一个叫做 **标记(Marking)** 的过程。
 
 
 
