@@ -17,7 +17,7 @@ Before diving into the practical implementation details of Garbage Collection al
 
 First part, the census on live objects, is implemented in all collectors with the help of a process called Marking.
 
-第一部分, 统计(census)存活的对象, 垃圾收集器都有一个叫做 **标记(Marking)** 的过程。
+第一件事, 统计(census)所有存活的对象, 在垃圾收集器中有一个叫做 **标记(Marking)** 的过程专门干这件事。
 
 
 
@@ -27,7 +27,7 @@ First part, the census on live objects, is implemented in all collectors with th
 
 Every modern GC algorithm used in JVM starts its job with finding out all objects that are still alive. This concept is best explained using the following picture representing your JVM’s memory layout:
 
-现代JVM中的所有GC算法都是从找出所有存活的对象开始。下图通过JVM的内存布局将这个概念做了最好的诠释:
+现代JVM中的所有GC算法都是先找出所有存活的对象。下图通过JVM的内存布局将这个概念做了最好的诠释:
 
 
 ![](03_01_Java-GC-mark-and-sweep.png)
@@ -37,7 +37,7 @@ Every modern GC algorithm used in JVM starts its job with finding out all object
 
 First, GC defines some specific objects as Garbage Collection Roots. Examples of such GC roots are:
 
-首先,GC将一些特定的对象定义为垃圾收集的根元素(Garbage Collection Roots)。GC根元素的例子:
+首先,GC 将一些特定对象指定为GC根元素(Garbage Collection Roots)。包括:
 
 
 - Local variable and input parameters of the currently executing methods
@@ -48,22 +48,22 @@ First, GC defines some specific objects as Garbage Collection Roots. Examples of
 
 - JNI references
 
-- 当前正在执行方法中的局部变量和输入参数
+- 当前正在执行的方法里的局部变量和输入参数
 - 活动线程(Active threads)
-- 所有加载到内存中的类的静态字段(static field)
+- 内存中所有类的静态字段(static field)
 - JNI引用
 
 
 Next, GC traverses the whole object graph in your memory, starting from those Garbage Collection Roots and following references from the roots to other objects, e.g. instance fields. Every object the GC visits is marked as alive.
 
 
-接下来,GC遍历(traverses)内存中的整个对象图(object graph),从GC根元素以及根元素的直接引用(如对象的属性域)开始,。GC访问得到的所有对象都被标记为存活状态。
+其次, GC遍历(traverses)整个内存中的对象图(object graph),从GC根元素和根元素的直接引用开始(如对象的属性域)。所有GC访问到的对象都被标记为存活对象。
 
 
 
 Live objects are represented as blue on the picture above. When the marking phase finishes, every live object is marked. All other objects (grey data structures on the picture above) are thus unreachable from the GC roots, implying that your application cannot use the unreachable objects anymore. Such objects are considered garbage and GC should get rid of them in the following phases.
 
-存活对象在上图中表示为蓝色。当标记阶段完成, 所有存活对象都被标记了。其他对象(上图中灰色的数据结构)都是从GC根元素不可达的,也就意味着程序不可能再使用这些不可达对象了。这样的对象被认为是垃圾, GC应该在接下来的阶段中会去除他们。
+存活对象在上图中用蓝色表示。标记阶段完成后, 所有的存活对象都被标记了。而其他对象(上图中灰色的数据结构)就是从GC根元素不可达的, 也就意味着程序不能再用这些不可达对象。这样的对象被认为是垃圾, GC会在接下来的阶段中清除他们。
 
 
 
@@ -71,6 +71,10 @@ Live objects are represented as blue on the picture above. When the marking phas
 There are important aspects to note about the marking phase:
 
 在标记阶段有几个需要注意的点:
+
+<br/>
+校对到此处!!!!!!!!!!
+<br/>
 
 
 The application threads need to be stopped for the marking to happen as you cannot really traverse the graph if it keeps changing under your feet all the time. Such a situation when the application threads are temporarily stopped so that the JVM can indulge in housekeeping activities is called a safe point resulting in a Stop The World pause. Safe points can be triggered for different reasons but garbage collection is by far the most common reason for a safe point to be introduced.
