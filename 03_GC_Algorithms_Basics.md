@@ -3,21 +3,21 @@
 
 Before diving into the practical implementation details of Garbage Collection algorithms it will be beneficial to define the required terminology and to understand the basic principles supporting the implementations. Specific details vary from collector to collector but in general all collectors focus in two areas
 
-本章先介绍GC的基本原理和相关术语,然后再详细讲述GC算法的具体实现。各种垃圾收集器(collector)的实现细节并不相同,但总体而言,垃圾收集器都专注于两件事情:
+本章先介绍GC的基本原理和相关术语,然后再详细讲解GC算法的具体实现。各种垃圾收集器(collector)的实现细节并不相同,但总体而言,垃圾收集器都专注于两件事情:
 
 
 - find out all objects that are still alive
 - get rid of everything else – the supposedly dead and unused objects.
 
 - 查找所有存活对象
-- 抛弃其余部分(get rid of everything else) -- 即所谓的死对象,不会再使用的对象。
+- 抛弃其余部分(get rid of everything else) -- 死对象,即不会再使用的对象。
 
 
 
 
 First part, the census on live objects, is implemented in all collectors with the help of a process called Marking.
 
-第一件事, 统计(census)所有存活的对象, 在垃圾收集器中有一个叫做 **标记(Marking)** 的过程专门干这件事。
+第一件事, 统计所有存活的对象, 在垃圾收集器中有一个叫做 **标记(Marking)** 的过程专门干这件事。
 
 
 
@@ -72,29 +72,26 @@ There are important aspects to note about the marking phase:
 
 在标记阶段有几个需要注意的点:
 
-<br/>
-校对到此处!!!!!!!!!!
-<br/>
 
 
 The application threads need to be stopped for the marking to happen as you cannot really traverse the graph if it keeps changing under your feet all the time. Such a situation when the application threads are temporarily stopped so that the JVM can indulge in housekeeping activities is called a safe point resulting in a Stop The World pause. Safe points can be triggered for different reasons but garbage collection is by far the most common reason for a safe point to be introduced.
 
 
-标记阶段需要暂停应用程序的线程, 因为如果一直在变化就不可能遍历整个对象图。全线停顿(Stop The World pause)时线程可以暂停的点叫做安全点(safe point), 此时, JVM就可以专心执行清理工作。安全点可能因多种原因触发, 但目前为止GC是产生安全点最常见的原因。
+在标记阶段,需要暂停所有应用线程, 以遍历所有对象引用关系。因为不暂停就没法跟踪一直在变化的这种引用关系图。需要全线停顿(Stop The World pause)时,线程可以暂停的点叫做安全点(safe point), 此时, JVM就可以专心执行清理工作。安全点可能有多种因素触发, 当前, GC是最常见的触发安全点的原因。
 
 
 
 The duration of this pause depends neither on the total number of objects in heap nor on the size of the heap but on the number of alive objects. So increasing the size of the heap does not directly affect the duration of the marking phase.
 
 
-此阶段暂停的时间跟堆内存的大小，堆中对象总数都没关系， 而是由存活的对象数量决定。所以增加堆内存的大小并不会直接影响标记阶段的持续时间。
+此阶段的暂停时间, 与堆内存大小,对象总数都没有关系, 而是由存活对象的数量决定。所以增加堆内存的大小并不会直接影响标记阶段消耗的时间。
 
 
 
 When the mark phase is completed, the GC can proceed to the next step and start removing the unreachable objects.
 
 
-标记阶段完成时,GC可以继续下一步,开始删除不可达的对象。
+标记阶段完成后, GC进行下一步操作, 删除不可达的对象。
 
 
 
@@ -106,7 +103,7 @@ Removing Unused Objects
 Removal of unused objects is somewhat different for different GC algorithms but all such GC algorithms can be divided into three groups: sweeping, compacting and copying. Next sections will discuss each of such algorithms in more detail.
 
 
-不同的GC算法在删除不使用对象时有所不同, 但GC算法可分为三类: 清除(sweeping)、整理(compacting,压实)和复制(copying)。下一节将详细讨论这些算法。
+各种GC算法在删除不使用对象时略有不同, 但总体可分为三类: 清除(sweeping)、整理(compacting)和复制(copying)。[下一章节](04_GC_Algorithms_Implementations.md)将详细讲解这些算法。
 
 
 
@@ -120,7 +117,7 @@ Mark and Sweep algorithms use conceptually the simplest approach to garbage by j
 
 
 
-标记和清除算法(Mark and Sweep)概念上使用最简单的方法: 就是直接忽略垃圾对象。这意味着在标记阶段完成后所有不可访问对象所占用的空间都被认为是空闲的,因此可以重新用来分配新对象。
+标记-清除算法(Mark and Sweep)的概念非常简单: 忽略所有的垃圾。这意味着, 在标记阶段完成后, 所有不可达对象占用的内存空间, 都被认为是空闲的, 因此可以用来分配新对象。
 
 
 
@@ -128,7 +125,7 @@ Mark and Sweep algorithms use conceptually the simplest approach to garbage by j
 The approach requires using the so called free-list recording of every free region and its size. The management of the free-lists adds overhead to object allocation. Built into this approach is another weakness – there may exist plenty of free regions but if no single region is large enough to accommodate the allocation, the allocation is still going to fail (with an OutOfMemoryError in Java).
 
 
-这种方法需要使用空闲列表(free-list)来记录所有的空闲区域及每一个的大小。管理空闲列表增加了对象分配时的开销。这种方法还有另一个弱点 —— 虽然存在很多空闲的空间, 但可能没有一个区域能够存放下需要分配的对象,进而导致分配失败(在Java 中伴随着 OutOfMemoryError)。
+这种算法需要使用空闲表(free-list),来追踪所有的空闲区域,以及每一个区域的大小。维护空闲列表增加了分配对象时的开销。此外还有另一个弱点 —— 明明还有很多空闲内存, 但却可能没有一个足够大的区域来存放需要分配的对象, 从而导致分配失败(在Java 中就是 OutOfMemoryError)。
 
 
 
@@ -137,16 +134,15 @@ The approach requires using the so called free-list recording of every free regi
 
 
 
-
 Compact
 
-整理(Compact, 压实)
+整理(Compact)
 
 
 Mark-Sweep-Compact algorithms solve the shortcomings of Mark and Sweep by moving all marked – and thus alive – objects to the beginning of the memory region. The downside of this approach is an increased GC pause duration as we need to copy all objects to a new place and to update all references to such objects. The benefits to Mark and Sweep are also visible – after such a compacting operation new object allocation is again extremely cheap via pointer bumping. Using such approach the location of the free space is always known and no fragmentation issues are triggered either.
 
 
-标记-清除-整理算法(Mark-Sweep-Compact) 解决了标记和清除算法的缺点: 将所有标记为存活对象移动到内存区域开始的地方。这种方法的缺点是增加了GC暂停的时间, 因为我们需要将所有对象复制到一个新地方,并更新所有指向这些对象的引用。标记和清扫的好处也很明显, 经过整理之后新对象的分配就很简单, 只需要指针增加(pointer bumping)就行。使用这种方法则可用的空闲内存始终是已知的,也就不再引起碎片问题了。
+标记-清除-整理算法(Mark-Sweep-Compact), 将所有标记的对象(也就是为活对象), 搬迁到内存空间的起始处, 消除了标记-清除算法的缺点。 而这种算法的缺点就是GC暂停的时间增加了, 因为需要将所有对象复制到另一个地方, 然后修改指向这些对象的引用。此算法的优势也很明显, 碎片整理之后, 分配新对象就很简单, 只需要通过指针碰撞(pointer bumping)即可。使用这种算法, 空闲内存的大小一直是清楚的, 不会再出现内存碎片问题。
 
 
 
@@ -158,13 +154,13 @@ Mark-Sweep-Compact algorithms solve the shortcomings of Mark and Sweep by moving
 
 Copy
 
-复制(Copy, 拷贝)
+复制(Copy)
 
 
 Mark and Copy algorithms are very similar to the Mark and Compact as they too relocate all live objects. The important difference is that the target of relocation is a different memory region as a new home for survivors. Mark and Copy approach has some advantages as copying can occur simultaneously with marking during the same phase. The disadvantage is the need for one more memory region, which should be large enough to accommodate survived objects.
 
 
-标记和复制算法(Mark and Copy) 和 标记-整理算法(Mark and Compact) 非常相似，因为两者都会迁移所有存活对象。最重要的区别在于, 标记-复制算法迁移到的位置是一个不同的内存区域: 存活区。标记-复制方法也有一些优点: 标记与复制阶段可以同时进行。缺点是需要另一个额外的内存区域, 要大到存放下所有的存活对象。
+标记-复制算法(Mark and Copy) 和 标记-整理算法(Mark and Compact) 十分相似: 两者都会挪动所有存活的对象。区别在于, 标记-复制算法是迁移到另外一个内存区域: 存活区。标记-复制方法的优点在于:  标记和复制可以同时进行。缺点则是需要一个额外的内存区间, 来存放所有存活的对象。
 
 
 
