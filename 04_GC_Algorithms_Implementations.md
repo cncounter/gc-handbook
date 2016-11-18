@@ -993,7 +993,7 @@ Concurrent Marking starts when the overall occupancy of the heap is large enough
 
 **Phase 1: Initial Mark.** This phase marks all the objects directly reachable from the GC roots. In CMS, it required a separate stop-the world pause, but in G1 it is typically piggy-backed on an Evacuation Pause, so its overhead is minimal. You can notice this pause in GC logs by the “(initial-mark)” addition in the first line of an Evacuation Pause:
 
-**阶段1: 初始标记(Initial Mark)。** 此阶段标记所有从GC root 直接可及的存活对象。在CMS中, 这个阶段需要一次单独的STW暂停,但在G1中通常是疏散暂停, 所以它的开销是最小的.你可以在 Evacuation Pause 日志的第一行中看到(initial-mark)暂停:
+**阶段1: 初始标记(Initial Mark)。** 此阶段标记所有从GC root 直接可达的存活对象。在CMS中, 这个阶段需要一次单独的STW暂停,但在G1中通常是疏散暂停, 所以它的开销是最小的.你可以在 Evacuation Pause 日志的第一行中看到(initial-mark)暂停:
 
 
 	1.631: [GC pause (G1 Evacuation Pause) (young) (initial-mark), 0.0062656 secs]

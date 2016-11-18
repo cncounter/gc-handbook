@@ -555,7 +555,7 @@ Another class of issues affecting GC is linked to the use of non-strong referenc
 
 When using weak references, you should be aware of the way the weak references are garbage-collected. Whenever GC discovers that an object is weakly reachable, that is, the last remaining reference to the object is a weak reference, it is put onto the corresponding ReferenceQueue, and becomes eligible for finalization. One may then poll this reference queue and perform the associated cleanup activities. A typical example for such cleanup would be the removal of the now missing key from the cache.
 
-在使用**弱引用**(weak reference)时,您应该知道, 弱引用是允许被垃圾收集器强行回收的。每当GC发现一个弱可及对象(weakly reachable),即最后一个指向该对象的引用是一个弱引用, 则会将其置入相应的ReferenceQueue 中, 成为可以终结的对象. 之后可能会轮询这个引用队列,并执行相关的清理活动。一个典型的例子是从缓存中清理当前不再引用的KEY。
+在使用**弱引用**(weak reference)时,您应该知道, 弱引用是允许被垃圾收集器强行回收的。每当GC发现一个弱可达对象(weakly reachable),即最后一个指向该对象的引用是一个弱引用, 则会将其置入相应的ReferenceQueue 中, 成为可以终结的对象. 之后可能会轮询这个引用队列,并执行相关的清理活动。一个典型的例子是从缓存中清理当前不再引用的KEY。
 
 
 The trick here is that at this point you can still create new strong references to the object, so before it can be, at last, finalized and reclaimed, GC has to check again that it really is okay to do this. Thus, the weakly referenced objects are not reclaimed for an extra GC cycle.
@@ -590,13 +590,13 @@ Surprisingly, many developers skip the very next paragraph in the same javadoc (
 
 Unlike soft and weak references, phantom references are not automatically cleared by the garbage collector as they are enqueued. An object that is reachable via phantom references will remain so until all such references are cleared or themselves become unreachable.
 
-与软引用和弱引用不同, 虚引用不会被垃圾收集器自动清除, 因为他们被放入了队列. 一个通过虚引用可及的对象将会继续留在内存, 直到这些引用被清除, 或者自身变为不可及对象。
+与软引用和弱引用不同, 虚引用不会被垃圾收集器自动清除, 因为他们被放入了队列. 一个通过虚引用可达的对象将会继续留在内存, 直到这些引用被清除, 或者自身变为不可达对象。
 
 
 That is right, we have to manually clear() up phantom references or risk facing a situation where the JVM starts dying with an OutOfMemoryError. The reason why the Phantom references are there in the first place is that this is the only way to find out when an object has actually become unreachable via the usual means. Unlike with soft or weak references, you cannot resurrect a phantom-reachable object.
  
 
-也就是说,我们必须手动调用 clear() 来清除虚引用, 否则可能会造成JVM 因为OutOfMemoryError 而挂掉的风险.  使用虚引用的原因是, 通常这是唯一可以用编程来跟踪某个对象真正地变为不可及对象的手段. 和软引用/弱引用不同, 你不能复活虚可及(phantom-reachable)对象。
+也就是说,我们必须手动调用 clear() 来清除虚引用, 否则可能会造成JVM 因为OutOfMemoryError 而挂掉的风险.  使用虚引用的原因是, 通常这是唯一可以用编程来跟踪某个对象真正地变为不可达对象的手段. 和软引用/弱引用不同, 你不能复活虚可达(phantom-reachable)对象。
 
 
 ## 示例
@@ -658,7 +658,7 @@ The objects are now once again reclaimed during minor garbage collection.
 
 The situation is even worse when soft references are used as seen in the next demo application. The softly-reachable objects are not reclaimed until the application risks getting an OutOfMemoryError. Replacing weak references with soft references in the demo application immediately surfaces many more Full GC events:
 
-更坏的情况是使用软引用,例如下面的程序。如果程序不面临OutOfMemoryError, 软可及的对象就不会被回收. 在程序中,用软引用代替弱引用和, 立即面临更多的完整GC事件:
+更坏的情况是使用软引用,例如下面的程序。如果程序不面临OutOfMemoryError, 软可达的对象就不会被回收. 在程序中,用软引用代替弱引用和, 立即面临更多的完整GC事件:
 
 
 	2.162: [Full GC (Ergonomics)  31561K->12865K(61440K), 0.0181392 secs]
@@ -696,7 +696,7 @@ main 线程中抛出异常 ` java.lang.OutOfMemoryError: Java heap space`.
 
 One must exercise extreme caution when using phantom references and always clear up the phantom reachable objects in a timely manner. Failing to do so will likely end up with an OutOfMemoryError. And trust us when we say that it is quite easy to fail at this: one unexpected exception in the thread that processes the reference queue, and you will have a dead application at your hand.
 
-使用虚引用时必须非常谨慎, 并及时清理虚可及的对象。如果不这样做,可能就会发生 **OutOfMemoryError**. 请相信我们的教训: 如果处理引用队列的线程抛出的 unexpected exception 没处理好, 那你的系统很快就挂了。
+使用虚引用时必须非常谨慎, 并及时清理虚可达的对象。如果不这样做,可能就会发生 **OutOfMemoryError**. 请相信我们的教训: 如果处理引用队列的线程抛出的 unexpected exception 没处理好, 那你的系统很快就挂了。
 
 
 ### Could my JVMs be Affected?
@@ -852,7 +852,7 @@ To check whether or not a particular agent can be the reason for extended GC pau
 
 If you are not the author of the agent yourself, fixing the problem is often out of your reach. Apart from contacting the vendor of a particular agent you cannot do much. In case you do end up in a situation like this, recommend that the vendor clean up the tags that are no longer needed.
 
-如果你没有代理的作者自己,解决问题往往是遥不可及的。除了联系供应商特定的代理你不能做太多.如果你在这种情况下,建议供应商清除不再需要的标签。
+如果你没有代理的作者自己,解决问题往往是遥不可达的。除了联系供应商特定的代理你不能做太多.如果你在这种情况下,建议供应商清除不再需要的标签。
 
 
 
