@@ -217,7 +217,7 @@ JVM使用**标记和清扫算法**(Mark and Sweep algorithm), 用来跟踪所有
 Different GC algorithms within the JVM, such as Parallel Scavenge, Parallel Mark+Copy or CMS, are implementing those phases slightly differently, but at conceptual level the process remains similar to the two steps described above.
 
 
-JVM中包含多种不同的GC算法, 如Parallel Scavenge(并行清除), Parallel Mark+Copy(并行标记+拷贝) 以及 CMS, 他们在这些阶段的实现上略有不同, 但这些算法在概念层面上, 都类同于这两个步骤。
+JVM中包含多种不同的GC算法, 如Parallel Scavenge(并行清除), Parallel Mark+Copy(并行标记+复制) 以及 CMS, 他们在这些阶段的实现上略有不同, 但这些算法在概念层面上, 都类同于这两个步骤。
 
 
 
