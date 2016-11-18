@@ -3,14 +3,14 @@
 
 Before diving into the practical implementation details of Garbage Collection algorithms it will be beneficial to define the required terminology and to understand the basic principles supporting the implementations. Specific details vary from collector to collector but in general all collectors focus in two areas
 
-我们先介绍GC的的相关术语和基本原理,然后再详细探讨GC算法的具体实现。每一款垃圾收集器(collector)的具体实现都不相同,但总体来说,所有垃圾收集器都关心下面两件事:
+本章先介绍GC的基本原理和相关术语,然后再详细讲述GC算法的具体实现。各种垃圾收集器(collector)的实现细节并不相同,但总体而言,垃圾收集器都专注于两件事情:
 
 
 - find out all objects that are still alive
 - get rid of everything else – the supposedly dead and unused objects.
 
-- 找出所有存活对象
-- 抛弃其余部分(get rid of everything else) -- 所谓的死对象,不再使用的对象。
+- 查找所有存活对象
+- 抛弃其余部分(get rid of everything else) -- 即所谓的死对象,不会再使用的对象。
 
 
 
