@@ -4,18 +4,19 @@
 
 Now that we have reviewed the core concepts behind GC algorithms, let us move to the specific implementations one can find inside the JVM. An important aspect to recognize first is the fact that, for most JVMs out there, two different GC algorithms are needed – one to clean the Young Generation and another to clean the Old Generation.
 
-复习了GC算法相关的概念之后, 我们一起来看看JVM中的具体实现。首先要有一个很重要的认识,对于大多数JVM来说,都需要两种不同的GC算法 —— 一种用于清理年轻代, 另一种用于清理老年代。
+学习了GC算法的相关概念之后, 我们将介绍在JVM中这些算法的具体实现。首先要记住的是, 大多数JVM都需要使用两种不同的GC算法 —— 一种用来清理年轻代, 另一种用来清理老年代。
 
 
 You can choose from a variety of such algorithms bundled into the JVM. If you do not specify a garbage collection algorithm explicitly, a platform-specific default will be used. In this chapter, the working principles of each of those algorithms will be explained.
 
-我们可以从JVM集成的各种算法中进行选择。如果不显式地指定垃圾收集算法, 则会使用特定于平台的默认实现。在本章中,将会介绍每一种算法的实现原理。
+我们可以选择JVM内置的各种算法。如果不通过参数明确指定垃圾收集算法, 则会使用宿主平台的默认实现。本章会详细介绍各种算法的实现原理。
 
 
 For a quick cheat sheet, the following list is a fast way to get yourself up to speed with which algorithm combinations are possible. Note that this stands true for Java 8, for older Java versions the available combinations might differ a bit:
 
-下面是一个快速概览的列表,显示了各种可能的组合方式。但请注意,这是Java 8中的列表,对于旧的Java版本来说,可用的组合可能会有一些不同:
+下面是一个概要列表, 列出了各种可能的组合方式。但需要注意,这是Java 8中的列表,对于之前的Java版本来说,可用组合会有一些不同:
 
+#### 校对到此处
 
 <table>
 	<thead>
