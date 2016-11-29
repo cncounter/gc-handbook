@@ -14,9 +14,8 @@ You can choose from a variety of such algorithms bundled into the JVM. If you do
 
 For a quick cheat sheet, the following list is a fast way to get yourself up to speed with which algorithm combinations are possible. Note that this stands true for Java 8, for older Java versions the available combinations might differ a bit:
 
-下面是一个概要列表, 列出了各种可能的组合方式。但需要注意,这是Java 8中的列表,对于之前的Java版本来说,可用组合会有一些不同:
+下面是关于Java 8中各种组合的垃圾收集器概要列表,对于之前的Java版本来说,可用组合会有一些不同:
 
-#### 校对到此处
 
 <table>
 	<thead>
@@ -89,26 +88,24 @@ For a quick cheat sheet, the following list is a fast way to get yourself up to 
 
 If the above looks too complex, do not worry. In reality it all boils down to just four combinations highlighted in the table above. The rest are either deprecated, not supported or just impractical to apply in real world. So, in the following chapters we cover the working principles of the following combinations:
 
-如果看起来太复杂,不要担心。实际使用的主要是上表中黑体字显示的这四种组合。其余的要么是弃用(deprecated),要么是不支持或者是不适用于生产环境。所以,接下来我们只介绍下面这些组合以及工作原理:
+看起来有些复杂, 不用担心。主要使用的是上表中黑体字表示的这四种组合。其余的要么是弃用(deprecated), 要么是不支持或者是不太适用于生产环境。所以,接下来我们只介绍下面这些组合及其工作原理:
+
 
 
 - Serial GC for both the Young and Old generations
 - Parallel GC for both the Young and Old generations
 - Parallel New for Young + Concurrent Mark and Sweep (CMS) for the Old Generation
-- 
-- 
-- 
-- 
-- , which encompasses collection of both Young and Old generations
+- G1, which encompasses collection of both Young and Old generations
 
 <br/>
 
 - 年轻代和老年代的串行GC(Serial GC)
 - 年轻代和老年代的并行GC(Parallel GC)
-- 年轻代的并行GC() + 老年代的CMS(Concurrent Mark and Sweep)
-- G1, 包括年轻代和老年代的集合
+- 年轻代的并行GC(Parallel New) + 老年代的CMS(Concurrent Mark and Sweep)
+- G1, 负责回收年轻代和老年代
 
 
+#### 校对到此处
 
 ## 串行GC(Serial GC)
 
