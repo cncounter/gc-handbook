@@ -329,7 +329,7 @@ wq234
 
 Full GC is cleaning the entire Heap – both Young and Old spaces.
 
-完整GC(Full GC)清理的是整个堆, 包括年轻代和老年代空间。
+完全GC(Full GC)清理的是整个堆, 包括年轻代和老年代空间。
 
 
 Unfortunately it is a bit more complex and confusing. To start with – many Major GCs are triggered by Minor GCs, so separating the two is impossible in many cases. On the other hand – modern garbage collection algorithms like G1 perform partial garbage cleaning so, again, using the term ‘cleaning’ is only partially correct.

@@ -399,7 +399,7 @@ will allow us to extract the promotion rate for the measured period. We can see 
 
 Notice that you can extract this information only from minor GC pauses. Full GC pauses do not expose the promotion rate as the change in the old generation usage in GC logs also includes objects cleaned by the major GC.
 
-请注意, 只能从小型GC暂停中提取到这些信息. 完整GC暂停不公开提升速率的改变在老年代使用GC日志中还包括清洗的对象主要的GC。
+请注意, 只能从小型GC暂停中提取到这些信息. 完全GC暂停不公开提升速率的改变在老年代使用GC日志中还包括清洗的对象主要的GC。
 
 
 ### 提升速率的意义
@@ -418,7 +418,7 @@ Similarly to the allocation rate, the main impact of the promotion rate is the c
 
 As we have shown in earlier chapters, full garbage collections typically require much more time, as they have to interact with many more objects, and perform additional complex activities such as defragmentation.
 
-在之前的章节中,我们说过,完整GC通常需要更多的时间, 因为必须处理更多的对象, 还要执行额外的碎片整理等复杂活动。
+在之前的章节中,我们说过,完全GC通常需要更多的时间, 因为必须处理更多的对象, 还要执行额外的碎片整理等复杂活动。
 
 
 ### 示例
@@ -468,7 +468,7 @@ In general, the symptoms of premature promotion can take any of the following fo
 
 <br/>
 
-- 在很短的时间内应用程序频繁地进行完整GC。
+- 在很短的时间内应用程序频繁地进行完全GC。
 - 每次GC过后老年代的使用率都很低, 通常在10-20%的左右。
 - 提升速率接近分配速率。
 
@@ -506,7 +506,7 @@ At first glance it may seem that premature promotion is not the issue here. Inde
 
 There is a simple explanation for this GC behavior: while many objects are being promoted to the old generation, some existing objects are collected. This gives the impression that the old generation usage is decreasing, while in fact, there are objects that are constantly being promoted, triggering full GC.
 
-对这种GC行为有一个简单的解释: 在很多对象被提升到老年代的同时, 也有很多现有的对象被回收了. 这造成了老年代使用量减少的印象, 而事实上,有很多对象不断地被提升, 进而触发完整GC。
+对这种GC行为有一个简单的解释: 在很多对象被提升到老年代的同时, 也有很多现有的对象被回收了. 这造成了老年代使用量减少的印象, 而事实上,有很多对象不断地被提升, 进而触发完全GC。
 
 
 ### 解决方案
@@ -570,7 +570,7 @@ Weak references are actually a lot more common than you might think. Many cachin
 
 When using soft references, you should bear in mind that soft references are collected much less eagerly than the weak ones. The exact point at which it happens is not specified and depends on the implementation of the JVM. Typically the collection of soft references happens only as a last ditch effort before running out of memory. What it implies is that you might find yourself in situations where you face either more frequent or longer full GC pauses than expected, since there are more objects resting in the old generation.
 
-在使用**软引用**(soft reference)时,你应该记住,软引用比弱引用更容易被垃圾收集器回收. 它发生的时间点没有确切指定,取决于JVM的实现. 通常软引用的收集只会在即将耗尽内存之前,作为最后的手段. 这意味着,你可能会发现自己面临着更频繁的完整GC, 暂停时间也比预期的时间更长, 因为有更多的对象在老年代。
+在使用**软引用**(soft reference)时,你应该记住,软引用比弱引用更容易被垃圾收集器回收. 它发生的时间点没有确切指定,取决于JVM的实现. 通常软引用的收集只会在即将耗尽内存之前,作为最后的手段. 这意味着,你可能会发现自己面临着更频繁的完全GC, 暂停时间也比预期的时间更长, 因为有更多的对象在老年代。
 
 
 When using phantom references, you have to literally do manual memory management in regards of flagging such references eligible for garbage collection. It is dangerous, as a superficial glance at the javadoc may lead one to believe they are the completely safe to use:
@@ -623,7 +623,7 @@ Let us take a look at another demo application that allocates a lot of objects, 
 
 Full collections are quite rare in this case. However, if the application also starts creating weak references (-Dweak.refs=true) to these created objects, the situation may change drastically. There may be many reasons to do this, starting from using the object as keys in a weak hash map and ending with allocation profiling. In any case, making use of weak references here may lead to this:
 
-此时完整GC次数很少。然而,如果对这些创建的对象, 也使用弱引用来指向他们 (-Dweak.refs=true), 则情况可能会显著改变. 可能有很多原因, 比如在weak hash map中使用对象作为Key, 最后进行分配分析。在任何情况下,利用弱引用可能会导致如下的结果:
+此时完全GC次数很少。然而,如果对这些创建的对象, 也使用弱引用来指向他们 (-Dweak.refs=true), 则情况可能会显著改变. 可能有很多原因, 比如在weak hash map中使用对象作为Key, 最后进行分配分析。在任何情况下,利用弱引用可能会导致如下的结果:
 
 
 	2.059: [Full GC (Ergonomics)  20365K->19611K(22528K), 0.0654090 secs]
@@ -638,7 +638,7 @@ Full collections are quite rare in this case. However, if the application also s
 
 As we can see, there are now many full collections, and the duration of the collections is an order of magnitude longer! Another case of premature promotion, but this time a tad trickier. The root cause, of course, lies with the weak references. Before we added them, the objects created by the application were dying just before being promoted to the old generation. But with the addition, they are now sticking around for an extra GC round so that the appropriate cleanup can be done on them. Like before, a simple solution would be to increase the size of the young generation by specifying -Xmx64m -XX:NewSize=32m:
 
-我们可以看到, 现在有很多次完整GC, 而且GC时间比上一个示例增加了一个数量级! 这是过早提升的另一个例子, 但这次的情况有点棘手. 当然,问题的根源在于弱引用。在添加他们之前,这些临死的对象被提升到老年代. 但是,他们现在粘在一个额外的GC循环中,这样可以对他们做适当的清理。像以前一样,一个简单的解决方案就是增加年轻代的大小, 指定参数 `-Xmx64m -XX:NewSize=32m`:
+我们可以看到, 现在有很多次完全GC, 而且GC时间比上一个示例增加了一个数量级! 这是过早提升的另一个例子, 但这次的情况有点棘手. 当然,问题的根源在于弱引用。在添加他们之前,这些临死的对象被提升到老年代. 但是,他们现在粘在一个额外的GC循环中,这样可以对他们做适当的清理。像以前一样,一个简单的解决方案就是增加年轻代的大小, 指定参数 `-Xmx64m -XX:NewSize=32m`:
 
 
 	2.328: [GC (Allocation Failure)  38940K->13596K(61440K), 0.0012818 secs]
@@ -658,7 +658,7 @@ The objects are now once again reclaimed during minor garbage collection.
 
 The situation is even worse when soft references are used as seen in the next demo application. The softly-reachable objects are not reclaimed until the application risks getting an OutOfMemoryError. Replacing weak references with soft references in the demo application immediately surfaces many more Full GC events:
 
-更坏的情况是使用软引用,例如下面的程序。如果程序不面临OutOfMemoryError, 软可达的对象就不会被回收. 在程序中,用软引用代替弱引用和, 立即面临更多的完整GC事件:
+更坏的情况是使用软引用,例如下面的程序。如果程序不面临OutOfMemoryError, 软可达的对象就不会被回收. 在程序中,用软引用代替弱引用和, 立即面临更多的完全GC事件:
 
 
 	2.162: [Full GC (Ergonomics)  31561K->12865K(61440K), 0.0181392 secs]
@@ -875,7 +875,7 @@ Having frequent humongous allocations can trigger GC performance issues, conside
 <br/>
 
 - 如果某个 region 包含巨无霸对象, 则最后一个巨无霸对象到该区域结尾之间的(空闲)空间将不会被使用。如果所有的巨无霸对象都只是比 region size 的某个因子大一点, 则未使用的空间将会导致堆内存碎片问题。
-- 对巨无霸对象的垃圾收集没有被 G1 优化。这在Java 8的早期版本中是特别麻烦的 —— 在 **Java 1.8u40** 之前, 巨无霸对象所在区域的回收都只能在完整GC事件中进行。最新版本的 Hotspot JVM 在marking 阶段的结尾, cleanup phase 释放巨无霸空间, 所以这个问题的影响在新版的JVM中已经大大减小了。
+- 对巨无霸对象的垃圾收集没有被 G1 优化。这在Java 8的早期版本中是特别麻烦的 —— 在 **Java 1.8u40** 之前, 巨无霸对象所在区域的回收都只能在完全GC事件中进行。最新版本的 Hotspot JVM 在marking 阶段的结尾, cleanup phase 释放巨无霸空间, 所以这个问题的影响在新版的JVM中已经大大减小了。
 
 
 
