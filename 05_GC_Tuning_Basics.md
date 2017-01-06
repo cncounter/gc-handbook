@@ -219,7 +219,7 @@ The example above expresses a single GC pause triggered at 13:34:16 on June 4, 2
 The event stopped the application threads for 0.0713174 seconds. Even though it took 210 ms of CPU times on multiple cores, the important number for us to measure is the total stop time for application threads, which in this case, where parallel GC was used on a multi-core machine, is equal to a bit more than 70 ms. This specific GC pause is thus well under the required 100 ms threshold and fulfils both requirements.
 
 
-事件让程序线程暂停了0.0713174秒。虽然在多核CPU上花费的总时间为 210 ms, 但对我们的测量最重要的数字是程序线程暂停的总时间, 在这里，因为是在多核机器上使用并行GC, 所以大约是 `70ms` 多一点。因此此次GC的暂停时间远低于所要求的100 ms阈值，因此满足需求。
+事件让应用线程暂停了0.0713174秒。虽然在多核CPU上花费的总时间为 210 ms, 但对我们的测量最重要的数字是应用线程暂停的总时间, 在这里，因为是在多核机器上使用并行GC, 所以大约是 `70ms` 多一点。因此此次GC的暂停时间远低于所要求的100 ms阈值，因此满足需求。
 
 
 Extracting information similar to the example above from all GC pauses, we can aggregate the numbers and see whether or not we are violating the set requirements for any of the pause events triggered.
