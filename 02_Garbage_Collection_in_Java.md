@@ -1,4 +1,4 @@
-# 2. Java垃圾收集简介
+# 2. Java中的垃圾收集
 
 
 The introduction to Mark and Sweep Garbage Collection is a mostly theoretical one. When things come to practice, numerous adjustments need to be done to accommodate for real-world scenarios and needs. For a simple example, let us take a look at what sorts of bookkeeping the JVM needs to do so that we can safely continue allocating objects.
