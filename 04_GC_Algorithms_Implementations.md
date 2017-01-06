@@ -105,24 +105,22 @@ If the above looks too complex, do not worry. In reality it all boils down to ju
 - G1, 负责回收年轻代和老年代
 
 
-#### 校对到此处
-
-## 串行GC(Serial GC)
+## Serial GC(串行GC)
 
 
 This collection of garbage collectors uses mark-copy for the Young Generation and mark-sweep-compact for the Old Generation. As the name implies – both of these collectors are single-threaded collectors, incapable of parallelizing the task at hand. Both collectors also trigger stop-the-world pauses, stopping all application threads.
 
-这一类垃圾收集器针对年轻代使用 mark-copy(标记-复制) 算法, 对老年代使用 mark-sweep-compact(标记-清除-整理)算法. 顾名思义,两者都是单线程的垃圾收集器,不能进行并行处理。两者都会触发全线暂停(STW),停止所有的应用程序线程。
+Serial GC 对年轻代使用 mark-copy(标记-复制) 算法, 对老年代使用 mark-sweep-compact(标记-清除-整理)算法. 顾名思义, 两者都是单线程的垃圾收集器,不能进行并行处理。两者都会触发全线暂停(STW),停止所有的应用线程。
 
 
 This GC algorithm cannot thus take advantage of multiple CPU cores commonly found in modern hardware. Independent of the number of cores available, just one is used by the JVM during garbage collection.
 
-因此这种GC算法不能充分利用多核CPU。不管有多少个可用内核, JVM在垃圾收集期间都只会使用单个核心。
+因此这种GC算法不能充分利用多核CPU。不管有多少CPU内核, JVM 在垃圾收集时都只能使用单个核心。
 
 
 Enabling this collector for both the Young and Old Generation is done via specifying a single parameter in the JVM startup script:
 
-要启用这个收集器, 只需要在JVM启动脚本中指定一个参数即可,同时对年轻代和老年代生效:
+要启用此款收集器, 只需要指定一个JVM启动参数即可,同时对年轻代和老年代生效:
 
 
 	java -XX:+UseSerialGC com.mypackages.MyExecutableClass
@@ -132,12 +130,12 @@ Enabling this collector for both the Young and Old Generation is done via specif
 
 This option makes sense and is recommended only for the JVM with a couple of hundreds megabytes heap size, running in an environment with a single CPU. For the majority of server-side deployments this is a rare combination. Most server-side deployments are done on platforms with multiple cores, essentially meaning that by choosing Serial GC you are setting artificial limits on the use of system resources. This results in idle resources which otherwise could be used to reduce latency or increase throughput.
 
-这个选项只在JVM堆内存只有几百MB,而且是单核CPU时有意义,而且只在这种情况下推荐使用. 对于大多数服务器,因为是多核CPU, 一般不推荐这样使用, 除非你需要限制JVM所使用的资源。大多数服务器端部署与多核平台上完成,本质上意味着通过选择串行GC你设置人工限制系统资源的使用. 最简单的就是导致资源闲置,不能有效降低延迟或增加吞吐量。
+该选项只适合几百MB堆内存的JVM,而且是单核CPU时比较有用。 对于服务器端来说, 因为一般是多个CPU内核, 并不推荐使用, 除非确实需要限制JVM所使用的资源。大多数服务器端应用部署在多核平台上, 选择 Serial GC 就表示人为的限制系统资源的使用。 导致的就是资源闲置, 多的CPU资源也不能用来降低延迟,也不能用来增加吞吐量。
 
 
 Let us now review how garbage collector logs look like when using Serial GC and what useful information one can obtain from there. For this purpose, we have turned on GC logging on the JVM using the following parameters:
 
-现在让我们看看Serial GC的垃圾收集器日志, 以及从中可用提取什么有用的信息。为了这个目的, 我们使用下面的参数来打开GC日志记录:
+下面让我们看看Serial GC的垃圾收集日志, 并从中提取什么有用的信息。为了打开GC日志记录, 我们使用下面的JVM启动参数:
 
 
 	-XX:+PrintGCDetails -XX:+PrintGCDateStamps 
@@ -148,7 +146,7 @@ Let us now review how garbage collector logs look like when using Serial GC and 
 
 The resulting output is similar to the following:
 
-由此产生的输出类似下面这样:
+产生的GC日志输出类似这样(为了排版,已手工折行):
 
 
 	2015-05-26T14:45:37.987-0200: 
@@ -168,7 +166,7 @@ The resulting output is similar to the following:
 
 Such short snippet from the GC logs exposes a lot of information about what is taking place inside the JVM. As a matter of fact, in this snippet there were two Garbage Collection events taking place, one of them cleaning the Young Generation and another taking care of the entire heap. Let’s start by analyzing the first collection that is taking place in the Young Generation.
 
-这样一个简短的GC日志片段,暴露了发生在JVM中的很多信息。 事实上,在这段日志中有两次GC事件发生, 其中一次清理的是年轻代,另一次处理的是整个堆内存。让我们先来分析发生在年轻代的第一次GC。
+此GC日志片段展示了在JVM中发生的很多事情。 实际上,在这段日志中产生了两个GC事件, 其中一次清理的是年轻代,另一次清理的是整个堆内存。让我们先来分析前一次GC,其在年轻代中产生。
 
 
 ### 小型GC(Minor GC)
@@ -176,7 +174,7 @@ Such short snippet from the GC logs exposes a lot of information about what is t
 
 Following snippet contains the information about a GC event cleaning the Young Generation:
 
-以下代码片段包含信息GC事件打扫年轻代:
+以下代码片段展示了清理年轻代内存的GC事件:
 
 
 
@@ -187,55 +185,57 @@ Following snippet contains the information about a GC event cleaning the Young G
 
 
 
-> 1. <a>`2015-05-26T14:45:37.987-0200`</a> – Time when the GC event started. GC事件开始的时间. 其中`-0200`是时区,而中国所在的东8区为 `+0800`。
+> 1. <a>`2015-05-26T14:45:37.987-0200`</a> – Time when the GC event started. GC事件开始的时间. 其中`-0200`表示西二时区,而中国所在的东8区为 `+0800`。
 >
-> 2. <a>`151.126`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. 相对于JVM启动时间,GC事件开始的时间,单位是秒。
+> 2. <a>`151.126`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. GC事件开始时,相对于JVM启动时的间隔时间,单位是秒。
 > 
 > 3. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**小型GC**(Minor GC)
 > 
-> 4. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a data structure not fitting into any region in the Young Generation. 触发垃圾收集的原因。本次GC事件, 是由于年轻代中没有适当的空间存放新的数据结构引起的。
+> 4. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a data structure not fitting into any region in the Young Generation. 触发 GC 的原因。本次GC事件, 是由于年轻代中没有空间来存放新的数据结构引起的。
 > 
 > 5. <a>`DefNew`</a> – Name of the garbage collector used. This cryptic name stands for the single-threaded mark-copy stop-the-world garbage collector used to clean Young generation. 垃圾收集器的名称。这个神秘的名字表示的是在年轻代中使用的: 单线程, 标记-复制(mark-copy), 全线暂停(STW) 垃圾收集器。
 > 
-> 6. <a>`629119K->69888K`</a> – Usage of the Young Generation before and after collection. 在垃圾收集之前和之后的年轻代使用量。
+> 6. <a>`629119K->69888K`</a> – Usage of the Young Generation before and after collection. 在垃圾收集之前和之后年轻代的使用量。
 > 
-> 7. <a>`(629120K)`</a> – Total size of the Young Generation. 年轻代的总大小。
+> 7. <a>`(629120K)`</a> – Total size of the Young Generation. 年轻代总的空间大小。
 > 
-> 8. <a>`1619346K->1273247K`</a> – Total used heap before and after collection. 在垃圾收集之前和之后堆内存的使用情况。
+> 8. <a>`1619346K->1273247K`</a> – Total used heap before and after collection. 在垃圾收集之前和之后整个堆内存的使用情况。
 > 
-> 9. <a>`(2027264K)`</a> – Total available heap. 可用堆的总大小。
+> 9. <a>`(2027264K)`</a> – Total available heap. 可用堆的总空间大小。
 > 
 > 10. <a>`0.0585007 secs`</a> – Duration of the GC event in seconds. GC事件持续的时间,以秒为单位。
 > 
-> 11. <a>`[Times: user=0.06 sys=0.00, real=0.06 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
+> 11. <a>`[Times: user=0.06 sys=0.00, real=0.06 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过三个部分来衡量:
 > 
- - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 所有 GC线程所消耗的CPU时间之和。
 
 > 
- - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
+ - sys – Time spent in OS calls or waiting for system event. GC过程中中操作系统调用和系统等待事件所消耗的时间。
 > 
- - real – Clock time for which your application was stopped. As Serial Garbage Collector always uses just a single thread, real time is thus equal to the sum of user and system times. 应用程序被停止的系统时钟时间。因为串行垃圾收集器(Serial Garbage Collector)只使用单线程, 因此 real time 等于 user 和 system 时间的总和
+ - real – Clock time for which your application was stopped. As Serial Garbage Collector always uses just a single thread, real time is thus equal to the sum of user and system times. 应用程序暂停的时间。因为串行垃圾收集器(Serial Garbage Collector)只使用单线程, 因此 real time 等于 user 和 system 时间的总和。
 
 
 
 From the above snippet we can understand exactly what was happening with the memory consumption inside JVM during the GC event. Before this collection, heap usage totaled at 1,619,346K. Out of this, the Young Generation consumed 629,119K. From this we can calculate the Old Generation usage being equal to 990,227K.
 
-我们可以从上面的日志片段了解到, 在GC事件中,JVM里面的内存使用情况到底发生了什么变化。在此次垃圾收集之前, 堆内存总的使用了 **1,619,346K**。其中,年轻代使用了 **629,119K**。并可以计算出老年代使用量等于 **990,227K**。
+可以从上面的日志片段了解到, 在GC事件中,JVM 的内存使用情况发生了怎样的变化。此次垃圾收集之前, 堆内存总的使用量为 **1,619,346K**。其中,年轻代使用了 **629,119K**。可以算出,老年代使用量为 **990,227K**。
 
 
 A more important conclusion is hidden in the next batch of numbers indicating that, after the collection, Young Generation usage decreased by 559,231K but total heap usage decreased only by 346,099K. From this we can again derive that 213,132K of objects were promoted from the Young Generation to the Old Generation.
 
-更重要的结论隐藏在下一批数字之中, 垃圾收集之后, 年轻代(Young Generation)的使用量减少了 **559231 k**, 但总的堆内存使用量只下降了 **346099 k**. 从中我们可以计算出有 **213132 k** 的对象从年轻代提升到了老年代的。
+更重要的信息蕴含在下一批数字中, 垃圾收集之后, 年轻代的使用量减少了 **559,231K**, 但堆内存的总体使用量只下降了 **346,099K**。 从中可以算出,有 **213,132K** 的对象从年轻代提升到了老年代。
 
 
 This GC event is also illustrated with the following snapshots showing memory usage right before the GC started and right after it finished:
 
-这次GC事件也可用下面的示意图来说明, 显示的是GC开始之前, 以及刚刚结束之后, 这两个时刻的内存使用快照:
+此次GC事件也可以用下面的示意图来说明, 显示的是GC开始之前, 以及刚刚结束之后, 这两个时间点内存使用情况的快照:
 
 
 ![](04_01_serial-gc-in-young-generation.png)
 
 
+
+#### 校对到此处
 
 
 ### Full GC
@@ -270,9 +270,9 @@ After understanding the first minor GC event, lets look into the second GC event
 > 1. <a>`(2027264K)`</a> – Total heap available for the JVM. 可用堆的总大小。
 > 1. <a>`[Metaspace: 6741K->6741K(1056768K)]`</a> – Similar information about Metaspace collection. As seen, no garbage was collected in Metaspace during the event.  Metaspace 空间中类似的信息。可以看到, 在GC事件中 Metaspace 中没有回收到任何垃圾。
 > 1. <a>`[Times: user=0.18 sys=0.00, real=0.18 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
- - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
- - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
- - real – Clock time for which your application was stopped. As Serial Garbage Collector always uses just a single thread, real time is thus equal to the sum of user and system times. 应用程序被停止的系统时钟时间。因为串行垃圾收集器(Serial Garbage Collector)只使用单线程, 因此 real time 等于 user 和 system 时间的总和.
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 所有 GC线程所消耗的CPU时间之和。
+ - sys – Time spent in OS calls or waiting for system event. GC过程中中操作系统调用和系统等待事件所消耗的时间。
+ - real – Clock time for which your application was stopped. As Serial Garbage Collector always uses just a single thread, real time is thus equal to the sum of user and system times. 应用程序暂停的时间。因为串行垃圾收集器(Serial Garbage Collector)只使用单线程, 因此 real time 等于 user 和 system 时间的总和。
 
 
 
@@ -291,7 +291,7 @@ The difference with Minor GC is evident – in addition to the Young Generation,
 
 This combination of Garbage Collectors uses mark-copy in the Young Generation and mark-sweep-compact in the Old Generation. Both Young and Old collections trigger stop-the-world events, stopping all application threads to perform garbage collection. Both collectors run marking and copying / compacting phases using multiple threads, hence the name ‘Parallel’. Using this approach, collection times can be considerably reduced.
 
-这种垃圾收集器在年轻代使用 标记-复制(mark-copy)算法, 在老年代使用 标记-清除-整理(mark-sweep-compact)算法。年轻代和老年代的垃圾回收都会触发STW事件,暂停所有的应用程序线程再执行垃圾收集。两者在执行 标记-复制/整理阶段时都使用多个线程, 因此得名“**并行(Parallel)**”。通过使用并行方式, 使得GC时间可以大幅减少。
+这种垃圾收集器在年轻代使用 标记-复制(mark-copy)算法, 在老年代使用 标记-清除-整理(mark-sweep-compact)算法。年轻代和老年代的垃圾回收都会触发STW事件,暂停所有的应用线程再执行垃圾收集。两者在执行 标记-复制/整理阶段时都使用多个线程, 因此得名“**并行(Parallel)**”。通过使用并行方式, 使得GC时间可以大幅减少。
 
 
 The number of threads used during garbage collection is configurable via the command line parameter -XX:ParallelGCThreads=NNN . The default value is equal to the number of cores in your machine.
@@ -377,9 +377,9 @@ The first of the two events indicates a GC event taking place in the Young Gener
 > 1. <a>`(11185152K)`</a> – Total available heap. 可用堆的总大小。
 > 1. <a>`0.2406675 secs`</a> – Duration of the GC event in seconds. GC事件持续的时间,以秒为单位。
 > 1. <a>`[Times: user=1.77 sys=0.01, real=0.24 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
- - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
- - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
- - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序被停止的系统时钟时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有固定比例的处理过程是不能并行化的。
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间。
+ - sys – Time spent in OS calls or waiting for system event. GC过程中中操作系统调用和系统等待事件所消耗的时间。
+ - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序暂停的时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有固定比例的处理过程是不能并行化的。
 
 
 
@@ -423,9 +423,9 @@ After understanding how Parallel GC cleans the Young Generation, we are ready to
 > 1. <a>`[Metaspace: 6745K->6745K(1056768K)] `</a> – Similar information about Metaspace region. As we can see, no garbage was collected in Metaspace during this event. Metaspace 空间中类似的信息。可以看到, 在GC事件中 Metaspace 中没有回收到任何垃圾。
 > 1. <a>`0.9158801 secs`</a> – Duration of the GC event in seconds. GC事件持续的时间,以秒为单位。
 > 1. <a>`[Times: user=4.49 sys=0.64, real=0.92 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
- - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
- - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
- - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序被停止的系统时钟时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有固定比例的处理过程是不能并行化的。
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间。
+ - sys – Time spent in OS calls or waiting for system event. GC过程中中操作系统调用和系统等待事件所消耗的时间。
+ - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序暂停的时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有固定比例的处理过程是不能并行化的。
 
 
 
@@ -453,7 +453,7 @@ The official name for this collection of garbage collectors is “Mostly Concurr
 
 This collector was designed to avoid long pauses while collecting in the Old Generation. It achieves this by two means. Firstly, it does not compact the Old Generation but uses free-lists to manage reclaimed space. Secondly, it does most of the job in the mark-and-sweep phases concurrently with the application. This means that garbage collection is not explicitly stopping the application threads to perform these phases. It should be noted, however, that it still competes for CPU time with the application threads. By default, the number of threads used by this GC algorithm equals to ¼ of the number of physical cores of your machine.
 
-这种收集器的设计目标是为了避免在收集老年代时出现长时间的停顿。通过两种手段达成这个目标。第一,它不对老年代进行整理, 而是使用空闲列表(free-lists)来管理回收空间。第二,它在 **标记-清除**(mark-and-sweep) 阶段与程序线程并发执行,完成大部分工作。也就是说垃圾收集的这些阶段中没有显式地停止应用程序线程。然而,值得注意的是,它仍然与应用程序线程争抢CPU时间。默认情况下,这种GC算法使用的线程数量等于(1/4)的CPU内核数。
+这种收集器的设计目标是为了避免在收集老年代时出现长时间的停顿。通过两种手段达成这个目标。第一,它不对老年代进行整理, 而是使用空闲列表(free-lists)来管理回收空间。第二,它在 **标记-清除**(mark-and-sweep) 阶段与应用线程并发执行,完成大部分工作。也就是说垃圾收集的这些阶段中没有显式地停止应用线程。然而,值得注意的是,它仍然与应用线程争抢CPU时间。默认情况下,这种GC算法使用的线程数量等于(1/4)的CPU内核数。
 
 
 
@@ -541,9 +541,9 @@ First of the GC events in log denotes a minor GC cleaning the Young space. Let�
 > 1. <a>`(12514816K)`</a> – Total available heap. 可用堆的总大小。
 > 1. <a>`0.1021309 secs`</a> – The time it took for the garbage collector to mark and copy live objects in the Young Generation. This includes communication overhead with ConcurrentMarkSweep collector, promotion of objects that are old enough to the Old Generation and some final cleanup at the end of the garbage collection cycle. 垃圾收集器在标记和复制年轻代存活对象消耗的时间。这包括和ConcurrentMarkSweep收集器的通信开销, 提升存活够长时间的对象到老年代,以及在垃圾收集周期后期的一些最后清理。
 > 1. <a>`[Times: user=0.78 sys=0.01, real=0.11 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
- - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
- - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
- - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by the Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序被停止的系统时钟时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有固定比例的处理过程是不能并行化的。
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间。
+ - sys – Time spent in OS calls or waiting for system event. GC过程中中操作系统调用和系统等待事件所消耗的时间。
+ - real – Clock time for which your application was stopped. With Parallel GC this number should be close to (user time + system time) divided by the number of threads used by the Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序暂停的时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有固定比例的处理过程是不能并行化的。
 
 
 
@@ -642,7 +642,7 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 **Phase 2: Concurrent Mark.** During this phase the Garbage Collector traverses the Old Generation and marks all live objects, starting from the roots found in the previous phase of “Initial Mark”. The “Concurrent Mark” phase, as its name suggests, runs concurrently with your application and does not stop the application threads. Note that not all the live objects in the Old Generation may be marked, since the application is mutating references during the marking.
 
 
-**第二阶段:并发标记(Concurrent Mark).** 在此阶段, 垃圾收集器遍历老年代,从前一阶段 “Initial Mark” 找到的 root 根开始, 标记所有存活的对象。 “并发标记”阶段, 顾名思义, 与应用程序同时运行,不会暂停程序线程. 请注意,此阶段并非所有老年代中存活的对象都会被标记,因为在标记过程中引用还会发生变化。
+**第二阶段:并发标记(Concurrent Mark).** 在此阶段, 垃圾收集器遍历老年代,从前一阶段 “Initial Mark” 找到的 root 根开始, 标记所有存活的对象。 “并发标记”阶段, 顾名思义, 与应用程序同时运行,不会暂停应用线程. 请注意,此阶段并非所有老年代中存活的对象都会被标记,因为在标记过程中引用还会发生变化。
 
 
 ![](04_07_g1-07.png)
@@ -669,7 +669,7 @@ In the illustration, a reference pointing away from the “Current object” was
 
 **Phase 3: Concurrent Preclean.** This is again a concurrent phase, running in parallel with the application threads, not stopping them. While the previous phase was running concurrently with the application, some references were changed. Whenever that happens, the JVM marks the area of the heap (called “Card”) that contains the mutated object as “dirty” (this is known as Card Marking).
 
-**阶段3: 并发预清理(Concurrent Preclean).** 此阶段也是并发进行的, 与程序线程并行执行, 而不停止线程. 因为前一阶段与程序同时进行的,可能有一些引用已经改变。每当发生这种情况,JVM将堆中的发生了对象改变的区域(称为“Card”)标记为“脏”区域(这就是所谓的卡片标记,Card Marking)。
+**阶段3: 并发预清理(Concurrent Preclean).** 此阶段也是并发进行的, 与应用线程并行执行, 而不停止线程. 因为前一阶段与程序同时进行的,可能有一些引用已经改变。每当发生这种情况,JVM将堆中的发生了对象改变的区域(称为“Card”)标记为“脏”区域(这就是所谓的卡片标记,Card Marking)。
 
 
 ![](04_08_g1-08.png)
@@ -708,7 +708,7 @@ Additionally, some necessary housekeeping and preparations for the Final Remark 
 
 **Phase 4: Concurrent Abortable Preclean.** Again, a concurrent phase that is not stopping the application’s threads. This one attempts to take as much work off the shoulders of the stop-the-world Final Remark as possible. The exact duration of this phase depends on a number of factors, since it iterates doing the same thing until one of the abortion conditions (such as the number of iterations, amount of useful work done, elapsed wall clock time, etc) is met.
 
-**Phase 4: 并发可取消预清理(Concurrent Abortable Preclean).** 这也是不停止应用程序线程的一个并发阶段. 此阶段尝试在 STW 的 Final Remark 之前尽可能多地做一些工作。这一阶段的具体时间取决于很多因素, 因为它迭代做同样的事情,直到满足某个退出条件( 如迭代次数, 有用工作量,经过的时钟时间,等等)。
+**Phase 4: 并发可取消预清理(Concurrent Abortable Preclean).** 这也是不停止应用线程的一个并发阶段. 此阶段尝试在 STW 的 Final Remark 之前尽可能多地做一些工作。这一阶段的具体时间取决于很多因素, 因为它迭代做同样的事情,直到满足某个退出条件( 如迭代次数, 有用工作量,经过的时钟时间,等等)。
 
 
 >
@@ -867,7 +867,7 @@ To run the JVM with the G1 collector enabled, run your application as
 
 In the beginning of the application’s lifecycle, G1 does not have any additional information from the not-yet-executed concurrent phases, so it initially functions in the fully-young mode. When the Young Generation fills up, the application threads are stopped, and the live data inside the Young regions is copied to Survivor regions, or any free regions that thereby become Survivor.
 
-在应用程序刚启动时, G1还未执行过(not-yet-executed)并发阶段得到其他信息,  所以此时处于 fully-young 模式. 在年轻代用满后, 应用程序线程暂停, 年轻代中的存活数据被复制到存活区, 如果还没有存活区,则任意选择一些空闲的区域作为存活区。
+在应用程序刚启动时, G1还未执行过(not-yet-executed)并发阶段得到其他信息,  所以此时处于 fully-young 模式. 在年轻代用满后, 应用线程暂停, 年轻代中的存活数据被复制到存活区, 如果还没有存活区,则任意选择一些空闲的区域作为存活区。
 
 
 The process of copying these is called Evacuation, and it works in pretty much the same way as the other Young collectors we have seen before. The full logs of evacuation pauses are rather large, so, for simplicity’s sake we will leave out a couple of small bits that are irrelevant in the first fully-young evacuation pause. We will get back to them after the concurrent phases are explained in greater detail. In addition, due to the sheer size of the log record, the parallel phase details and “Other” phase details are extracted to separate sections:
@@ -900,9 +900,9 @@ The process of copying these is called Evacuation, and it works in pretty much t
 > 1. <a>`Survivors: 0.0B->3072.0K `</a> – Space used by Survivor regions before and after the pause. 事件前后存活区的使用量
 > 1. <a>`Heap: 24.0M(256.0M)->21.9M(256.0M)]`</a> – Total heap usage and capacity before and after the pause. 事件前后整个堆内存的使用量与总容量。
 > 1. <a>`[Times: user=0.04 sys=0.04, real=0.02 secs] `</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过不同的类别来衡量:
- - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间
- - sys – Time spent in OS calls or waiting for system event. 花在操作系统调用和等待系统事件的时间
- - real – Clock time for which your application was stopped. With the parallelizable activities during GC this number is ideally close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序被停止的系统时钟时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有固定比例的处理过程是不能并行化的。
+ - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间。
+ - sys – Time spent in OS calls or waiting for system event. GC过程中中操作系统调用和系统等待事件所消耗的时间。
+ - real – Clock time for which your application was stopped. With the parallelizable activities during GC this number is ideally close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序暂停的时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有固定比例的处理过程是不能并行化的。
 
 
 
@@ -986,7 +986,7 @@ This information is then used to perform garbage collection in the Old regions. 
 
 Concurrent Marking starts when the overall occupancy of the heap is large enough. By default, it is 45%, but this can be changed by the InitiatingHeapOccupancyPercent JVM option. Like in CMS, Concurrent Marking in G1 consists of a number of phases, some of them fully concurrent, and some of them requiring the application threads to be stopped.
 
-在整个堆内存的总体占用空间达到一定比例时就会触发并发标记开始。默认值是45%,但可以通过JVM选项 **InitiatingHeapOccupancyPercent** 来调整。和CMS一样,G1中的并发标记由多个阶段组成, 其中一部分是完全并发的, 而有一部分要求暂停应用程序线程。
+在整个堆内存的总体占用空间达到一定比例时就会触发并发标记开始。默认值是45%,但可以通过JVM选项 **InitiatingHeapOccupancyPercent** 来调整。和CMS一样,G1中的并发标记由多个阶段组成, 其中一部分是完全并发的, 而有一部分要求暂停应用线程。
 
 
 **Phase 1: Initial Mark.** This phase marks all the objects directly reachable from the GC roots. In CMS, it required a separate stop-the world pause, but in G1 it is typically piggy-backed on an Evacuation Pause, so its overhead is minimal. You can notice this pause in GC logs by the “(initial-mark)” addition in the first line of an Evacuation Pause:
@@ -1012,7 +1012,7 @@ Concurrent Marking starts when the overall occupancy of the heap is large enough
 
 **Phase 3. Concurrent Mark.** This phase is very much similar to that of CMS: it simply walks the object graph and marks the visited objects in a special bitmap. To ensure that the semantics of snapshot-at-the beginning are met, G1 GC requires that all the concurrent updates to the object graph made by the application threads leave the previous reference known for marking purposes.
 
-**阶段3: 并发标记** 这个阶段非常类似于CMS: 它只是遍历对象图, 并将访问到的对象标记到一个特殊的位图中. 要确保开始时快照的语义, G1 GC要求应用程序线程所有对象图的并发更新, 为了标记的目的, 离开以前的引用。
+**阶段3: 并发标记** 这个阶段非常类似于CMS: 它只是遍历对象图, 并将访问到的对象标记到一个特殊的位图中. 要确保开始时快照的语义, G1 GC要求应用线程所有对象图的并发更新, 为了标记的目的, 离开以前的引用。
 
 
 This is achieved by the use of the Pre-Write barriers (not to be confused with Post-Write barriers discussed later and memory barriers that relate to multithreaded programming). Their function is to, whenever you write to a field while G1 Concurrent Marking is active, store the previous referee in the so-called log buffers, to be processed by the concurrent marking threads.
@@ -1028,7 +1028,7 @@ This is achieved by the use of the Pre-Write barriers (not to be confused with P
 
 **Phase 4. Remark.** This is a stop-the-world pause that, like previously seen in CMS, completes the marking process. For G1, it briefly stops the application threads to stop the inflow of the concurrent update logs and processes the little amount of them that is left over, and marks whatever still-unmarked objects that were live when the concurrent marking cycle was initiated. This phase also performs some additional cleaning, e.g. reference processing (see the Evacuation Pause log) or class unloading.
 
-** 阶段4: 再次标记(Remark)。** 这是一个STW停顿, 和CMS相似,完成标记过程。对于G1,它短暂的停止应用程序线程, 暂停流入的并发更新日志, 并处理他们留下的少量信息,并标记所有在并发标记开始时未标记的存活对象。这一阶段也执行一些额外的清理, 请参考(Evacuation Pause log)或 class unloading。
+** 阶段4: 再次标记(Remark)。** 这是一个STW停顿, 和CMS相似,完成标记过程。对于G1,它短暂的停止应用线程, 暂停流入的并发更新日志, 并处理他们留下的少量信息,并标记所有在并发标记开始时未标记的存活对象。这一阶段也执行一些额外的清理, 请参考(Evacuation Pause log)或 class unloading。
 
 
 	1.645: [GC remark 1.645: [Finalize Marking, 0.0009461 secs]
@@ -1046,7 +1046,7 @@ This is achieved by the use of the Pre-Write barriers (not to be confused with P
 
 Last but not least, the regions that contain no live objects at all are reclaimed in this phase. Some parts of this phase are concurrent, such as the empty region reclamation and most of the liveness calculation, but it also requires a short stop-the-world pause to finalize the picture while the application threads are not interfering. The logs for such stop-the-world pauses would be similar to:
 
-最后要提醒的是, 所有不包含存活对象的区域在此阶段都被回收了。有一部分是并发的, 例如空区域回收,还有大多数的存活性计算, 但它也需要一个短暂的STW暂停，以完成作业而不影响应用程序线程.这种STW停顿的日志类似这样:
+最后要提醒的是, 所有不包含存活对象的区域在此阶段都被回收了。有一部分是并发的, 例如空区域回收,还有大多数的存活性计算, 但它也需要一个短暂的STW暂停，以完成作业而不影响应用线程.这种STW停顿的日志类似这样:
 
 
 	1.652: [GC cleanup 1213M->1213M(1885M), 0.0030492 secs]
