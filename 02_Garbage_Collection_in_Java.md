@@ -4,7 +4,7 @@
 The introduction to Mark and Sweep Garbage Collection is a mostly theoretical one. When things come to practice, numerous adjustments need to be done to accommodate for real-world scenarios and needs. For a simple example, let us take a look at what sorts of bookkeeping the JVM needs to do so that we can safely continue allocating objects.
 
 
-**标记-清除**(Mark and Sweep)是最经典的垃圾收集算法。将理论用于生产实践时,  会有很多需要优化调整的地点,  以适应具体环境。下面通过一个简单的例子, 让我们一步步记录下来,  看看如何才能保证JVM能安全持续地分配对象。
+**标记-清除**(Mark and Sweep)是最经典的垃圾收集算法。将理论用于生产实践时,  会有很多需要优化调整的地方,  以适应具体环境。下面通过一个简单的例子, 让我们一步步记录下来,  看看如何才能保证JVM能安全持续地分配对象。
 
 
 
