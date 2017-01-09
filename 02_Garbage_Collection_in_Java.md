@@ -39,6 +39,12 @@ To avoid such problems, the JVM is making sure the fragmenting does not get out 
 ![](02_01_fragmented-vs-compacted-heap.png)
 
 
+> **说明**:
+>
+> JVM中的引用是一个抽象的概念,如果GC移动某个对象, 就会修改(栈和堆中)所有指向该对象的引用。
+>
+> 移动/拷贝/提升/压缩 是一个 STW 的过程,所以修改对象引用是一个安全的行为。但要更新所有的引用,对某些程序可能性能低下。
+
 
 
 
