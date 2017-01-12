@@ -438,30 +438,28 @@ Again, the difference with Minor GC is evident – in addition to the Young Gene
 
 
 
-#### 校对到此处
-
-
-
-
-
-
 ## CMS(并发标记-清除)
 
 
 The official name for this collection of garbage collectors is “Mostly Concurrent Mark and Sweep Garbage Collector”. It uses the parallel stop-the-world mark-copy algorithm in the Young Generation and the mostly concurrent mark-sweep algorithm in the Old Generation.
 
-这种垃圾收集器的官方名称是 “**Mostly Concurrent Mark and Sweep Garbage Collector**”(主要并发标记-清除垃圾收集器). 对年轻代使用并行的 STW方式的 mark-copy 算法, 在老年代主要使用并发标记-清除算法(mark-sweep)。
+CMS的官方名称为 “**Mostly Concurrent Mark and Sweep Garbage Collector**”(主要并发-标记-清除-垃圾收集器). 其对年轻代采用并行 STW方式的 mark-copy (标记-复制)算法, 对老年代主要使用并发 mark-sweep (标记-清除)算法。
 
 
 This collector was designed to avoid long pauses while collecting in the Old Generation. It achieves this by two means. Firstly, it does not compact the Old Generation but uses free-lists to manage reclaimed space. Secondly, it does most of the job in the mark-and-sweep phases concurrently with the application. This means that garbage collection is not explicitly stopping the application threads to perform these phases. It should be noted, however, that it still competes for CPU time with the application threads. By default, the number of threads used by this GC algorithm equals to ¼ of the number of physical cores of your machine.
 
-这种收集器的设计目标是为了避免在收集老年代时出现长时间的停顿。通过两种手段达成这个目标。第一,它不对老年代进行整理, 而是使用空闲列表(free-lists)来管理回收空间。第二,它在 **标记-清除**(mark-and-sweep) 阶段与应用线程并发执行,完成大部分工作。也就是说垃圾收集的这些阶段中没有显式地停止应用线程。然而,值得注意的是,它仍然与应用线程争抢CPU时间。默认情况下,这种GC算法使用的线程数量等于(1/4)的CPU内核数。
+CMS的设计目标是避免在老年代垃圾收集时出现长时间的卡顿。主要通过两种手段来达成此目标。
+
+- 第一, 不对老年代进行整理, 而是使用空闲列表(free-lists)来管理内存空间的回收。
+- 第二, 在 **mark-and-sweep** (标记-清除) 阶段的大部分工作和应用线程一起并发执行。
+
+也就是说, 在这些阶段并没有明显的应用线程暂停。但值得注意的是, 它仍然和应用线程争抢CPU时间。默认情况下, CMS 使用的并发线程数等于CPU内核数的 `1/4`。
 
 
 
 This garbage collector can be chosen by specifying the following option on your command line:
 
-可以在命令行中通过以下选项指定这款垃圾收集器:
+通过以下选项来指定CMS垃圾收集器:
 
 
 	java -XX:+UseConcMarkSweepGC com.mypackages.MyExecutableClass
@@ -471,12 +469,12 @@ This garbage collector can be chosen by specifying the following option on your 
 
 This combination is a good choice on multi-core machines if your primary target is latency. Decreasing the duration of an individual GC pause directly affects the way your application is perceived by end-users, giving them a feel of a more responsive application. As most of the time at least some CPU resources are consumed by the GC and not executing your application’s code, CMS generally often worse throughput than Parallel GC in CPU-bound applications.
 
-如果主要目标是降低延迟,那么在多核机器上使用这种组合是很好的选择. 减少每次GC暂停时间能直接影响终端用户对系统的感知, 给他们应用程序更加敏感的感觉. 因为多数时候至少有一部分CPU资源被GC消耗, 而没用来执行程序的代码, 所以在CPU资源受限的情况下,CMS通常比并行GC的吞吐量要差一些。
+如果服务器是多核CPU，并且主要调优目标是降低延迟, 那么使用CMS是个很明智的选择. 减少每一次GC停顿的时间,会直接影响到终端用户对系统的体验, 用户会认为系统非常灵敏。 因为多数时候都有部分CPU资源被GC消耗, 所以在CPU资源受限的情况下,CMS会比并行GC的吞吐量差一些。
 
 
 As with previous GC algorithms, let us now see how this algorithm is applied in practice by taking a look at the GC logs that once again expose one minor and one major GC pause:
 
-与和前面一样, 我们先通过GC日志来看看这种算法在实践中的应用, 也是一个小型GC,和一个大型GC暂停:
+和前面的GC算法一样, 我们先来看看CMS算法在实际应用中的GC日志, 其中包括一次 minor GC, 以及一次 major GC 停顿:
 
 
 	2015-05-26T16:23:07.219-0200: 64.322: [GC (Allocation Failure) 64.322: 
@@ -514,6 +512,10 @@ As with previous GC algorithms, let us now see how this algorithm is applied in 
 			[Times: user=0.01 sys=0.00, real=0.01 secs]
 
 
+
+
+
+#### 校对到此处
 
 
 ### 小型GC(Minor GC)
