@@ -15,13 +15,13 @@ Before diving into the practical implementation details of Garbage Collection al
 
 
 
-First part, the census on live objects, is implemented in all collectors with the help of a process called Marking.
+First part, the census on live objects, is implemented in all collectors with the help of a process called **Marking**.
 
 第一件事, 统计所有存活的对象, 在垃圾收集器中有一个叫做 **标记(Marking)** 的过程专门干这件事。
 
 
 
-标记可达对象(Marking Reachable Objects)
+## 标记可达对象(Marking Reachable Objects)
 
 
 
@@ -35,29 +35,25 @@ Every modern GC algorithm used in JVM starts its job with finding out all object
 
 
 
-First, GC defines some specific objects as Garbage Collection Roots. Examples of such GC roots are:
+First, GC defines some specific objects as **Garbage Collection Roots**. Examples of such GC roots are:
 
-首先,GC 将一些特定对象指定为GC根元素(Garbage Collection Roots)。包括:
+首先,GC 将一些特定对象指定为 **Garbage Collection Roots**(GC根元素)。包括:
 
 
 - Local variable and input parameters of the currently executing methods
-
 - Active threads
-
 - Static field of the loaded classes
-
 - JNI references
-
 - 当前正在执行的方法里的局部变量和输入参数
 - 活动线程(Active threads)
 - 内存中所有类的静态字段(static field)
 - JNI引用
 
 
-Next, GC traverses the whole object graph in your memory, starting from those Garbage Collection Roots and following references from the roots to other objects, e.g. instance fields. Every object the GC visits is marked as alive.
+Next, GC traverses the whole object graph in your memory, starting from those Garbage Collection Roots and following references from the roots to other objects, e.g. instance fields. Every object the GC visits is **marked** as alive.
 
 
-其次, GC遍历(traverses)整个内存中的对象图(object graph),从GC根元素和根元素的直接引用开始(如对象的属性域)。所有GC访问到的对象都被标记为存活对象。
+其次, GC遍历(traverses)整个内存中的对象图(object graph),从GC根元素和根元素的直接引用开始(如对象的属性域)。所有GC访问到的对象都被**标记**为存活对象。
 
 
 
@@ -74,30 +70,28 @@ There are important aspects to note about the marking phase:
 
 
 
-The application threads need to be stopped for the marking to happen as you cannot really traverse the graph if it keeps changing under your feet all the time. Such a situation when the application threads are temporarily stopped so that the JVM can indulge in housekeeping activities is called a safe point resulting in a Stop The World pause. Safe points can be triggered for different reasons but garbage collection is by far the most common reason for a safe point to be introduced.
+The application threads need to be stopped for the marking to happen as you cannot really traverse the graph if it keeps changing under your feet all the time. Such a situation when the application threads are temporarily stopped so that the JVM can indulge in housekeeping activities is called a **safe point** resulting in a **Stop The World pause**. Safe points can be triggered for different reasons but garbage collection is by far the most common reason for a safe point to be introduced.
 
 
-在标记阶段,需要暂停所有应用线程, 以遍历所有对象引用关系。因为不暂停就没法跟踪一直在变化的这种引用关系图。需要全线停顿(Stop The World pause)时,线程可以暂停的点叫做安全点(safe point), 此时, JVM就可以专心执行清理工作。安全点可能有多种因素触发, 当前, GC是最常见的触发安全点的原因。
-
-
-
-The duration of this pause depends neither on the total number of objects in heap nor on the size of the heap but on the number of alive objects. So increasing the size of the heap does not directly affect the duration of the marking phase.
-
-
-此阶段的暂停时间, 与堆内存大小,对象总数都没有关系, 而是由存活对象的数量决定。所以增加堆内存的大小并不会直接影响标记阶段消耗的时间。
+在标记阶段,需要暂停所有应用线程, 以遍历所有对象引用关系。因为不暂停就没法跟踪一直在变化的这种引用关系图。需要 **Stop The World pause** (**全线停顿**),线程可以暂停的点叫做安全点(safe point), 此时, JVM就可以专心执行清理工作。安全点可能有多种因素触发, 当前, GC是最常见的触发安全点的原因。
 
 
 
-When the mark phase is completed, the GC can proceed to the next step and start removing the unreachable objects.
+The duration of this pause depends neither on the total number of objects in heap nor on the size of the heap but on the number of **alive objects**. So increasing the size of the heap does not directly affect the duration of the marking phase.
 
 
-标记阶段完成后, GC进行下一步操作, 删除不可达的对象。
+此阶段的暂停时间, 与堆内存大小,对象总数都没有关系, 而是由**存活对象**(alive objects)的数量决定。所以增加堆内存的大小并不会直接影响标记阶段消耗的时间。
 
 
 
-Removing Unused Objects
+When the **mark** phase is completed, the GC can proceed to the next step and start removing the unreachable objects.
 
-删除不使用的对象(Removing Unused Objects)
+
+**标记阶段**完成后, GC进行下一步操作, 删除不可达的对象。
+
+
+
+## 删除不使用的对象(Removing Unused Objects)
 
 
 Removal of unused objects is somewhat different for different GC algorithms but all such GC algorithms can be divided into three groups: sweeping, compacting and copying. Next sections will discuss each of such algorithms in more detail.
