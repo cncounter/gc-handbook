@@ -39,7 +39,7 @@ First part, the census on live objects, is implemented in all collectors with th
 
 Every modern GC algorithm used in JVM starts its job with finding out all objects that are still alive. This concept is best explained using the following picture representing your JVM’s memory layout:
 
-现代JVM中所有的GC算法,第一步都是找出所有存活的对象。下图是JVM的内存布局,对这一步做了最好的诠释:
+现代JVM中所有的GC算法,第一步都是找出所有存活的对象。下面的示意图对此做了最好的诠释:
 
 
 ![](03_01_Java-GC-mark-and-sweep.png)

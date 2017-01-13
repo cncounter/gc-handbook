@@ -25,7 +25,7 @@
 ## 标记可达对象(Marking Reachable Objects)
 
 
-现代JVM中所有的GC算法,第一步都是找出所有存活的对象。下图是JVM的内存布局,对这一步做了最好的诠释:
+现代JVM中所有的GC算法,第一步都是找出所有存活的对象。下面的示意图对此做了最好的诠释:
 
 
 ![](03_01_Java-GC-mark-and-sweep.png)
