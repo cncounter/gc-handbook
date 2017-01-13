@@ -1,5 +1,8 @@
 # 3. GC 算法(基础篇)
 
+> **说明**: Mark and Sweep(标记-清除)算法
+>
+> 注: 《垃圾回收算法手册》的翻译为: **标记-清扫**算法;但国内也有很多翻译为**标记-清除**;译者认为**清除**更容易理解一些。
 
 Before diving into the practical implementation details of Garbage Collection algorithms it will be beneficial to define the required terminology and to understand the basic principles supporting the implementations. Specific details vary from collector to collector but in general all collectors focus in two areas
 
@@ -91,7 +94,7 @@ When the **mark** phase is completed, the GC can proceed to the next step and st
 
 
 
-## 删除不使用的对象(Removing Unused Objects)
+## 删除无用对象(Removing Unused Objects)
 
 
 Removal of unused objects is somewhat different for different GC algorithms but all such GC algorithms can be divided into three groups: sweeping, compacting and copying. Next sections will discuss each of such algorithms in more detail.
@@ -101,25 +104,25 @@ Removal of unused objects is somewhat different for different GC algorithms but 
 
 
 
-Sweep
+### Sweep
 
-清除(Sweep)
-
-
-Mark and Sweep algorithms use conceptually the simplest approach to garbage by just ignoring such objects. What this means is that after the marking phase has completed all space occupied by unvisited objects is considered free and can thus be reused to allocate new objects.
+### 清除(Sweep)
 
 
-
-
-标记-清除算法(Mark and Sweep)的概念非常简单: 忽略所有的垃圾。这意味着, 在标记阶段完成后, 所有不可达对象占用的内存空间, 都被认为是空闲的, 因此可以用来分配新对象。
+**Mark and Sweep** algorithms use conceptually the simplest approach to garbage by just ignoring such objects. What this means is that after the marking phase has completed all space occupied by unvisited objects is considered free and can thus be reused to allocate new objects.
 
 
 
 
-The approach requires using the so called free-list recording of every free region and its size. The management of the free-lists adds overhead to object allocation. Built into this approach is another weakness – there may exist plenty of free regions but if no single region is large enough to accommodate the allocation, the allocation is still going to fail (with an OutOfMemoryError in Java).
+**Mark and Sweep(标记-清除)算法**的概念非常简单: 忽略所有的垃圾。这意味着, 在标记阶段完成后, 所有不可达对象占用的内存空间, 都被认为是空闲的, 因此可以用来分配新对象。
 
 
-这种算法需要使用空闲表(free-list),来追踪所有的空闲区域,以及每一个区域的大小。维护空闲列表增加了分配对象时的开销。此外还有另一个弱点 —— 明明还有很多空闲内存, 但却可能没有一个足够大的区域来存放需要分配的对象, 从而导致分配失败(在Java 中就是 OutOfMemoryError)。
+
+
+The approach requires using the so called **free-list** recording of every free region and its size. The management of the free-lists adds overhead to object allocation. Built into this approach is another weakness – there may exist plenty of free regions but if no single region is large enough to accommodate the allocation, the allocation is still going to fail (with an [OutOfMemoryError](http://plumbr.eu/outofmemoryerror) in Java).
+
+
+这种算法需要使用**空闲表(free-list)**,来追踪所有的空闲区域,以及每一个区域的大小。维护空闲列表增加了分配对象时的开销。此外还有另一个弱点 —— 明明还有很多空闲内存, 但却可能没有一个足够大的区域来存放需要分配的对象, 从而导致分配失败(在Java 中就是 [OutOfMemoryError](http://plumbr.eu/outofmemoryerror))。
 
 
 
@@ -127,16 +130,13 @@ The approach requires using the so called free-list recording of every free regi
 
 
 
-
-Compact
-
-整理(Compact)
+### 整理(Compact)
 
 
-Mark-Sweep-Compact algorithms solve the shortcomings of Mark and Sweep by moving all marked – and thus alive – objects to the beginning of the memory region. The downside of this approach is an increased GC pause duration as we need to copy all objects to a new place and to update all references to such objects. The benefits to Mark and Sweep are also visible – after such a compacting operation new object allocation is again extremely cheap via pointer bumping. Using such approach the location of the free space is always known and no fragmentation issues are triggered either.
+**Mark-Sweep-Compact** algorithms solve the shortcomings of Mark and Sweep by moving all marked – and thus alive – objects to the beginning of the memory region. The downside of this approach is an increased GC pause duration as we need to copy all objects to a new place and to update all references to such objects. The benefits to Mark and Sweep are also visible – after such a compacting operation new object allocation is again extremely cheap via pointer bumping. Using such approach the location of the free space is always known and no fragmentation issues are triggered either.
 
 
-标记-清除-整理算法(Mark-Sweep-Compact), 将所有标记的对象(也就是为活对象), 搬迁到内存空间的起始处, 消除了标记-清除算法的缺点。 而这种算法的缺点就是GC暂停的时间增加了, 因为需要将所有对象复制到另一个地方, 然后修改指向这些对象的引用。此算法的优势也很明显, 碎片整理之后, 分配新对象就很简单, 只需要通过指针碰撞(pointer bumping)即可。使用这种算法, 空闲内存的大小一直是清楚的, 不会再出现内存碎片问题。
+**标记-清除-整理算法(Mark-Sweep-Compact)**, 将所有标记的对象(也就是为活对象), 搬迁到内存空间的起始处, 消除了标记-清除算法的缺点。 而这种算法的缺点就是GC暂停的时间增加了, 因为需要将所有对象复制到另一个地方, 然后修改指向这些对象的引用。此算法的优势也很明显, 碎片整理之后, 分配新对象就很简单, 只需要通过指针碰撞(pointer bumping)即可。使用这种算法, 空闲内存的大小一直是清楚的, 不会再出现内存碎片问题。
 
 
 
@@ -146,15 +146,15 @@ Mark-Sweep-Compact algorithms solve the shortcomings of Mark and Sweep by moving
 
 
 
-Copy
+### Copy
 
-复制(Copy)
-
-
-Mark and Copy algorithms are very similar to the Mark and Compact as they too relocate all live objects. The important difference is that the target of relocation is a different memory region as a new home for survivors. Mark and Copy approach has some advantages as copying can occur simultaneously with marking during the same phase. The disadvantage is the need for one more memory region, which should be large enough to accommodate survived objects.
+### 复制(Copy)
 
 
-标记-复制算法(Mark and Copy) 和 标记-整理算法(Mark and Compact) 十分相似: 两者都会挪动所有存活的对象。区别在于, 标记-复制算法是迁移到另外一个内存区域: 存活区。标记-复制方法的优点在于:  标记和复制可以同时进行。缺点则是需要一个额外的内存区间, 来存放所有存活的对象。
+**Mark and Copy** algorithms are very similar to the Mark and Compact as they too relocate all live objects. The important difference is that the target of relocation is a different memory region as a new home for survivors. Mark and Copy approach has some advantages as copying can occur simultaneously with marking during the same phase. The disadvantage is the need for one more memory region, which should be large enough to accommodate survived objects.
+
+
+**标记-复制算法(Mark and Copy)** 和 标记-整理算法(Mark and Compact) 十分相似: 两者都会挪动所有存活的对象。区别在于, 标记-复制算法是迁移到另外一个内存区域: 存活区。标记-复制方法的优点在于:  标记和复制可以同时进行。缺点则是需要一个额外的内存区间, 来存放所有存活的对象。
 
 
 
