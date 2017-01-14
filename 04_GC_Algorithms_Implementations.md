@@ -514,16 +514,12 @@ As with previous GC algorithms, let us now see how this algorithm is applied in 
 
 
 
-
-#### 校对到此处
-
-
-### 小型GC(Minor GC)
+### Minor GC(小型GC)
 
 
 First of the GC events in log denotes a minor GC cleaning the Young space. Let’s analyze how this collector combination behaves in this regard:
 
-日志中的第一次GC事件代表清理年轻代空间的小型GC(Minor GC)。让我们来分析这款垃圾收集器组合在这方面的表现:
+日志中的第一次GC事件是清理年轻代的小型GC(Minor GC)。让我们来分析 CMS 垃圾收集器的行为:
 
 
 > <a>`2015-05-26T16:23:07.219-0200`</a>: <a>`64.322`</a>:[<a>`GC`</a>(<a>`Allocation Failure`</a>) 64.322: <br/>
@@ -537,13 +533,13 @@ First of the GC events in log denotes a minor GC cleaning the Young space. Let�
 > 1. <a>`64.322`</a> – Time when the GC event started, relative to the JVM startup time. Measured in seconds. GC事件开始时,相对于JVM启动时的间隔时间,单位是秒。
 > 1. <a>`GC`</a> – Flag to distinguish between Minor & Full GC. This time it is indicating that this was a Minor GC. 用来区分 Minor GC 还是 Full GC 的标志。`GC`表明这是一次**小型GC**(Minor GC)
 > 1. <a>`Allocation Failure`</a> – Cause of the collection. In this case, the GC is triggered due to a requested allocation not fitting into any region in Young Generation. 触发垃圾收集的原因。本次GC事件, 是由于年轻代中没有适当的空间存放新的数据结构引起的。
-> 1. <a>`ParNew`</a> – Name of the collector used, this time it indicates a parallel mark-copy stop-the-world garbage collector used in the Young Generation, designed to work in conjunction with Concurrent Mark & Sweep garbage collector in the Old Generation. 使用的垃圾收集器的名称。这个名字表示的是在年轻代中使用的: 并行的 标记-复制(mark-copy), 全线暂停(STW) 垃圾收集器, 专门设计来配合老年代使用的 Concurrent Mark & Sweep 垃圾收集器。
+> 1. <a>`ParNew`</a> – Name of the collector used, this time it indicates a parallel mark-copy stop-the-world garbage collector used in the Young Generation, designed to work in conjunction with Concurrent Mark & Sweep garbage collector in the Old Generation. 使用的垃圾收集器的名称。这个名字表示的是在年轻代中使用的: 并行的 标记-复制(mark-copy), 全线暂停(STW)垃圾收集器, 专门设计了用来配合老年代使用的 Concurrent Mark & Sweep 垃圾收集器。
 > 1. <a>`613404K->68068K`</a> – Usage of the Young Generation before and after collection. 在垃圾收集之前和之后的年轻代使用量。
 > 1. <a>`(613440K) `</a> – Total size of the Young Generation. 年轻代的总大小。
 > 1. <a>`0.1020465 secs`</a> – Duration for the collection w/o final cleanup. 垃圾收集器在 w/o final cleanup 阶段消耗的时间
 > 1. <a>`10885349K->10880154K `</a> – Total used heap before and after collection. 在垃圾收集之前和之后堆内存的使用情况。
 > 1. <a>`(12514816K)`</a> – Total available heap. 可用堆的总大小。
-> 1. <a>`0.1021309 secs`</a> – The time it took for the garbage collector to mark and copy live objects in the Young Generation. This includes communication overhead with ConcurrentMarkSweep collector, promotion of objects that are old enough to the Old Generation and some final cleanup at the end of the garbage collection cycle. 垃圾收集器在标记和复制年轻代存活对象消耗的时间。这包括和ConcurrentMarkSweep收集器的通信开销, 提升存活够长时间的对象到老年代,以及在垃圾收集周期后期的一些最后清理。
+> 1. <a>`0.1021309 secs`</a> – The time it took for the garbage collector to mark and copy live objects in the Young Generation. This includes communication overhead with ConcurrentMarkSweep collector, promotion of objects that are old enough to the Old Generation and some final cleanup at the end of the garbage collection cycle. 垃圾收集器在标记和复制年轻代存活对象时所消耗的时间。包括和ConcurrentMarkSweep收集器的通信开销, 提升存活时间达标的对象到老年代,以及垃圾收集后期的一些最终清理。
 > 1. <a>`[Times: user=0.78 sys=0.01, real=0.11 secs]`</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过三个部分来衡量:
  - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间。
  - sys – Time spent in OS calls or waiting for system event. GC过程中中操作系统调用和系统等待事件所消耗的时间。
@@ -553,7 +549,7 @@ First of the GC events in log denotes a minor GC cleaning the Young space. Let�
 
 From the above we can thus see that before the collection the total used heap was 10,885,349K and the used Young Generation share was 613,404K. This means that the Old Generation share was 10,271,945K. After the collection, Young Generation usage decreased by 545,336K but total heap usage decreased only by 5,195K. This means that 540,141K was promoted from the Young Generation to Old.
 
-从上面我们可以看到,在收集前堆内存总的使用量是 **10,885,349K**, 年轻代使用的为 **613,404K**。这意味着老年代使用量是 **10,271,945K**。收集之后,年轻代的使用量减少了 545,336K, 而总的堆内存使用只下降了 **5,195K**。可以算出有 **540,141K** 的对象从年轻代提升到老年代。
+从上面的日志可以看出,在GC之前总的堆内存使用量为 **10,885,349K**, 年轻代的使用量为 **613,404K**。这意味着老年代使用量等于 **10,271,945K**。GC之后,年轻代的使用量减少了 545,336K, 而总的堆内存使用只下降了 **5,195K**。可以算出有 **540,141K** 的对象从年轻代提升到老年代。
 
 
 ![](04_05_ParallelGC-in-Young-Generation-Java.png)
@@ -561,9 +557,11 @@ From the above we can thus see that before the collection the total used heap wa
 
 
 
-### Full GC
+#### 校对到此处
 
-### 完全GC
+
+
+### Full GC(完全GC)
 
 
 Now, just as you are becoming accustomed to reading GC logs already, this chapter will introduce a completely different format for the next garbage collection event in the logs. The lengthy output that follows consists of all the different phases of the mostly concurrent garbage collection in the Old Generation. We will review them one by one but in this case we will cover the log content in phases instead of the entire event log at once for more concise representation. But to recap, the whole event for the CMS collector looks like the following:
