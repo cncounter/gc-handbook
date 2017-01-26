@@ -557,10 +557,6 @@ From the above we can thus see that before the collection the total used heap wa
 
 
 
-#### 校对到此处
-
-
-
 ### Full GC(完全GC)
 
 
@@ -568,7 +564,7 @@ Now, just as you are becoming accustomed to reading GC logs already, this chapte
 
 
 
-现在, 我们已经对解读GC日志越来越熟悉, 本节接下来介绍一种日志格式完全不同的GC事件。下面这一段很长的日志,就是CMS在老年代中进行垃圾收集时各个阶段的输出。为了简洁,我们将根据这些阶段逐个介绍。 首先来看看全貌, CMS收集器的整个GC事件日志如下:
+现在, 我们已经熟悉了如何解读GC日志, 接下来将介绍一种完全不同的日志格式。下面这一段很长很长的日志, 就是CMS对老年代进行垃圾收集时输出的各阶段日志。为了简洁,我们对这些阶段逐个介绍。 首先来看CMS收集器整个GC事件的日志:
 
 
 
@@ -606,18 +602,26 @@ Now, just as you are becoming accustomed to reading GC logs already, this chapte
 
 
 
+
 Just to bear in mind – in real world situation Minor Garbage Collections of the Young Generation can occur anytime during concurrent collecting the Old Generation. In such case the major collection records seen below will be interleaved with the Minor GC events covered in previous chapter.
 
-只是要记住 —— 在实际情况下, 在老年代进行并发收集时, 可能随时会有多次年轻代的小型GC发生. 在这种情况下, 大型GC的日志中就会掺杂着多次小型GC事件, 像前面一样。
+只是要记住 —— 在实际情况下, 进行老年代的并发回收时, 可能会伴随着多次年轻代的小型GC. 在这种情况下, 大型GC的日志中就会掺杂着多次小型GC事件, 像前面所介绍的一样。
+
+
+
 
 
 **Phase 1: Initial Mark**. This is one of the two stop-the-world events during CMS. The goal of this phase is to mark all the objects in the Old Generation that are either direct GC roots or are referenced from some live object in the Young Generation. The latter is important since the Old Generation is collected separately.
 
-**阶段 1: 初始标记(Initial Mark)**. 这是CMS中两次STW事件中的一次. 此阶段的目标是标记老年代中的所有存活对象, 或者直接是GC ROOR 引用, 或者是由年轻代中的存活对象引用. 后者也非常重要, 因为老年代是分开进行回收的。
+**阶段 1: 初始标记(Initial Mark)**. 这是第一次STW事件。 此阶段的目标是标记老年代中所有存活的对象, 包括 GC ROOR 的直接引用, 以及由年轻代中存活对象所引用的对象。 后者也非常重要, 因为老年代是独立进行回收的。
 
 
 ![](04_06_g1-06.png)
 
+
+
+
+#### 校对到此处
 
 
 
