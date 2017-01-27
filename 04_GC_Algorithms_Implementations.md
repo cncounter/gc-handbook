@@ -621,10 +621,6 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 
 
 
-#### 校对到此处
-
-
-
 ><a>`2015-05-26T16:23:07.321-0200: 64.42`<sup>1</sup></a>: [GC (<a>`CMS Initial Mark`<sup>1</sup></a><br/>
 >[1 CMS-initial-mark: <a>`10812086K`<sup>1</sup></a><a>`(11901376K)`<sup>1</sup></a>] <a>`10887844K`<sup>1</sup></a><a>`(12514816K)`<sup>1</sup></a>,<br/>
 > <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`<sup>1</sup></a>
@@ -633,13 +629,13 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 
 
 >
-> 1. <a>`2015-05-26T16:23:07.321-0200: 64.42`</a> – Time the GC event started, both clock time and relative to the time from the JVM start. For the following phases the same notion is used throughout the event and is thus skipped for brevity. GC事件开始的时间. 其中-0200是时区,而中国所在的东8区为 +0800。 而 **64.42** 是相对于JVM启动的时间。 下面的其他阶段也是一样,所以就不再重复介绍。
+> 1. <a>`2015-05-26T16:23:07.321-0200: 64.42`</a> – Time the GC event started, both clock time and relative to the time from the JVM start. For the following phases the same notion is used throughout the event and is thus skipped for brevity. GC事件开始的时间. 其中 `-0200` 是时区,而中国所在的东8区为 +0800。 而 **64.42** 是相对于JVM启动的时间。 下面的其他阶段也是一样,所以就不再重复介绍。
 > 1. <a>`CMS Initial Mark`</a> – Phase of the collection – “Initial Mark” in this occasion – that is collecting all GC Roots. 垃圾回收的阶段名称为 “Initial Mark”。 标记所有的 GC Root。
 > 1. <a>`10812086K`</a> – Currently used Old Generation. 老年代的当前使用量。
-> 1. <a>`(11901376K)`</a> – Total available memory in the Old Generation. 老年代中总的可用内存。
-> 1. <a>`10887844K`</a> – Currently used heap. 当前堆内存的使用量
+> 1. <a>`(11901376K)`</a> – Total available memory in the Old Generation. 老年代中可用内存总量。
+> 1. <a>`10887844K`</a> – Currently used heap. 当前堆内存的使用量。
 > 1. <a>`(12514816K)`</a> – Total available heap. 可用堆的总大小。
-> 1. <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`</a> – Duration of the phase, measured also in user, system and real time. 此暂停的持续时间, 以 user, system 和 real time 3个部分进行衡量。
+> 1. <a>`0.0001997 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]`</a> – Duration of the phase, measured also in user, system and real time. 此次暂停的持续时间, 以 user, system 和 real time 3个部分进行衡量。
 
 
 
@@ -648,7 +644,7 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 **Phase 2: Concurrent Mark.** During this phase the Garbage Collector traverses the Old Generation and marks all live objects, starting from the roots found in the previous phase of “Initial Mark”. The “Concurrent Mark” phase, as its name suggests, runs concurrently with your application and does not stop the application threads. Note that not all the live objects in the Old Generation may be marked, since the application is mutating references during the marking.
 
 
-**第二阶段:并发标记(Concurrent Mark).** 在此阶段, 垃圾收集器遍历老年代,从前一阶段 “Initial Mark” 找到的 root 根开始, 标记所有存活的对象。 “并发标记”阶段, 顾名思义, 与应用程序同时运行,不会暂停应用线程. 请注意,此阶段并非所有老年代中存活的对象都会被标记,因为在标记过程中引用还会发生变化。
+**第二阶段:并发标记(Concurrent Mark).** 在此阶段, 垃圾收集器遍历老年代, 标记所有的存活对象, 从前一阶段 “Initial Mark” 找到的 root 根开始算起。 顾名思义, “并发标记”阶段, 就是与应用程序同时运行,不用暂停的阶段。 请注意, 并非所有老年代中存活的对象都在此阶段被标记, 因为在标记过程中对象的引用关系还在发生变化。
 
 
 ![](04_07_g1-07.png)
@@ -658,7 +654,7 @@ Just to bear in mind – in real world situation Minor Garbage Collections of th
 
 In the illustration, a reference pointing away from the “Current object” was removed concurrently with the marking thread.
 
-在上面的插图中, 一个“当前对象”指向的引用被标记线程并发移除。
+在上面的示意图中, “Current object” 旁边的一个引用被标记线程并发删除了。
 
 
 >2015-05-26T16:23:07.321-0200: 64.425: [CMS-concurrent-mark-start]<br/>
@@ -666,10 +662,14 @@ In the illustration, a reference pointing away from the “Current object” was
 ><a>`[Times: user=0.07 sys=0.00, real=0.03 secs]`<sup>1</sup></a><br/>
 
 >
-> 1. <a>`CMS-concurrent-mark`</a> – Phase of the collection – “Concurrent Mark” in this occasion – that is traversing the Old Generation and marking all live objects. 垃圾收集的一个阶段，这里是 "Concurrent Mark", 并发标记,遍历老年代并标记所有存活的对象
-> 1. <a>`035/0.035 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly. 此阶段的持续时间, 分别是运行时间和对应的实际时间
-> 1. <a>`[Times: user=0.07 sys=0.00, real=0.03 secs]`</a> – “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking. <br/>Times 这部分对并发阶段来说没多少意义, 因为是从并发标记开始时计算的,而这段时间内不仅是并发标记在运行,程序也在运行
+> 1. <a>`CMS-concurrent-mark`</a> – Phase of the collection – “Concurrent Mark” in this occasion – that is traversing the Old Generation and marking all live objects. 并发标记("Concurrent Mark") 是CMS垃圾收集中的一个阶段, 遍历老年代并标记所有的存活对象。
+> 1. <a>`035/0.035 secs`</a> – Duration of the phase, showing elapsed time and wall clock time correspondingly. 此阶段的持续时间, 分别是运行时间和相应的实际时间。
+> 1. <a>`[Times: user=0.07 sys=0.00, real=0.03 secs]`</a> – “Times” section is less meaningful for concurrent phases as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking. <br/> `Times` 这部分对并发阶段来说没多少意义, 因为是从并发标记开始时计算的,而这段时间内不仅并发标记在运行,程序也在运行
 
+
+
+
+#### 校对到此处
 
 
 
