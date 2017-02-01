@@ -800,33 +800,33 @@ After the five marking phases, all live objects in the Old Generation are marked
 
 
 
-
-#### 校对到此处
-
-
 **Phase 7: Concurrent Reset.** Concurrently executed phase, resetting inner data structures of the CMS algorithm and preparing them for the next cycle.
 
-**阶段7:并发重置(Concurrent Reset)。** 并发执行阶段,重置CMS算法的内部数据结构, 为下一次GC循环做准备。
+**阶段7: Concurrent Reset(并发重置).** 此阶段与应用程序并发执行,重置CMS算法相关的内部数据, 为下一次GC循环做准备。
 
 
 >
 2015-05-26T16:23:08.485-0200: 65.589: [CMS-concurrent-reset-start] 2015-05-26T16:23:08.497-0200: 65.601: [<a>`CMS-concurrent-reset`</a>: <a>`0.012/0.012 secs`</a>] <a>`[Times: user=0.01 sys=0.00, real=0.01 secs]`</a>
 
-
+<br/>
 
 >
-> 1. <a>`CMS-concurrent-reset`</a> – The phase of the collection – “Concurrent Reset” in this occasion – that is resetting inner data structures of the CMS algorithm and preparing for the next collection.此阶段的名称, “Concurrent Reset”, 重置CMS算法的内部数据结构, 为下一次GC循环做准备。
+> 1. <a>`CMS-concurrent-reset`</a> – The phase of the collection – “Concurrent Reset” in this occasion – that is resetting inner data structures of the CMS algorithm and preparing for the next collection. 此阶段的名称, “Concurrent Reset”, 重置CMS算法的内部数据结构, 为下一次GC循环做准备。
 > 1. <a>`0.012/0.012 secs`</a> – Duration of the the phase, measuring elapsed and wall clock time respectively. 此阶段的持续时间, 分别是运行时间和对应的实际时间
-> 1. <a>`[Times: user=0.01 sys=0.00, real=0.01 secs]`</a> – The “Times” section is less meaningful on concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking. 这部分对并发阶段来说没多少意义, 因为是从并发标记开始时计算的,而这段时间内不仅是并发标记在运行,程序也在运行
+> 1. <a>`[Times: user=0.01 sys=0.00, real=0.01 secs]`</a> – The “Times” section is less meaningful on concurrent phases, as it is measured from the start of the concurrent marking and includes more than just the work done for the concurrent marking. “Times”部分对并发阶段来说没多少意义, 因为是从并发标记开始时计算的,而这段时间内不仅GC线程在运行,程序也在运行。
 
 
 
 All in all, the CMS garbage collector does a great job at reducing the pause durations by offloading a great deal of the work to concurrent threads that do not require the application to stop. However, it, too, has some drawbacks, the most notable of them being the Old Generation fragmentation and the lack of predictability in pause durations in some cases, especially on large heaps.
 
-总之, CMS垃圾收集器在减少停顿时间上做了很多给力的工作, 通过大量的并发线程执行不需要暂停应用程序的工作. 然而,它也有一些缺点,其中最著名的是老年代的碎片化, 以及在某些情况下缺乏可预测的暂停时间, 特别是大型堆。
+总之, CMS垃圾收集器在减少停顿时间上做了很多给力的工作, 大量的并发线程执行的工作并不需要暂停应用线程。 当然, CMS也有一些缺点,其中最大的问题就是老年代内存碎片问题, 在某些情况下GC会造成不可预测的暂停时间, 特别是堆内存较大的情况下。
 
 
-## G1 – Garbage First(垃圾优先)
+
+
+#### 校对到此处
+
+## G1 – Garbage First(垃圾优先算法)
 
 
 One of the key design goals of G1 was to make the duration and distribution of stop-the-world pauses due to garbage collection predictable and configurable. In fact, Garbage-First is a soft real-time garbage collector, meaning that you can set specific performance goals to it. You can request the stop-the-world pauses to be no longer than x milliseconds within any given y-millisecond long time range, e.g. no more than 5 milliseconds in any given second. Garbage-First GC will do its best to meet this goal with high probability (but not with certainty, that would be hard real-time).
