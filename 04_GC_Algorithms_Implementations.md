@@ -822,21 +822,17 @@ All in all, the CMS garbage collector does a great job at reducing the pause dur
 总之, CMS垃圾收集器在减少停顿时间上做了很多给力的工作, 大量的并发线程执行的工作并不需要暂停应用线程。 当然, CMS也有一些缺点,其中最大的问题就是老年代内存碎片问题, 在某些情况下GC会造成不可预测的暂停时间, 特别是堆内存较大的情况下。
 
 
-
-
-#### 校对到此处
-
 ## G1 – Garbage First(垃圾优先算法)
 
 
 One of the key design goals of G1 was to make the duration and distribution of stop-the-world pauses due to garbage collection predictable and configurable. In fact, Garbage-First is a soft real-time garbage collector, meaning that you can set specific performance goals to it. You can request the stop-the-world pauses to be no longer than x milliseconds within any given y-millisecond long time range, e.g. no more than 5 milliseconds in any given second. Garbage-First GC will do its best to meet this goal with high probability (but not with certainty, that would be hard real-time).
 
-G1的主要设计目标就是使的STW停顿的时间和分布变成可预测和可配置的。事实上, G1是一款软实时的垃圾收集器, 这意味着您可以设置特定的性能目标.你可以要求，在给定的任意y 毫秒时间范围内, STW停顿不得超过x毫秒。 例如: 每一秒中不得超过5毫秒. Garbage-First GC将以很大的概率尽力满足这个目标(但也不是完全确定,具体是多少将是真实时[hard real-time])。
+G1最主要的设计目标是: 将STW停顿的时间和分布变成可预期以及可配置的。事实上, G1是一款软实时垃圾收集器, 也就是说可以为其设置某项特定的性能指标. 可以指定: 在任意 `xx` 毫秒的时间范围内, STW停顿不得超过 `x` 毫秒。 如: 任意1秒暂停时间不得超过5毫秒. Garbage-First GC 会尽力达成这个目标(有很大的概率会满足, 但并不完全确定,具体是多少将是硬实时的[hard real-time])。
 
 
 To achieve this, G1 builds upon a number of insights. First, the heap does not have to be split into contiguous Young and Old generation. Instead, the heap is split into a number (typically about 2048) smaller heap regions that can house objects. Each region may be an Eden region, a Survivor region or an Old region. The logical union of all Eden and Survivor regions is the Young Generation, and all the Old regions put together is the Old Generation:
 
-为了达成这个目标,G1的有一些独特的实现。首先, 堆不需要分成连续的年轻代和老年代空间。而是分成许多个(通常是2048个)可以存放对象的小型堆区域(heap regions)。每个区域都可以是一个Eden区, Survivor区或者Old区. 逻辑上, 所有的Eden区和Survivor区就是年轻代, 所有的Old区放在一起那就是老年代:
+为了达成这项指标, G1 有一些独特的实现。首先, 堆不再分成连续的年轻代和老年代空间。而是划分为多个(通常是2048个)可以存放对象的 **小堆区(smaller heap regions)**。每个小堆区都可能是 Eden区, Survivor区或者Old区. 在逻辑上, 所有的Eden区和Survivor区合起来就是年轻代, 所有的Old区拼在一起那就是老年代:
 
 
 ![](04_11_g1-011.png)
@@ -846,7 +842,7 @@ To achieve this, G1 builds upon a number of insights. First, the heap does not h
 
 This allows the GC to avoid collecting the entire heap at once, and instead approach the problem incrementally: only a subset of the regions, called the collection set will be considered at a time. All the Young regions are collected during each pause, but some Old regions may be included as well:
 
-这样划分使得每次GC不必去收集整个堆,而是以增量的方式解决问题: 每次只处理一部分区域,称为回收集(collection set). 每次暂停会收集所有的年轻区域, 但可能只包含一部分老年代区域:
+这样的划分使得 GC不必每次都去收集整个堆空间, 而是以增量的方式来处理: 每次只处理一部分小堆区,称为此次的回收集(collection set). 每次暂停都会收集所有年轻代的小堆区, 但可能只包含一部分老年代小堆区:
 
 
 ![](04_12_g1-02.png)
@@ -856,21 +852,25 @@ This allows the GC to avoid collecting the entire heap at once, and instead appr
 
 Another novelty of G1 is that during the concurrent phase it estimates the amount of live data that each region contains. This is used in building the collection set: the regions that contain the most garbage are collected first. Hence the name: garbage-first collection.
 
-G1的另一个创新, 是在并发阶段估算每个区域存活对象的数量。这用于构建回收集合(collection set): 垃圾最多的区域会被优先收集。这也是G1名称的由来: garbage-first。
+G1的另一项创新, 是在并发阶段估算每个小堆区存活对象的总数。用来构建回收集(collection set)的原则是: **垃圾最多的小堆区会被优先收集**。这也是G1名称的由来: garbage-first。
 
 
 To run the JVM with the G1 collector enabled, run your application as
 
-为JVM启用G1收集器, 使用的命令行参数为:
+要启用G1收集器, 使用的命令行参数为:
 
 
 	java -XX:+UseG1GC com.mypackages.MyExecutableClass
 
 
 
+
+#### 校对到此处
+
+
 ### Evacuation Pause: Fully Young
 
-### 转移暂停(Evacuation Pause): Fully Young 模式
+### 疏散暂停模式(Evacuation Pause): Fully Young
 
 
 In the beginning of the application’s lifecycle, G1 does not have any additional information from the not-yet-executed concurrent phases, so it initially functions in the fully-young mode. When the Young Generation fills up, the application threads are stopped, and the live data inside the Young regions is copied to Survivor regions, or any free regions that thereby become Survivor.
@@ -1049,7 +1049,7 @@ This is achieved by the use of the Pre-Write barriers (not to be confused with P
 
 **Phase 5. Cleanup.** This final phase prepares the ground for the upcoming evacuation phase, counting all the live objects in the heap regions, and sorting these regions by expected GC efficiency. It also performs all the house-keeping activities required to maintain the internal state for the next iteration of concurrent marking.
 
-** 阶段5: 清理。** 最后的这个小阶段为即将到来的疏散阶段做准备, 计算堆区域中的所有存活对象, 并进行排序, 为了GC的效率. 它也为下一次标记执行所需的所有辅助活动, 维护并发标记的内部状态。
+** 阶段5: 清理。** 最后的这个小阶段为即将到来的疏散阶段做准备, 计算小堆区中的所有存活对象, 并进行排序, 为了GC的效率. 它也为下一次标记执行所需的所有辅助活动, 维护并发标记的内部状态。
 
 
 Last but not least, the regions that contain no live objects at all are reclaimed in this phase. Some parts of this phase are concurrent, such as the empty region reclamation and most of the liveness calculation, but it also requires a short stop-the-world pause to finalize the picture while the application threads are not interfering. The logs for such stop-the-world pauses would be similar to:
@@ -1065,7 +1065,7 @@ Last but not least, the regions that contain no live objects at all are reclaime
 
 In case when some heap regions that only contain garbage were discovered, the pause format can look a bit different, similar to:
 
-如果某些堆区域只包含垃圾, 则日志格式可以看起来有点不同,像下面这样:
+如果某些小堆区只包含垃圾, 则日志格式可以看起来有点不同,像下面这样:
 	
 	1.872: [GC cleanup 1357M->173M(1996M), 0.0015664 secs]
 	[Times: user=0.01 sys=0.00, real=0.01 secs]
@@ -1102,7 +1102,7 @@ The exact number of Old regions to be added to the collection set, and the order
 
 Remembered sets are what allows the independent collection of different heap regions. For instance, when collecting region A,B and C, we have to know whether or not there are references to them from regions D and E to determine their liveness. But traversing the whole heap graph would take quite a while and ruin the whole point of incremental collection, therefore an optimization is employed. Much like we have the Card Table for independently collecting Young regions in other GC algorithms, we have Remembered Sets in G1.
 
-Remembered sets (历史记忆集)是用来支持不同的堆区域独立回收的集合。例如,在收集A、B、C区域时,我们需要知道是否有从区域D和E指向其中的引用, 来确定他们的存活性.但是遍历整个堆需要相当长的一段时间, 这就失去了增量收集的意义, 因此采用一种优化方法. 就像其他GC算法有独立的Card Table 来支持年轻代区域的垃圾收集一样, 在G1中使用的是Remembered Sets。
+Remembered sets (历史记忆集)是用来支持不同的小堆区独立回收的集合。例如,在收集A、B、C区域时,我们需要知道是否有从区域D和E指向其中的引用, 来确定他们的存活性.但是遍历整个堆需要相当长的一段时间, 这就失去了增量收集的意义, 因此采用一种优化方法. 就像其他GC算法有独立的Card Table 来支持年轻代区域的垃圾收集一样, 在G1中使用的是Remembered Sets。
 
 
 As shown in the illustration below, each region has a remembered set that lists the references pointing to this region from the outside. These references will then be regarded as additional GC roots. Note that objects in Old regions that were determined to be garbage during concurrent marking will be ignored even if there are outside references to them: the referents are also garbage in that case.
