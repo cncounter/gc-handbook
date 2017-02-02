@@ -864,23 +864,19 @@ To run the JVM with the G1 collector enabled, run your application as
 
 
 
-
-#### 校对到此处
-
-
 ### Evacuation Pause: Fully Young
 
-### 疏散暂停模式(Evacuation Pause): Fully Young
+### 转移暂停(Evacuation Pause): Fully Young
 
 
 In the beginning of the application’s lifecycle, G1 does not have any additional information from the not-yet-executed concurrent phases, so it initially functions in the fully-young mode. When the Young Generation fills up, the application threads are stopped, and the live data inside the Young regions is copied to Survivor regions, or any free regions that thereby become Survivor.
 
-在应用程序刚启动时, G1还未执行过(not-yet-executed)并发阶段得到其他信息,  所以此时处于 fully-young 模式. 在年轻代用满后, 应用线程暂停, 年轻代中的存活数据被复制到存活区, 如果还没有存活区,则任意选择一些空闲的区域作为存活区。
+在应用程序刚启动时, G1还未执行过(not-yet-executed)并发阶段, 也就没有获得任何额外的信息, 处于初始的 fully-young 模式. 在年轻代空间用满之后, 应用线程被暂停, 年轻代堆区中的存活对象被复制到存活区, 如果还没有存活区,则选择任意一部分空闲的小堆区用作存活区。
 
 
 The process of copying these is called Evacuation, and it works in pretty much the same way as the other Young collectors we have seen before. The full logs of evacuation pauses are rather large, so, for simplicity’s sake we will leave out a couple of small bits that are irrelevant in the first fully-young evacuation pause. We will get back to them after the concurrent phases are explained in greater detail. In addition, due to the sheer size of the log record, the parallel phase details and “Other” phase details are extracted to separate sections:
 
-复制的过程叫做转移(Evacuation), 它和前面讲过的年轻代收集器几乎是一样的工作方式。转移暂停的日志信息很长,为简单起见, 我们去除了一部分不重要的日志信息. 我们将在并发阶段之后进行更详细的解释。此外, 由于日志记录很多, 所以并行阶段和“其他”阶段的细节将拆分为多个部分进行讲解:
+复制的过程称为转移(Evacuation), 这和前面讲过的年轻代收集器基本上是一样的工作原理。转移暂停的日志信息很长,为简单起见, 我们去除了一些不重要的信息. 在并发阶段之后我们会进行详细的讲解。此外, 由于日志记录很多, 所以并行阶段和“其他”阶段的日志将拆分为多个部分来进行讲解:
 
 
 > <a>`0.134: [GC pause (G1 Evacuation Pause) (young), 0.0144119 secs]`</a> <br/>
@@ -897,25 +893,29 @@ The process of copying these is called Evacuation, and it works in pretty much t
 
 
 >
-> 1. <a>`0.134: [GC pause (G1 Evacuation Pause) (young), 0.0144119 secs]`</a> – G1 pause cleaning only (young) regions. The pause started 134ms after the JVM startup and the duration of the pause was 0.0144 seconds measured in wall clock time. G1暂停,只清理(年轻代)区域。暂停在JVM启动134 ms 后开始, 持续的系统时间是 **0.0144秒** 。
-> 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (real time) the following activities were carried out by 8 threads in parallel  表明下列活动由8线程并行执行，消耗时间为13.9毫秒(real time)
-> 1. <a>`…`</a> – Cut for brevity, see the following section below for the details. 为阅读方便单而省略,请参考后文。
-> 1. <a>`[Code Root Fixup: 0.0 ms]`</a> – Freeing up the data structures used for managing the parallel activities. Should always be near-zero. This is done sequentially. 释放用于管理并行活动的数据结构。一般都是接近于零。这是串行执行的。
-> 1. <a>`[Code Root Purge: 0.0 ms]`</a> – Cleaning up more data structures, should also be very fast, but non necessarily almost zero. This is done sequentially. 清理更多的数据结构, 也是非常快的, 但如非必要则几乎等于零。这是串行执行的。
-> 1. <a>`[Other: 0.4 ms]`</a> – Miscellaneous other activities, many of which are also parallelized.  其他活动消耗的时间, 其中也有很多是并行执行的。
-> 1. <a>`…`</a> – See the section below for details. 请参考后文
-> 1. <a>`[Eden: 24.0M(24.0M)->0.0B(13.0M) `</a> – Eden usage and capacity before and after the pause. 事件前后新生代的使用量
-> 1. <a>`Survivors: 0.0B->3072.0K `</a> – Space used by Survivor regions before and after the pause. 事件前后存活区的使用量
-> 1. <a>`Heap: 24.0M(256.0M)->21.9M(256.0M)]`</a> – Total heap usage and capacity before and after the pause. 事件前后整个堆内存的使用量与总容量。
+> 1. <a>`0.134: [GC pause (G1 Evacuation Pause) (young), 0.0144119 secs]`</a> – G1 pause cleaning only (young) regions. The pause started 134ms after the JVM startup and the duration of the pause was 0.0144 seconds measured in wall clock time. G1转移暂停,只清理年轻代空间。暂停在JVM启动之后 134 ms 开始, 持续的系统时间为 **0.0144秒** 。
+> 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (real time) the following activities were carried out by 8 threads in parallel  表明后面的活动由8个 Worker 线程并行执行, 消耗时间为13.9毫秒(real time)。
+> 1. <a>`…`</a> – Cut for brevity, see the following section below for the details. 为阅读方便, 省略了部分内容,请参考后文。
+> 1. <a>`[Code Root Fixup: 0.0 ms]`</a> – Freeing up the data structures used for managing the parallel activities. Should always be near-zero. This is done sequentially. 释放用于管理并行活动的内部数据。一般都接近于零。这是串行执行的过程。
+> 1. <a>`[Code Root Purge: 0.0 ms]`</a> – Cleaning up more data structures, should also be very fast, but non necessarily almost zero. This is done sequentially. 清理其他部分数据, 也是非常快的, 但如非必要则几乎等于零。这是串行执行的过程。
+> 1. <a>`[Other: 0.4 ms]`</a> – Miscellaneous other activities, many of which are also parallelized.  其他活动消耗的时间, 其中有很多是并行执行的。
+> 1. <a>`…`</a> – See the section below for details. 请参考后文。
+> 1. <a>`[Eden: 24.0M(24.0M)->0.0B(13.0M) `</a> – Eden usage and capacity before and after the pause. 暂停之前和暂停之后, Eden 区的使用量/总容量。
+> 1. <a>`Survivors: 0.0B->3072.0K `</a> – Space used by Survivor regions before and after the pause. 暂停之前和暂停之后, 存活区的使用量。
+> 1. <a>`Heap: 24.0M(256.0M)->21.9M(256.0M)]`</a> – Total heap usage and capacity before and after the pause. 暂停之前和暂停之后, 整个堆内存的使用量与总容量。
 > 1. <a>`[Times: user=0.04 sys=0.04, real=0.02 secs] `</a> – Duration of the GC event, measured in different categories: GC事件的持续时间, 通过三个部分来衡量:
  - user – Total CPU time that was consumed by the garbage collector threads during this collection. 在此次垃圾回收过程中, 由GC线程所消耗的总的CPU时间。
- - sys – Time spent in OS calls or waiting for system event. GC过程中中操作系统调用和系统等待事件所消耗的时间。
- - real – Clock time for which your application was stopped. With the parallelizable activities during GC this number is ideally close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序暂停的时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有固定比例的处理过程是不能并行化的。
+ - sys – Time spent in OS calls or waiting for system event. GC过程中, 系统调用和系统等待事件所消耗的时间。
+ - real – Clock time for which your application was stopped. With the parallelizable activities during GC this number is ideally close to (user time + system time) divided by the number of threads used by Garbage Collector. In this particular case 8 threads were used. Note that due to some activities not being parallelizable, it always exceeds the ratio by a certain amount. 应用程序暂停的时间。在并行GC(Parallel GC)中, 这个数字约等于: (user time + system time)/GC线程数。 这里使用的是8个线程。 请注意,总是有一定比例的处理过程是不能并行化的。
 
 
 
 > 说明: 系统时间(wall clock time, elapsed time), 是指一段程序从运行到终止，系统时钟走过的时间。一般来说，系统时间都是要大于CPU时间
 
+
+
+
+#### 校对到此处
 
 
 Most of the heavy-lifting is done by multiple dedicated GC worker threads. Their activities are described in the following section of the log:
