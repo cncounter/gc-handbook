@@ -914,13 +914,9 @@ The process of copying these is called Evacuation, and it works in pretty much t
 
 
 
-
-#### 校对到此处
-
-
 Most of the heavy-lifting is done by multiple dedicated GC worker threads. Their activities are described in the following section of the log:
 
-最繁重的任务由多个专用的GC worker线程来执行。下面的日志描述了他们的活动:
+最繁重的GC任务由多个专用的 worker 线程来执行。下面的日志描述了他们的行为:
 
 
 > <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> <br/>
@@ -939,22 +935,22 @@ Most of the heavy-lifting is done by multiple dedicated GC worker threads. Their
 <br/>
 
 >
-> 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (clock time) the following activities were carried out by 8 threads in parallel。 表明下列活动由8线程并行执行，消耗时间为13.9毫秒(real time)
-> 1. <a>`[GC Worker Start (ms)`</a> – The moment in time at which the workers started their activity, matching the timestamp at the beginning of the pause. If Min and Max differ a lot, then it may be an indication that too many threads are used or other processes on the machine are stealing CPU time from the garbage collection process inside the JVM. workers 开始启动的的时间, 对应于pause开始的时间戳。如果 Min 和 Max 差别很大,则可能是机器上的其他进程占用线程数量过多的标识。 使用或窃取其他进程的机器上的CPU时间在JVM的垃圾收集过程
-> 1. <a>`[Ext Root Scanning (ms)`</a> – How long it took to scan the external (non-heap) roots such as classloaders, JNI references, JVM system roots, etc. Shows elapsed time, “Sum” is CPU time. 用了多长时间来扫描外部(non-heap) root, 例如 classloaders, JNI引用,JVM系统 troot等。显示了运行时间, “Sum” 是指CPU时间。
-> 1. <a>`[Code Root Scanning (ms)`</a> – How long it took to scan the roots that came from the actual code: local vars, etc.  用了多长时间来扫描的实际代码中的 root: 例如局部变量等等(local vars)。
-> 1. <a>`[Object Copy (ms)`</a> – How long it took to copy the live objects away from the collected regions. 花费了多少时间来复制收集区内的存活对象。
-> 1. <a>`[Termination (ms)`</a> – How long it took for the worker threads to ensure that they can safely stop and that there’s no more work to be done, and then actually terminate. worker 线程用了多长时间来确保可以安全地暂停其他线程, 没有更多的工作要做,然后就终止了。
-> 1. <a>`[Termination Attempts`</a> – How many attempts worker threads took to try and terminate. An attempt is failed if the worker discovers that there’s in fact more work to be done, and it’s too early to terminate. worker 线程尝试多少次try 和 teminate。如果worker 发现实际上有更多的工作要做,则这一次尝试就是失败的, 它还为时过早, 所以终止了。
-> 1. <a>`[GC Worker Other (ms)`</a> – Other miscellaneous small activities that do not deserve a separate section in the logs. 在日志中不配使用一个单独部分的小活动。
-> 1. <a>`GC Worker Total (ms)`</a> – How long the worker threads have worked for in total. worker 线程工作的时间总计
-> 1. <a>`[GC Worker End (ms)`</a> – The timestamp at which the workers have finished their jobs. Normally they should be roughly equal, otherwise it may be an indication of too many threads hanging around or a noisy neighbor. worker 线程完成作业的时间戳。通常来说应该大致相等, 否则可能是表明有太多的线程挂起和唤醒导致的。
+> 1. <a>`[Parallel Time: 13.9 ms, GC Workers: 8]`</a> – Indicating that for 13.9 ms (clock time) the following activities were carried out by 8 threads in parallel。 表明下列活动由8个线程并行执行,消耗的时间为13.9毫秒(real time)。
+> 1. <a>`[GC Worker Start (ms)`</a> – The moment in time at which the workers started their activity, matching the timestamp at the beginning of the pause. If Min and Max differ a lot, then it may be an indication that too many threads are used or other processes on the machine are stealing CPU time from the garbage collection process inside the JVM. GC的worker线程开始启动时,相对于 pause 开始的时间戳。如果 `Min` 和 `Max` 差别很大,则表明本机其他进程所使用的线程数量过多, 挤占了GC的CPU时间。
+> 1. <a>`[Ext Root Scanning (ms)`</a> – How long it took to scan the external (non-heap) roots such as classloaders, JNI references, JVM system roots, etc. Shows elapsed time, “Sum” is CPU time. 用了多长时间来扫描堆外(non-heap)的root, 如 classloaders, JNI引用, JVM的系统root等。后面显示了运行时间, “Sum” 指的是CPU时间。
+> 1. <a>`[Code Root Scanning (ms)`</a> – How long it took to scan the roots that came from the actual code: local vars, etc.  用了多长时间来扫描实际代码中的 root: 例如局部变量等等(local vars)。
+> 1. <a>`[Object Copy (ms)`</a> – How long it took to copy the live objects away from the collected regions. 用了多长时间来拷贝收集区内的存活对象。
+> 1. <a>`[Termination (ms)`</a> – How long it took for the worker threads to ensure that they can safely stop and that there’s no more work to be done, and then actually terminate. GC的worker线程用了多长时间来确保自身可以安全地停止, 这段时间什么也不用做, stop 之后该线程就终止运行了。
+> 1. <a>`[Termination Attempts`</a> – How many attempts worker threads took to try and terminate. An attempt is failed if the worker discovers that there’s in fact more work to be done, and it’s too early to terminate. GC的worker 线程尝试多少次 try 和 teminate。如果worker发现还有一些任务没处理完,则这一次尝试就是失败的, 暂时还不能终止。
+> 1. <a>`[GC Worker Other (ms)`</a> – Other miscellaneous small activities that do not deserve a separate section in the logs. 一些琐碎的小活动,在GC日志中不值得单独列出来。
+> 1. <a>`GC Worker Total (ms)`</a> – How long the worker threads have worked for in total. worker 线程的工作时间总计。
+> 1. <a>`[GC Worker End (ms)`</a> – The timestamp at which the workers have finished their jobs. Normally they should be roughly equal, otherwise it may be an indication of too many threads hanging around or a noisy neighbor. GC的worker 线程完成作业的时间戳。通常来说这部分数字应该大致相等, 否则就说明有太多的线程被挂起, 很可能是因为[坏邻居效应(noisy neighbor)](https://github.com/cncounter/translation/blob/master/tiemao_2016/45_noisy_neighbors/noisy_neighbor_cloud%20_performance.md) 所导致的。
 
 
 
 Additionally, there are some miscellaneous activities that are performed during the Evacuation pause. We will only cover a part of them in this section. The rest will be covered later.
 
-此外,有一些杂项疏散期间暂停执行的活动。我们只会讨论的一部分,他们在这一节中。剩下的稍后将覆盖。
+此外,在转移暂停期间,还有一些琐碎执行的小活动。这里我们只介绍其中的一部分, 其余的会在后面进行讨论。
 
 
 > <a>`[Other: 0.4 ms]`</a> <br/>
@@ -968,11 +964,15 @@ Additionally, there are some miscellaneous activities that are performed during 
 
 
 >
-> 1. <a>`[Other: 0.4 ms]`</a> – Miscellaneous other activities, many of which are also parallelized. 其他活动消耗的时间, 其中也有很多是并行执行的。
-> 1. <a>`[Ref Proc: 0.2 ms]`</a> – The time it took to process non-strong references: clear them or determine that no clearing is needed. 处理非强引用(non-strong)的时间: 清理他们或者决定是否需要清理。
-> 1. <a>`[Ref Enq: 0.0 ms]`</a> – The time it took to enqueue the remaining non-strong references to the appropriate ReferenceQueue  用来排队剩下的 non-strong 引用到合适的 ReferenceQueue。
-> 1. <a>`[Free CSet: 0.0 ms]`</a> – The time it takes to return the freed regions in the collection set so that they are available for new allocations. 用来返回 CSet 中的释放区域, 以便用于新的分配。
+> 1. <a>`[Other: 0.4 ms]`</a> – Miscellaneous other activities, many of which are also parallelized. 其他活动消耗的时间, 其中有很多也是并行执行的。
+> 1. <a>`[Ref Proc: 0.2 ms]`</a> – The time it took to process non-strong references: clear them or determine that no clearing is needed. 处理非强引用(non-strong)的时间: 进行清理或者决定是否需要清理。
+> 1. <a>`[Ref Enq: 0.0 ms]`</a> – The time it took to enqueue the remaining non-strong references to the appropriate ReferenceQueue.  用来将剩下的 non-strong 引用排列到合适的 **ReferenceQueue**中。
+> 1. <a>`[Free CSet: 0.0 ms]`</a> – The time it takes to return the freed regions in the collection set so that they are available for new allocations. 将回收集中被释放的小堆归还所消耗的时间, 以便他们能用来分配新的对象。
 
+
+
+
+#### 校对到此处
 
 
 ### Concurrent Marking
