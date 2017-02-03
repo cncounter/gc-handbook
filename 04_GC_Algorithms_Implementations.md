@@ -864,9 +864,7 @@ To run the JVM with the G1 collector enabled, run your application as
 
 
 
-### Evacuation Pause: Fully Young
-
-### 转移暂停(Evacuation Pause): Fully Young
+### Evacuation Pause: Fully Young(转移暂停:纯年轻代模式)
 
 
 In the beginning of the application’s lifecycle, G1 does not have any additional information from the not-yet-executed concurrent phases, so it initially functions in the fully-young mode. When the Young Generation fills up, the application threads are stopped, and the live data inside the Young regions is copied to Survivor regions, or any free regions that thereby become Survivor.
@@ -971,45 +969,38 @@ Additionally, there are some miscellaneous activities that are performed during 
 
 
 
-
-#### 校对到此处
-
-
-### Concurrent Marking
-
-### 并发标记
+### Concurrent Marking(并发标记)
 
 
 The G1 collector builds up on many concepts of CMS from the previous section, so it is a good idea to make sure that you have a sufficient understanding of it before proceeding. Even though it differs in a number of ways, the goals of the Concurrent Marking are very similar.  G1 Concurrent Marking uses the Snapshot-At-The-Beginning approach that marks all the objects that were live at the beginning of the marking cycle, even if they have turned into garbage meanwhile. The information on which objects are live allows to build up the liveness stats for each region so that the collection set could be efficiently chosen afterwards.
 
-G1收集器的很多概念建立在CMS的基础上,所以在开始之前请确保你对CMS有了充分的理解.虽然在很多方面有所不同,但并发标记的目标是非常相似的. G1的并发标记使用 **Snapshot-At-The-Beginning** 的方法在标记开始的时候标记所有的存活对象。即使在标记的同时又有一些变成了垃圾.关于哪些对象是存活的,这种信息允许建立每个区域的存活统计, 以便有效地选择回收集合。
+G1收集器的很多概念建立在CMS的基础上,所以下面的内容需要你对CMS有一定的理解. 虽然也有很多地方不同, 但并发标记的目标基本上是一样的. G1的并发标记通过 **Snapshot-At-The-Beginning(开始时快照)** 的方式, 在标记阶段开始时记下所有的存活对象。即使在标记的同时又有一些变成了垃圾. 通过对象是存活信息, 可以构建出每个小堆区的存活状态, 以便回收集能高效地进行选择。
 
 
 This information is then used to perform garbage collection in the Old regions. It can happen fully concurrently, if the marking determines that a region contains only garbage, or during a stop-the-world evacuation pause for Old regions that contain both garbage and live objects.
 
 
-然后这些信息会被用来执行老年代区域的垃圾收集。这时候就可以完全并发地执行： 如果标记确定了某个区域只包含垃圾,或者在STW转移暂停期间, 同时包含垃圾和存活对象的老年代区域。
+这些信息在接下来的阶段会用来执行老年代区域的垃圾收集。在两种情况下是完全地并发执行的： 一、如果在标记阶段确定某个小堆区只包含垃圾; 二、在STW转移暂停期间, 同时包含垃圾和存活对象的老年代小堆区。
 
 
 
 Concurrent Marking starts when the overall occupancy of the heap is large enough. By default, it is 45%, but this can be changed by the InitiatingHeapOccupancyPercent JVM option. Like in CMS, Concurrent Marking in G1 consists of a number of phases, some of them fully concurrent, and some of them requiring the application threads to be stopped.
 
-在整个堆内存的总体占用空间达到一定比例时就会触发并发标记开始。默认值是45%,但可以通过JVM选项 **InitiatingHeapOccupancyPercent** 来调整。和CMS一样,G1中的并发标记由多个阶段组成, 其中一部分是完全并发的, 而有一部分要求暂停应用线程。
+当堆内存的总体使用比例达到一定数值时,就会触发并发标记。默认值为 `45%`, 但也可以通过JVM参数 **InitiatingHeapOccupancyPercent** 来设置。和CMS一样, G1的并发标记也是由多个阶段组成, 其中一些是完全并发的, 还有一些阶段需要暂停应用线程。
 
 
 **Phase 1: Initial Mark.** This phase marks all the objects directly reachable from the GC roots. In CMS, it required a separate stop-the world pause, but in G1 it is typically piggy-backed on an Evacuation Pause, so its overhead is minimal. You can notice this pause in GC logs by the “(initial-mark)” addition in the first line of an Evacuation Pause:
 
-**阶段1: 初始标记(Initial Mark)。** 此阶段标记所有从GC root 直接可达的存活对象。在CMS中, 这个阶段需要一次单独的STW暂停,但在G1中通常是疏散暂停, 所以它的开销是最小的.你可以在 Evacuation Pause 日志的第一行中看到(initial-mark)暂停:
+**阶段1: Initial Mark(初始标记)。** 此阶段标记所有从GC root 直接可达的对象。在CMS中需要一次STW暂停, 但G1里面通常是在转移暂停的同时处理这些事情, 所以它的开销是很小的. 可以在 Evacuation Pause 日志中的第一行看到(initial-mark)暂停:
 
 
 	1.631: [GC pause (G1 Evacuation Pause) (young) (initial-mark), 0.0062656 secs]
 
 
 
-
 **Phase 2: Root Region Scan.** This phase marks all the live objects reachable from the so-called root regions, i.e. the ones that are not empty and that we might end up having to collect in the middle of the marking cycle. Since moving stuff around in the middle of concurrent marking will cause trouble, this phase has to complete before the next evacuation pause starts. If it has to start earlier, it will request an early abort of root region scan, and then wait for it to finish. In the current implementation, the root regions are the survivor regions: they are the bits of Young Generation that will definitely be collected in the next Evacuation Pause.
 
-**阶段2: Root区域扫描。** 此阶段标记从 "根区域" 可达的所有存活对象. 例如，那些非空,在标记过程中我们最终不得不收集的区域。因为在并发标记的过程中迁移对象会造成很多麻烦, 多以此阶段必须在下一次疏散暂停开始之前完成。如果过早启动, 则会请求根区域扫描的早期中止, 然后等待它完成. 在当前版本的实现中, 根区域是存活区: 他们是年轻代的一部分,在未来疏散暂停中肯定会被收集。
+**阶段2: Root Region Scan(Root区域扫描).** 此阶段标记所有从 "根区域" 可达的存活对象。 根区域包括: 非空的区域, 以及在标记过程中不得不收集的区域。因为在并发标记的过程中迁移对象会造成很多麻烦, 所以此阶段必须在下一次转移暂停之前完成。如果必须启动转移暂停, 则会先要求根区域扫描中止, 等它完成才能继续扫描. 在当前版本的实现中, 根区域是存活的小堆区:  y包括下一次转移暂停中肯定会被清理的那部分年轻代小堆区。
 
 
 	1.362: [GC concurrent-root-region-scan-start]
@@ -1020,12 +1011,12 @@ Concurrent Marking starts when the overall occupancy of the heap is large enough
 
 **Phase 3. Concurrent Mark.** This phase is very much similar to that of CMS: it simply walks the object graph and marks the visited objects in a special bitmap. To ensure that the semantics of snapshot-at-the beginning are met, G1 GC requires that all the concurrent updates to the object graph made by the application threads leave the previous reference known for marking purposes.
 
-**阶段3: 并发标记** 这个阶段非常类似于CMS: 它只是遍历对象图, 并将访问到的对象标记到一个特殊的位图中. 要确保开始时快照的语义, G1 GC要求应用线程所有对象图的并发更新, 为了标记的目的, 离开以前的引用。
+**阶段3: Concurrent Mark(并发标记).** 此阶段非常类似于CMS: 它只是遍历对象图, 并在一个特殊的位图中标记能访问到的对象. 为了确保标记开始时的快照准确性, 所有应用线程并发对对象图执行的引用更新,G1 要求放弃前面阶段为了标记目的而引用的过时引用。
 
 
 This is achieved by the use of the Pre-Write barriers (not to be confused with Post-Write barriers discussed later and memory barriers that relate to multithreaded programming). Their function is to, whenever you write to a field while G1 Concurrent Marking is active, store the previous referee in the so-called log buffers, to be processed by the concurrent marking threads.
 
-这是通过使用 `Pre-Write` 屏障(不要和之后介绍的 `Post-Write ` 弄混淆, 也不要和多线程开发中的内存屏障混淆)。他们的功能是, 如果G1正在进行并发标记时,程序写入对象的某个属性, 那么在og buffers 中存储之前的引用。由并发线程进行处理。
+这是通过使用 `Pre-Write` 屏障来实现的,(不要和之后介绍的 `Post-Write ` 混淆, 也不要和多线程开发中的内存屏障(memory barriers)相混淆)。Pre-Write屏障的作用是: G1在进行并发标记时, 如果程序将对象的某个属性做了变更, 就会在 log buffers 中存储之前的引用。 由并发标记线程负责处理。
 
 
 	1.364: [GC concurrent-mark-start]
@@ -1036,7 +1027,7 @@ This is achieved by the use of the Pre-Write barriers (not to be confused with P
 
 **Phase 4. Remark.** This is a stop-the-world pause that, like previously seen in CMS, completes the marking process. For G1, it briefly stops the application threads to stop the inflow of the concurrent update logs and processes the little amount of them that is left over, and marks whatever still-unmarked objects that were live when the concurrent marking cycle was initiated. This phase also performs some additional cleaning, e.g. reference processing (see the Evacuation Pause log) or class unloading.
 
-** 阶段4: 再次标记(Remark)。** 这是一个STW停顿, 和CMS相似,完成标记过程。对于G1,它短暂的停止应用线程, 暂停流入的并发更新日志, 并处理他们留下的少量信息,并标记所有在并发标记开始时未标记的存活对象。这一阶段也执行一些额外的清理, 请参考(Evacuation Pause log)或 class unloading。
+** 阶段4: Remark(再标记).** 和CMS类似,这也是一次STW停顿,以完成标记过程。对于G1,它短暂地停止应用线程, 停止并发更新日志的写入, 处理其中的少量信息, 并标记所有在并发标记开始时未被标记的存活对象。这一阶段也执行某些额外的清理, 如引用处理(参见 Evacuation Pause log) 或者类卸载(class unloading)。
 
 
 	1.645: [GC remark 1.645: [Finalize Marking, 0.0009461 secs]
@@ -1049,12 +1040,12 @@ This is achieved by the use of the Pre-Write barriers (not to be confused with P
 
 **Phase 5. Cleanup.** This final phase prepares the ground for the upcoming evacuation phase, counting all the live objects in the heap regions, and sorting these regions by expected GC efficiency. It also performs all the house-keeping activities required to maintain the internal state for the next iteration of concurrent marking.
 
-** 阶段5: 清理。** 最后的这个小阶段为即将到来的疏散阶段做准备, 计算小堆区中的所有存活对象, 并进行排序, 为了GC的效率. 它也为下一次标记执行所需的所有辅助活动, 维护并发标记的内部状态。
+** 阶段5: Cleanup(清理).** 最后这个小阶段为即将到来的转移阶段做准备, 统计小堆区中所有存活的对象, 并将小堆区进行排序, 以提升GC的效率. 此阶段也为下一次标记执行所有必需的整理工作(house-keeping activities): 维护并发标记的内部状态。
 
 
 Last but not least, the regions that contain no live objects at all are reclaimed in this phase. Some parts of this phase are concurrent, such as the empty region reclamation and most of the liveness calculation, but it also requires a short stop-the-world pause to finalize the picture while the application threads are not interfering. The logs for such stop-the-world pauses would be similar to:
 
-最后要提醒的是, 所有不包含存活对象的区域在此阶段都被回收了。有一部分是并发的, 例如空区域回收,还有大多数的存活性计算, 但它也需要一个短暂的STW暂停，以完成作业而不影响应用线程.这种STW停顿的日志类似这样:
+最后要提醒的是, 所有不包含存活对象的小堆区在此阶段都被回收了。有一部分是并发的: 例如空堆区的回收,还有大部分的存活率计算, 此阶段也需要一个短暂的STW暂停, 以不受应用线程的影响来完成作业. 这种STW停顿的日志如下:
 
 
 	1.652: [GC cleanup 1213M->1213M(1885M), 0.0030492 secs]
@@ -1065,19 +1056,22 @@ Last but not least, the regions that contain no live objects at all are reclaime
 
 In case when some heap regions that only contain garbage were discovered, the pause format can look a bit different, similar to:
 
-如果某些小堆区只包含垃圾, 则日志格式可以看起来有点不同,像下面这样:
+如果发现某些小堆区中只包含垃圾, 则日志格式可能会有点不同, 如:
 	
 	1.872: [GC cleanup 1357M->173M(1996M), 0.0015664 secs]
 	[Times: user=0.01 sys=0.00, real=0.01 secs]
 	1.874: [GC concurrent-cleanup-start]
-	1.876: [GC concurrent-cleanup-end, 0.0014846 secs]						
+	1.876: [GC concurrent-cleanup-end, 0.0014846 secs]	
 
 
 
 
-### Evacuation Pause: Mixed
+#### 校对到此处
 
-# # #疏散暂停:混合
+
+
+### Evacuation Pause: Mixed (转移暂停: 混合模式)
+
 
 
 It’s a pleasant case when concurrent cleanup can free up entire regions in Old Generation, but it may not always be the case. After Concurrent Marking has successfully completed, G1 will schedule a mixed collection that will not only get the garbage away from the young regions, but also throw in a bunch of Old regions to the collection set.
