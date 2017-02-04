@@ -4,7 +4,7 @@
 Tuning garbage collection is no different from any other performance-tuning activity. It is easy to fall into the trap of randomly tweaking one of the 200 GC-related JVM parameters or to start changing random parts of your application code. Instead, following a simple process will guarantee that you are actually moving towards the right target while being transparent about the progress:
 
 
-GC调优(Tuning Garbage Collection)和其他性能调优行为并没有什么不同。一般人可能会陷入 200 多个 GC相关的JVM参数中, 漫无目的随便调整某个参数或者随便改变程序的一部分代码。但只要遵循一些简单的步骤，就能保证你朝着正确的目标前进:
+GC调优(Tuning Garbage Collection)和其他性能调优都是一样的原理。一般人可能会对 200 多个 GC相关的JVM参数一头雾水, 随机调整几个来看结果,又或者随便改变程序的一些代码。其实只要按照下面的步骤，就能保证你的调优方向正确:
 
 1. State your performance goals
 1. Run tests
@@ -14,11 +14,11 @@ GC调优(Tuning Garbage Collection)和其他性能调优行为并没有什么不
 
 <br/>
 
-1. 列出性能目标(State your performance goals)
+1. 列出性能调优指标(State your performance goals)
 2. 执行测试(Run tests)
 3. 衡量结果(Measure the results)
 4. 与目标进行对比(Compare the results with the goals)
-5. 如果没有达到目标, 修改配置, 然后继续测试(go back to running tests)
+5. 如果达不到指标, 修改配置参数, 然后继续测试(go back to running tests)
 
 
 
@@ -27,7 +27,7 @@ GC调优(Tuning Garbage Collection)和其他性能调优行为并没有什么不
 So, as the first step we need to set clear performance goals in regards of Garbage Collection. The goals fall into three categories, which are common to all performance monitoring and management topics:
 
 
-所以,第一步我们需要制定明确的性能目标(关于GC方面的)。目标分为三类, 对所有性能监控和管理主题都是通用的:
+那么,第一步我们需要做的事情就是: 制定明确的GC性能指标。目标分为三大类, 对所有性能监控和管理来说都是通用的:
 
 
 
@@ -35,6 +35,11 @@ So, as the first step we need to set clear performance goals in regards of Garba
 - 吞吐量(Throughput)
 - 容量(Capacity)
 
+
+
+
+
+### 校对到此处 ~~~ ###
 
 
 After explaining the concepts in general, we will demonstrate how to apply these goals in the context of Garbage Collection. If you are already familiar with the concepts of latency, throughput and capacity, you may decide to skip the next section.
