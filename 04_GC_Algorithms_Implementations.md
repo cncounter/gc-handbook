@@ -1153,34 +1153,30 @@ In the mixed mode, the logs publish certain new interesting aspects when compare
 
 
 
-
-#### 校对到此处
-
-
 ### 总结
 
 
 This should give one a sufficient basic understanding of how G1 functions. There are, of course, still quite some implementation details that we have left out for brevity, like dealing with humongous objects. All things considered, G1 is the most technologically advanced production-ready collector available in HotSpot. On top of that, it is being relentlessly improved by the HotSpot Engineers, with new optimizations or features coming in with newer java versions.
 
-通过本节的内容, 你应该对G1的基本功能有一定的了解。当然, 为了简洁, 就像处理一个庞大无比的对象一样, 我们省略了很多的实现细节。通过全方位的考虑, G1是HotSpot中可用的最先进的**准产品级(production-ready)**垃圾收集器。最重要的是, HotSpot 工程师的主要精力都用在不断改进G1上面, 在新的java版本中将会带来新的功能和优化。
+通过本节内容的学习, 你应该对G1垃圾收集器有了一定了解。当然, 为了简洁, 我们省略了很多实现细节， 例如如何处理巨无霸对象(humongous objects)。 综合来看, G1是HotSpot中最先进的**准产品级(production-ready)**垃圾收集器。重要的是, HotSpot 工程师的主要精力都放在不断改进G1上面, 在新的java版本中,将会带来新的功能和优化。
 
 
 As we have seen, G1 addressed a wide range of problems that CMS has, starting from pause predictability and ending with heap fragmentation. Given an application not constrained by CPU utilization, but very sensitive to the latency of individual operations, G1 is very likely to be the best available choice for HotSpot users, especially when running the latest versions of Java. However, these latency improvements do not come for free: throughput overhead of G1 is larger thanks to the additional write barriers and more active background threads. So, if the application is throughput-bound or is consuming 100% of CPU, and does not care as much about individual pause durations, then CMS or even Parallel may be better choices.
 
-正如我们所见,G1 解决了 CMS 中各种各样的问题, 包括暂停时间的可预见性和以及终结了堆内存的碎片化。对于CPU使用不受限制, 但对单个业务的延迟非常敏感的系统, G1很可能是HotSpot中最好的选择,特别是在最新的Java版本中。然而,这种低延迟的改进也不是没有代价的: 由于额外的写屏障(write barriers)和更积极的后台线程, G1的开销会更大。所以, 如果系统属于吞吐量优先,或者CPU消耗了100%, 而又不在乎单次GC的暂停时间, 那么CMS应该是更好的选择。
+我们可以看到, G1 解决了 CMS 中的各种疑难问题, 包括暂停时间的可预测性, 并终结了堆内存的碎片化。对单业务延迟非常敏感的系统来说, 如果CPU资源不受限制,那么G1可以说是 HotSpot 中最好的选择, 特别是在最新版本的Java虚拟机中。当然,这种降低延迟的优化也不是没有代价的: 由于额外的写屏障(write barriers)和更积极的守护线程, G1的开销会更大。所以, 如果系统属于吞吐量优先型的, 又或者CPU持续占用100%, 而又不在乎单次GC的暂停时间, 那么CMS是更好的选择。
 
 
-> 总之: G1适合大内存,需要低延迟的场景。
+> 总之: **G1适合大内存,需要低延迟的场景**。
 
 
 The only viable way to select the right GC algorithm and settings is through trial and errors, but we do give the general guidelines in the next chapter.
 
-选择正确的GC算法唯一可行的方式就是通过尝试和错误, 但在下一章我们将给出通用的指导原则。
+选择正确的GC算法,唯一可行的方式就是去尝试,并找出不对劲的地方, 在下一章我们将给出一般指导原则。
 
 
 Note that G1 will probably be the default GC for Java 9: http://openjdk.java.net/jeps/248
 
-注意,G1可能会称为Java 9的默认GC: [http://openjdk.java.net/jeps/248](http://openjdk.java.net/jeps/248)
+注意,G1可能会成为Java 9的默认GC: [http://openjdk.java.net/jeps/248](http://openjdk.java.net/jeps/248)
 
 
 ## Shenandoah 的性能
@@ -1188,17 +1184,17 @@ Note that G1 will probably be the default GC for Java 9: http://openjdk.java.net
 
 We have outlined all of the production-ready algorithms in HotSpot that you can just take and use right away. There is another one in the making, a so-called Ultra-Low-Pause-Time Garbage Collector. It is aimed for large multi-core machines with large heaps, the goal is to manage heaps of 100GB and larger with pauses of 10ms or shorter. This is traded off against throughput: the implementers are aiming at a no more than 10% of a performance penalty for applications with no GC pauses.
 
-我们列出了所有的生产就绪算法热点,你可以马上取和使用。有另一个,所谓Ultra-Low-Pause-Time垃圾收集器.它目的是大堆的大型多核机器,目的是管理大量的100 gb和较大的停顿10 ms或短。这是交易与吞吐量:实现者是针对性能损失不超过10%的应用程序没有GC暂停。
+我们列出了HotSpot中可用的所有 "准生产级" 算法。还有一种还在实验室中的算法, 称为**超低延迟垃圾收集器(Ultra-Low-Pause-Time Garbage Collector)**. 它的设计目标是管理大型的多核服务器上,超大型的堆内存: 管理 100GB 及以上的堆容量, GC暂停时间小于 10ms。 当然,也是需要和吞吐量进行权衡的: 没有GC暂停的时候,算法的实现对吞吐量的性能损失不能超过10%
 
 
 We are not going to go into the implementation details before the new algorithm is released as production-ready, but it also builds upon many of the ideas already covered in earlier chapters, such as concurrent marking and incremental collecting. It does a lot of things differently, however. It does not split the heap into multiple generations, instead having a single space only. That’s right, Shenandoah is not a generational garbage collector. This allows it to get rid of card tables and remembered sets. It also uses forwarding pointers and a Brooks style read barrier to allow for concurrent copying of live objects, thus reducing the number and duration of pauses.
 
-在新算法作为 production-ready 发布之前, 我们不去讨论具体的实现细节, 但它也构建在前面章节中提到的很多想法的基础上,例如并发标记和增量收集。然而,其中有很多东西是不同的。它不将堆分为多个代, 而是只有一个空间. 没错,Shenandoah 并不是一个分代垃圾收集器。这允许它摆脱card tables 和 remembered sets. 它还使用转发指针(forwarding pointers)和布鲁克斯风格的读取屏障(Brooks style read barrier)来允许存活对象的并发复制, 从而减少的停顿的次数和持续时间。
+在新算法作为准产品级进行发布之前, 我们不准备去讨论具体的实现细节, 但它也构建在前面所提到的很多算法的基础上, 例如并发标记和增量收集。但其中有很多东西是不同的。它不再将堆内存划分成多个代, 而是只采用单个空间. 没错, Shenandoah 并不是一款分代垃圾收集器。这也就不再需要 card tables 和 remembered sets. 它还使用转发指针(forwarding pointers), 以及Brooks 风格的读屏障(Brooks style read barrier), 以允许对存活对象的并发复制, 从而减少GC暂停的次数和时间。
 
 
 A lot of more detailed and up-to-date information about Shenandoah is available on the Internet, for instance in this blog: https://rkennke.wordpress.com/
 
-关于 Shenandoah 性能的更多信息,请参考博客: [https://rkennke.wordpress.com/](https://rkennke.wordpress.com/), 或Google搜索。
+关于 Shenandoah 的更多信息,请参考博客: [https://rkennke.wordpress.com/](https://rkennke.wordpress.com/), 或Google搜索。
 
 
 原文链接: [GC Algorithms: Implementations](https://plumbr.eu/handbook/garbage-collection-algorithms-implementations)
