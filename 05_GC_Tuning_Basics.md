@@ -37,19 +37,13 @@ So, as the first step we need to set clear performance goals in regards of Garba
 
 
 
-
-
-### 校对到此处 ~~~ ###
-
-
 After explaining the concepts in general, we will demonstrate how to apply these goals in the context of Garbage Collection. If you are already familiar with the concepts of latency, throughput and capacity, you may decide to skip the next section.
 
 
-在解释概念之后,我们将演示如何在垃圾收集的情景下应用这些目标。如果您延迟、吞吐量和容量的概念很熟悉, 则可以决定跳过下一小节。
+我们先讲解基本概念,然后再演示在垃圾收集时如何使用这些指标。如果您已经很熟悉 延迟、吞吐量和容量等概念, 则可以决定跳过下一小节。
 
 
-
-## 核心概念
+## 核心概念(Core Concepts)
 
 
 
@@ -58,7 +52,7 @@ After explaining the concepts in general, we will demonstrate how to apply these
 Let us start with an example from manufacturing by observing an assembly line in a factory. The line is assembling bikes from ready-made components. Bikes are built on this line in a sequential manner. Monitoring the line in action, we measure that it takes four hours to complete a bike from the moment the frame enters the line until the assembled bike leaves the line at the other end.
 
 
-我们先来看看制造业中一家工厂的装配线。生产线将现成的组件组装成自行车。自行车按顺序在这条生产线上组装。通过实际观察, 我们发现从组件进入生产线，到另一端组装成自行车需要4个小时。
+我们先观察一家工厂的装配流水线。在流水线上,将现成的组件按顺序通过,组装成自行车。通过实际观察, 我们发现从组件进入生产线，到另一端组装成自行车需要4个小时。
 
 
 
@@ -70,16 +64,16 @@ Let us start with an example from manufacturing by observing an assembly line in
 Continuing our observations we can also see that one bike is assembled after each minute, 24 hours a day, every day. Simplifying the example and ignoring maintenance windows, we can forecast that in any given hour such an assembly line assembles 60 bikes.
 
 
-继续观察,我们还发现,此后每分钟就有1辆自行车完成组装, 每天24小时,一直如此。将示例简化并忽略维护窗口期后,我们可以说, 这种流水线在任意1小时可以组装60辆自行车。
+继续观察,我们还发现,此后每分钟就有1辆自行车完成组装, 每天24小时,一直如此。将示例简化并忽略维护窗口期后, 可以说, 这条流水线每小时可以组装60辆自行车。
 
-> 说明: 时间窗口、窗口期，请类比车站卖票的窗口，是一段规定/限定做某件事的时间段。
+> **说明**: 时间窗口、窗口期，请类比车站卖票的窗口，是一段规定/限定做某件事的时间段。
 
 
 
 Equipped with these two measurements, we now possess crucial information about the current performance of the assembly line in regards of latency and throughput:
 
 
-通过这两个测量值,我们现在就有了关于当前性能的关键信息： 生产线的延迟与吞吐量:
+通过这两种测量方式, 现在就知道了生产线的相关性能信息： 延迟与吞吐量:
 
 
 
@@ -95,14 +89,14 @@ Equipped with these two measurements, we now possess crucial information about t
 Notice that latency is measured in time units suitable for the task at hand – anything from nanoseconds to millennia can be a good choice. Throughput of a system is measured in completed operations per time unit. Operations can be anything relevant to the specific system. In this example the chosen time unit was hours and operations were the assembled bikes.
 
 
-请注意, 衡量延迟的时间单位根据需要确定 —— 从纳秒(nanosecond)到几千年(millennia)都是可能的。系统的吞吐量是每个单位时间内完成的操作。操作(Operations)一般是特定系统相关的东西。在本例中,选择的时间单位是小时, 操作就是自行车的组装。
+请注意, 衡量延迟的时间单位根据需要而确定 —— 从纳秒(nanosecond)到几千年(millennia)都可以。系统的吞吐量是每个单位时间内完成的操作。操作(Operations)一般是特定系统相关的东西。在本例中,选择的时间单位是小时, 操作就是自行车的组装。
 
 
 
 Having been equipped with the definitions of latency and throughput, let us carry out a performance tuning exercise in the very same factory. The demand for the bikes has been steady for a while and the assembly line has kept producing bikes with the latency of four hours and the throughput of 60 bikes/hour for months. Let us now imagine a situation where the sales team has been successful and the demand for the bikes suddenly doubles. Instead of the usual 60*24 = 1,440 bikes/day the customers demand twice as many. The performance of the factory is no longer satisfactory and something needs to be done.
 
 
-介绍完延迟和吞吐量的定义之后,让我们在同一个工厂进行性能调优实战吧。自行车的需求在一段时间内都很稳定,生产线生产自行车需要四小时的延迟,并且吞吐量几个月以来都是60辆/小时。现在让我们假设某个销售团队取得成功,自行车的需求量突然增加了1倍。而不再是 60 * 24 = 1440辆/天,客户的需求变为了两倍。工厂的产能不再令人满意，需要调整某些地方来改善性能。
+掌握了延迟和吞吐量这两个概念之后, 让我们对这个工厂来进行调优实战吧。自行车的需求在一段时间内都很稳定, 生产线组装自行车需要四小时的延迟, 而吞吐量几个月以来都是60辆/小时。现在假设某个销售团队业绩斐然, 自行车的需求量突然增加了1倍。客户的需求不再是 60 * 24 = 1440辆/天,而是变为了两倍。老板对工厂的产能不再满意，需要调整某些地方来提升性能。
 
 
 
@@ -110,14 +104,14 @@ Having been equipped with the definitions of latency and throughput, let us carr
 The factory manager seemingly correctly concludes that the latency of the system is not a concern – instead he should focus on the total number of bikes produced per day. Coming to this conclusion and assuming he is well funded, the hypothetical manager would immediately take the necessary steps to improve throughput by adding capacity.
 
 
-工厂老板看似正确地得出结论,系统的延迟并不需要担心——他应该关注每天的自行车生产总数。得出这个结论以后, 假设他资金充足,那么老板应该立即采取必要的措施来改善吞吐量以增加产能。
+管理者看起来很容易得出正确的判断, 系统的延迟没法子进行处理 —— 他应该关注自行车每天的生产总数。得出这个结论以后, 假如工厂资金充足, 那么老板应该立即采取措施, 改善吞吐量以增加产能。
 
 
 
 As a result we would now be observing not one but two identical assembly lines in the same factory. Both of these assembly lines would be assembling the very same bike every minute of every day. By doing this, our imaginary factory has doubled the number of bikes produced per day. Instead of the 1,440 bikes the factory is now capable of shipping 2,880 bikes each day. It is important to note that we have not reduced the time to complete an individual bike by even a millisecond – it still takes four hours to complete a bike from start to finish.
 
 
-因此我们将看到在这家工厂有两条相同的生产线。这两条生产线每分钟都能各自装配一辆自行车。通过这样做,我们可以想象得到，工厂每天生产的自行车数量会增加一倍。不是1440辆,而是每天2880辆自行车。重要的是请注意,我们没有减少任何一辆自行车的制造时间 —— 从开始到结束仍然需要四个小时。
+因此我们会看到, 这家工厂会有两条相同的生产线。这两条生产线每分钟都能各自组装出一辆成品自行车。这样,我们可以想象到，每天生产的自行车数量会增加一倍。不是1440辆, 而是2880辆/天。要注意的是, 我们不需要减少自行车的装配时间 —— 从开始到结束仍然需要四个小时。
 
 
 
@@ -128,7 +122,7 @@ As a result we would now be observing not one but two identical assembly lines i
 In the example above a performance optimization task was carried out, coincidentally impacting both throughput and capacity. As in any good example we started by measuring the system’s current performance, then set a new target and optimized the system only in the aspects required to meet the target.
 
 
-巧合的是，在上面的例子中进行的性能优化任务,同时影响了吞吐量和产能。一般来说，我们会先测量系统的当前性能,然后设定新目标, 只优化系统的单方面性能以满足目标。
+巧合的是，在上面的例子中进行的性能优化任务,同时影响了吞吐量和产能。一般来说，我们会先测量系统的当前性能,然后再设定新目标, 只优化系统的一个方面来满足性能指标。
 
 
 
@@ -136,7 +130,7 @@ In this example an important decision was made – the focus was on increasing t
 
 
 
-这个例子中还做了一个重要的决定 —— 重点是增加吞吐量,而不是减少延迟。在增加吞吐量的同时,我们也需要增加系统的能力。我们现在需要两条流水线来生产所需的数量。所以在这种情况下增加的吞吐量并不是免费的,需要向外扩展的解决方案以满足增加的吞吐量需求。
+这个例子中还做了一个重要的决定 —— 重点是增加吞吐量,而非减小延迟。在增加吞吐量的同时,我们也需要增加系统的能力。比起原来,我们现在需要两条流水线来生产所需的自行车数量。所以在这种情况下, 增加系统的吞吐量并不是免费的, 需要水平扩展, 以满足吞吐量增加的需求。
 
 
 
@@ -144,15 +138,20 @@ An important alternative should also be considered for the performance problem a
 
 
 
-在处理性能问题有一个重要的选择也应该考虑。看似不相关的系统延迟实际上隐藏了一个不同的解决办法。如果生产线的延迟可以从1分钟减少到30秒,那么吞吐量同样可以增加。
+在处理性能问题时, 也应该考虑到还有另外一种,看似不相关的解决办法。假如生产线的延迟从1分钟降低为30秒,那么吞吐量同样可以增加1倍。
 
 
 
 Whether or not reducing latency was possible or economical in this case is not relevant. What is important is a concept very similar to software engineering – you can almost always choose between two solutions to a performance problem. You can either throw more hardware towards the problem or spend time improving the poorly performing code.
 
 
-减少延迟是否可能或者经济条件不需要关心。有一个和软件工程非常类似的概念 —— 总是可以选择两种不同的性能问题解决方案。可以使用更多的硬件来解决问题或者花时间来改善性能低下的代码。
+不管是否能够降低延迟, 或者客户非常有钱。软件工程中有一种类似的说法 —— 每个性能问题,总有两种不同的解决办法。 可以使用更多的机器,也可以花功夫来改善性能低下的代码。
 
+
+
+
+
+### 校对到此处 ~~~ ###
 
 
 ### 延迟(Latency)
