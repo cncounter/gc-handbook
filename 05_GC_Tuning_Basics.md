@@ -592,11 +592,6 @@ results in a maximum GC pause of 560 ms, which nicely passes the 900 ms threshol
 
 
 
-
-### 校对到此处 ~~~ ###
-
-
-
 ### 吞吐量调优(Tuning for Throughput)
 
 
@@ -605,7 +600,7 @@ results in a maximum GC pause of 560 ms, which nicely passes the 900 ms threshol
 Let us assume that we have a throughput goal to process 13,000,000 jobs/hour. The example configurations used again give us a configuration where the requirement is fulfilled:
 
 
-假定我们的吞吐量指标是处理作业: 1300万次/小时。再次使用上面的示例配置, 其中有一个配置满足我们的需求:
+假定我们的吞吐量指标是: 每小时处理 1300万次操作。再次使用上面的配置, 其中有一个配置满足我们的需求:
 
 
 
@@ -647,7 +642,7 @@ Let us assume that we have a throughput goal to process 13,000,000 jobs/hour. Th
 Running this configuration as:
 
 
-执行此配置的参数为:
+执行此配置的命令行参数为:
 
 
 	java -Xmx12g -XX:+UseParallelGC Producer
@@ -656,7 +651,7 @@ Running this configuration as:
 we can see that the CPUs are blocked by GC for 8.5% of the time, leaving 91.5% of the computing power for useful work. For simplicity’s sake we will ignore other safe points in the example. Now we have to take into account that:
 
 
-我们可以看到,有8.5%的CPU时间是被GC阻塞的,剩下的 `91.5%` 是有效的计算时间。为简单起见, 我们将忽略示例中的其他安全点。现在我们必须考虑:
+可以看到,GC占用了 8.5%的CPU时间,剩下的 `91.5%` 是有效的计算时间。为简单起见, 忽略示例中的其他安全点。现在需要考虑:
 
 
 
@@ -668,10 +663,10 @@ we can see that the CPUs are blocked by GC for 8.5% of the time, leaving 91.5% o
 <br/>
 
 
-1. 单个核心需要 100毫秒 来处理一次作业
-1. 因此, 在一分钟内, 每个核心可以处理 60,000 次作业(**!!这里算法有问题**)
-1. 在一个小时内,一个核心可以处理 360万次作业
-1. 我们有四个可用的内核, 则每小时可以处理 4 x 3.6M = 1440万次作业
+1. 每个CPU核心处理一次作业需要耗时 `100ms`
+1. 因此, 一分钟内每个核心可以处理 60,000 次操作(每个job内处理100次)
+1. 在一个小时内,一个核心可以处理 360万次操作
+1. 我们有四个可用的内核, 则每小时可以处理 4 x 3.6M = 1440万次操作
 
 
 
@@ -679,21 +674,20 @@ we can see that the CPUs are blocked by GC for 8.5% of the time, leaving 91.5% o
 With this amount of theoretical processing power we can make a simple calculation and conclude that during one hour we can in reality process 91.5% of the 14.4 M theoretical maximum resulting in 13,176,000 processed jobs/hour, fulfilling our requirement.
 
 
-通过这个理论上处理能力的数量，通过一个简单的计算我们可以得出结论, 每小时理论上可以处理的实际作业数为: 14.4 M *  91.5% = 13,176,000 次作业,实现了我们的需求。
+理论上，通过简单的计算就可以得出结论, 每小时可以处理的实际操作数为: 14.4 M *  91.5% = 13,176,000 次操作, 满足了需求。
 
 
 It is important to note that if we simultaneously needed to fulfill the latency requirements set in the previous section, we would be in trouble, as the worst-case latency for this case is close to two times of the previous configuration. This time the longest GC pause on record was blocking the application threads for 1,104 ms.
 
 
-特别需要注意的是,如果还需要满足上一节中的延迟性需求, 那我们就有大麻烦了, 最坏情况下延迟时间是上一种配置的两倍左右。此次GC暂停时间最长的记录为1,104 ms。
+需要一提的是, 假若还要满足上一节中的延迟性需求, 那就有大麻烦了, 最坏情况下的延迟时间是上一种配置的两倍左右。此次最长的GC暂停时间为 `1,104 ms`。
 
 
 
 
-##
-##
-##
-##
+
+### 校对到此处 ~~~ ###
+
 
 
 ### 对承载力进行调优(Tuning for Capacity)
