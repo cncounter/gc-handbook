@@ -525,12 +525,7 @@ Note that in order to keep the example as simple as possible only a limited amou
 注意, 为了尽可能的简单, 示例中只改变了很少的输入参数, 此实验也没有在不同的CPU数量以及不同的堆布局下进行测试。
 
 
-
-
-
-### 校对到此处 ~~~ ###
-
-### 对延迟进行调优(Tuning for Latency)
+### 延迟调优(Tuning for Latency)
 
 
 
@@ -538,14 +533,14 @@ Let us assume we have a requirement stating that all jobs must be processed in u
 
 
 
-假设有一个需求说, 每个作业必须在1000 ms内处理。我们知道实际的作业处理只需要100 ms就可以了，简化后可以得出， 两者相减就是 GC暂停的延迟要求。现在需求说明如下: GC暂停不可以超过900ms。回答这个问题是很容易的,只需要解析GC日志文件并找到每个单独的GC暂停中最大的暂停时间即可。
+假设有一个需求, 每次作业必须在 1000ms 内处理完成。我们知道, 实际的作业处理只需要100 ms，简化后可以算出， 两者相减就是对 GC暂停的延迟要求。现在需求变成这种形式: GC暂停不能超过900ms。这个问题很容易找到答案, 只需要解析GC日志文件, 并找出每次GC暂停中最大的那个暂停时间即可。
 
 
 
 Looking again at the three configuration options used in the test:
 
 
-再看看上面测试用的三份配置:
+再来看上面测试所用的三份配置:
 
 
 <table>
@@ -586,16 +581,19 @@ we can see that there is one configuration that already matches this requirement
 我们可以看到,其中有一个配置已经达到了此项要求。运行的参数为:
 
 
-
-
 	java -Xmx12g -XX:+UseConcMarkSweepGC Producer
 
 
 results in a maximum GC pause of 560 ms, which nicely passes the 900 ms threshold set for satisfying the latency requirement. If neither the throughput nor the capacity requirements are violated, we can conclude that we have fulfilled our GC tuning task and can finish the tuning exercise.
 
 
-结果中最大的GC停顿时间为 `560 ms`, 这很好地通过了为延迟设置的`900 ms`阀值的要求。如果不违反吞吐量和承载力的要求,则可以得出结论,我们成功达成GC调优目标, 可以结束调优活动了。
+对应日志中最长的GC停顿时间为 `560 ms`, 这达到了设置的延迟指标 `900 ms` 的要求。如果还满足吞吐量和承载力的要求,就可以得出结论, 我们已经成功达成了GC调优目标, 可以结束调优活动了。
 
+
+
+
+
+### 校对到此处 ~~~ ###
 
 
 
