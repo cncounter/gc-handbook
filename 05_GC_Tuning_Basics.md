@@ -229,11 +229,6 @@ Extracting information similar to the example above from all GC pauses, we can a
 
 
 
-
-### 校对到此处 ~~~ ###
-
-
-
 ### 吞吐量(Throughput)
 
 
@@ -243,7 +238,7 @@ Throughput requirements are different from latency requirements. The only simila
 
 
 
-吞吐量和延迟有很大的不同。唯一相似的是两者都是根据通用的吞吐量需求而得来的。通用的吞吐量需求(Generic requirements for throughput) 类似下面这样:
+吞吐量和延迟有很大区别。唯一相似的是两者都是根据一般吞吐量需求而得来的。一般吞吐量需求(Generic requirements for throughput) 类似下面这样:
 
 
 
@@ -252,9 +247,9 @@ Throughput requirements are different from latency requirements. The only simila
 - Weekly statistics for all customers have to be composed in no more than six hours each Sunday night between 12 PM and 6 AM
 
 
-- 解决方案必须能处理 100万 发票/天
-- 解决方案必须支持1000个认证用户在5-10秒内调用一个函数: A、B或C
-- 每周对所有客户的统计不能超过6个小时，时间为每周日晚上12点到次日6点之间
+- 解决方案每天必须能处理 100万个订单
+- 解决方案必须支持1000个登录用户同时在5-10秒内执行一个功能: A、B或C
+- 每周对所有客户的统计时间不能超过6个小时，时间窗口为每周日晚12点到次日6点之间。
 
 
 
@@ -262,21 +257,21 @@ Throughput requirements are different from latency requirements. The only simila
 So, instead of setting requirements for a single operation, the requirements for throughput specify how many operations the system must process in a given time unit. Similar to the latency requirements, the GC tuning part now requires determining the total time that can be spent on GC during the time measured. How much is tolerable for the particular system is again application-specific, but as a rule of thumb, anything over 10% would look suspicious.
 
 
-因此,吞吐量的需求不是针对单个操作的, 而是在给定的时间范围内系统必须处理完成多少次操作。类似于延迟需求, 现在GC调优需要确定花在GC期间的的总时间。每个系统可以接受多长的时间是不一样的,但作为最佳实践, GC占用的总时间一般都不能超过 10%。
+可以看出,吞吐量需求不是针对单个操作的, 而是在给定的时间范围内, 系统必须处理完成多少个操作。和延迟需求类似, GC调优也需要确定在GC期间消耗的总时间。每个系统能接受的时间都不一样, 但一般来说, GC占用的总时间比例不能超过 10%。
 
 
 
 Let us now assume that the requirement at hand foresees that the system processes 1,000 transactions per minute. Let us also assume that the total duration of GC pauses during any minute cannot exceed six seconds (or 10%) of this time.
 
 
-现在假设需求是,系统每分钟要处理 1000个交易。同时假设在每一分钟内, GC暂停的总时间不能超过6秒(即10%)。
+现在假设需求是: 每分钟要处理 1000 个交易。同时假设, 每分钟GC暂停的总时间不能超过6秒(即10%)。
 
 
 
 Having formalized the requirements, the next step would be to harvest the information we need. The source to be used in the example is again GC logs, from which we would get information similar to the following:
 
 
-有了正式的需求,下一步就是获取需要的信息。使用的数据源依然是GC日志,从中我们可以看到类似下面这样的信息:
+有了正式的需求, 下一步就是获取相关的信息。数据依然是从GC日志中提取, 可以看到类似下面这样的信息:
 
 
 
@@ -294,14 +289,19 @@ Having formalized the requirements, the next step would be to harvest the inform
 This time we are interested in user and system times instead of real time. In this case we should focus on 23 milliseconds (21 + 2 ms in user and system times) during which the particular GC pause kept CPUs busy. Even more important is the fact that the system was running on a multi-core machine, translating to the actual stop-the-world pause of 0.0713174 seconds, which is the number to be used in the following calculations.
 
 
-这次我们感兴趣的用户耗时(user)和系统耗时(sys),不再关心实际耗时(real)。在这种情况下我们应该专注于23毫秒(user+sys = 21 + 2 ms), 这段时间中GC暂停使得 cpu 满负载。更重要的是,系统是运行在多核机器上的, 转换为实际的停顿时间(stop-the-world)是0.0713174秒, 下面的计算会用到这个数字。
+现在我们对 用户耗时(user)和系统耗时(sys)感兴趣,而不再关心实际耗时(real)。在这里, 我们关心的时间为 `0.23s`(user + sys = 0.21 + 0.02 s), 这段时间内, GC暂停zhany消耗了 cpu 资源。 重要的是, 系统运行在多核机器上, 转换为实际的停顿时间(stop-the-world)为 `0.0713174秒`, 下面的计算会用到这个数字。
 
 
 Extracting the information similar to the above from the GC logs across the test period, all that is left to be done is to verify the total duration of the stop-the-world pauses during each minute. In case the total duration of the pauses does not exceed 6,000ms or six seconds in any of these one-minute periods, we have fulfilled our requirement.
 
 
-从GC日志中提取出在测试期间的相应信息后, 剩下要做的就是验证每分钟内的GC停顿总时间。看看是否满足我们的要求: 任何一分钟的时间周期内总的停顿时间不超过6000毫秒(6秒)的时间,。
+从GC日志中提取出相应的信息后, 剩下要做的就是统计每分钟内GC停顿的总时间。看看是否满足我们的要求: 每分钟内,总的暂停时间不得超过6000毫秒(6秒)。
 
+
+
+
+
+### 校对到此处 ~~~ ###
 
 
 
