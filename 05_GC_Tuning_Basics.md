@@ -149,11 +149,6 @@ Whether or not reducing latency was possible or economical in this case is not r
 
 
 
-
-
-### 校对到此处 ~~~ ###
-
-
 ### 延迟(Latency)
 
 
@@ -162,7 +157,7 @@ Whether or not reducing latency was possible or economical in this case is not r
 Latency goals for the GC have to be derived from generic latency requirements. Generic latency requirements are typically expressed in a form similar to the following:
 
 
-GC的延迟指标是由通用的延迟需求得出的。通用的延迟需求通常类似下面的形式:
+GC的延迟指标是由一般的延迟需求决定的。延迟指标通常类似下面这些:
 
 
 
@@ -172,9 +167,9 @@ GC的延迟指标是由通用的延迟需求得出的。通用的延迟需求通
 
 
 
-- 所有用户事务必须在10秒以内得到响应
-- 90%的付款必须在3秒内处理
-- 推荐产品必须在不到100 ms时展示到购买屏幕上
+- 用户的所有交易必须在10秒内得到响应
+- 90%的订单付款必须在3秒内处理完成
+- 推荐的产品必须在 100 ms 以内展示到购买界面
 
 
 
@@ -182,14 +177,14 @@ GC的延迟指标是由通用的延迟需求得出的。通用的延迟需求通
 When facing performance goals similar to the above, we would need to make sure that the duration of GC pauses during the transaction does not contribute too much to violating the requirements. “Too much” is application-specific and needs to take into account other factors contributing to latency including round-trips to external data sources, lock contention issues and other safe points among these.
 
 
-在面对与上述类似的性能目标时, 我们需要确保GC不要在事务中占用太多的暂停时间，以免满足不了需求。“不要占用太多” 的意思是各个系统都是不一样的,需要考虑到其他因素,包括外部数据源往返时间(round-trips),锁竞争问题(lock contention)或者是其他安全点。
+在面临这一类性能指标时, 需要确保在交易中, GC暂停不能占用太多时间，否则就满足不了指标。“不能占用太多” 的意思根据各个系统的具体情况而定, 还要考虑到其他因素,包括外部数据源的往返时间(round-trips),锁竞争问题(lock contention),或者是其他的安全点。
 
 
 
 Let us assume our performance requirements state that 90% of the transactions to the application need to complete under 1,000 ms and no transaction can exceed 10,000 ms. Out of those generic latency requirements let us again assume that GC pauses cannot contribute more than 10%. From this, we can conclude that 90% of GC pauses have to complete under 100 ms, and no GC pause can exceed 1,000 ms. For simplicity’s sake let us ignore in this example multiple pauses that can occur during the same transaction.
 
 
-假设我们的性能需求为: 90%的事务要在1000 ms内完成,任何一个事务都不能超过10秒。 一般延迟需求让我们再次假设GC暂停的占比不能超过10%。由此,我们可以得出结论, 90%的GC暂停需要在100 ms以内完成, 不能有GC停顿超过 1000ms 的情况。为简单起见, 让我们忽略在同一事务发生多次停顿的可能性。
+假设性能需求为: `90%`的交易要在 `1000ms` 以内完成, 任何一次交易处理都不能超过`10秒`。 根据经验, 我们再次假设GC暂停时间不能超过10%。 也就是说, 90%的GC暂停需要在 `100ms` 内结束, 也不能有超过 `1000ms` 的GC暂停。为简单起见, 我们忽略在同一次交易中发生多次停顿的可能性。
 
 
 
@@ -198,7 +193,7 @@ Having formalized the requirement, the next step is to measure pause durations. 
 
 
 
-有了正式的需求,下一步就是衡量暂停时间。有许多工具可以使用, 在接下来的工具篇中会详细介绍, 但在本节中,我们通过GC日志, 看看GC暂停的时间。所需的信息存在于不同的日志片段中, 让我们看看下面这个例子中日期/时间相关的数据:
+有了正式的需求,下一步就是衡量暂停时间。有许多工具可以帮助我们, 在接下来的 [GC 调优(工具篇)](06_GC_Tuning_Tooling.md) 中会进行详细介绍, 但我们在本节中可以查看GC日志, 检查一下GC暂停的时间。相关的信息分布在不同的日志片段中, 一起来看如下示例中的数据:
 
 
 
@@ -216,21 +211,26 @@ Having formalized the requirement, the next step is to measure pause durations. 
 The example above expresses a single GC pause triggered at 13:34:16 on June 4, 2015, just 2,578 ms after the JVM was started.
 
 
-上面的例子表示单次GC暂停, 在 `2015-06-04T13:34:16` 这个时刻触发. 也即JVM启动之后的 `2,578 ms`。
+示例表示的是单次GC暂停, 在 `2015-06-04T13:34:16` 这个时刻触发. 对应于JVM启动之后的 `2,578 ms`。
 
 
 
 The event stopped the application threads for 0.0713174 seconds. Even though it took 210 ms of CPU times on multiple cores, the important number for us to measure is the total stop time for application threads, which in this case, where parallel GC was used on a multi-core machine, is equal to a bit more than 70 ms. This specific GC pause is thus well under the required 100 ms threshold and fulfils both requirements.
 
 
-事件让应用线程暂停了0.0713174秒。虽然在多核CPU上花费的总时间为 210 ms, 但对我们的测量最重要的数字是应用线程暂停的总时间, 在这里，因为是在多核机器上使用并行GC, 所以大约是 `70ms` 多一点。因此此次GC的暂停时间远低于所要求的100 ms阈值，因此满足需求。
+此事件让应用线程暂停了 `0.0713174` 秒。虽然花费的总时间为 210 ms, 但因为是在多核CPU的机器上, 所以最重要的数字是应用线程被暂停的总时间, 在这里使用并行GC, 所以大约是 `70ms` 左右。因此这次GC的暂停时间低于 `100ms` 的阈值，所以满足需求。
 
 
 Extracting information similar to the example above from all GC pauses, we can aggregate the numbers and see whether or not we are violating the set requirements for any of the pause events triggered.
 
 
-像上面这样, 从所有GC日志中提取出暂停相关的数字信息, 汇总之后就可以得知是否满足需求。
+如同上面这样, 从所有GC日志中提取出暂停相关的数值信息, 汇总之后就可以得知是否满足需求。
 
+
+
+
+
+### 校对到此处 ~~~ ###
 
 
 
@@ -269,7 +269,7 @@ So, instead of setting requirements for a single operation, the requirements for
 Let us now assume that the requirement at hand foresees that the system processes 1,000 transactions per minute. Let us also assume that the total duration of GC pauses during any minute cannot exceed six seconds (or 10%) of this time.
 
 
-现在假设需求是,系统每分钟要处理 1000个事务。同时假设在每一分钟内, GC暂停的总时间不能超过6秒(即10%)。
+现在假设需求是,系统每分钟要处理 1000个交易。同时假设在每一分钟内, GC暂停的总时间不能超过6秒(即10%)。
 
 
 
