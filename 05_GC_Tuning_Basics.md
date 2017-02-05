@@ -3,7 +3,7 @@
 
 > **说明**:
 >
-> Capacity: 性能,系统容量,承载能力; 文中翻译为承载力; 意为硬件配置约束,参见下文。
+> Capacity: 性能,能力,系统容量; 文中翻译为硬件能力; 意为硬件配置约束,参见下文。
 
 
 
@@ -39,14 +39,14 @@ So, as the first step we need to set clear performance goals in regards of Garba
 
 - 延迟(Latency)
 - 吞吐量(Throughput)
-- 承载力(Capacity)
+- 硬件能力(Capacity)
 
 
 
 After explaining the concepts in general, we will demonstrate how to apply these goals in the context of Garbage Collection. If you are already familiar with the concepts of latency, throughput and capacity, you may decide to skip the next section.
 
 
-我们先讲解基本概念,然后再演示在垃圾收集时如何使用这些指标。如果您已经很熟悉 延迟、吞吐量和承载力等概念, 则可以决定跳过下一小节。
+我们先讲解基本概念,然后再演示在垃圾收集时如何使用这些指标。如果您已经很熟悉 延迟、吞吐量和硬件能力等概念, 则可以决定跳过下一小节。
 
 
 ## 核心概念(Core Concepts)
@@ -306,13 +306,13 @@ Extracting the information similar to the above from the GC logs across the test
 
 
 
-### 承载力(Capacity)
+### 硬件能力(Capacity)
 
 
 
 Capacity requirements put additional constraints on the environment where the throughput and latency goals can be met. These requirements might be expressed either in terms of computing resources or in cold hard cash. The ways in which such requirements can be described can, for example, take the following form:
 
-承载力(Capacity)需求是在对达成吞吐量和延迟指标的情况下对环境的额外约束。这类需求大多是来源于计算资源或者预算方面的原因。例如:
+硬件能力(Capacity)需求是在对达成吞吐量和延迟指标的情况下对环境的额外约束。这类需求大多是来源于计算资源或者预算方面的原因。例如:
 
 
 
@@ -331,7 +331,7 @@ Capacity requirements put additional constraints on the environment where the th
 Thus, capacity has to be taken into account when fulfilling the latency and throughput requirements. With unlimited computing power, any kind of latency and throughput targets could be met, yet in the real world the budget and other constraints have a tendency to set limits on the resources one can use.
 
 
-因此, 在满足延迟和吞吐量需求的基础上必须考虑承载力。如果有无限的计算资源可供挥霍, 那么任何 延迟和吞吐量指标 都不是问题, 但现实情况是, 预算(budget)和其他约束限制了可用的资源。
+因此, 在满足延迟和吞吐量需求的基础上必须考虑硬件能力。如果有无限的计算资源可供挥霍, 那么任何 延迟和吞吐量指标 都不是问题, 但现实情况是, 预算(budget)和其他约束限制了可用的资源。
 
 
 ## 相关示例(Example)
@@ -587,7 +587,7 @@ we can see that there is one configuration that already matches this requirement
 results in a maximum GC pause of 560 ms, which nicely passes the 900 ms threshold set for satisfying the latency requirement. If neither the throughput nor the capacity requirements are violated, we can conclude that we have fulfilled our GC tuning task and can finish the tuning exercise.
 
 
-对应日志中最长的GC停顿时间为 `560 ms`, 这达到了设置的延迟指标 `900 ms` 的要求。如果还满足吞吐量和承载力的要求,就可以得出结论, 我们已经成功达成了GC调优目标, 可以结束调优活动了。
+对应日志中最长的GC停顿时间为 `560 ms`, 这达到了设置的延迟指标 `900 ms` 的要求。如果还满足吞吐量和硬件能力的要求,就可以得出结论, 我们已经成功达成了GC调优目标, 可以结束调优活动了。
 
 
 
@@ -685,12 +685,7 @@ It is important to note that if we simultaneously needed to fulfill the latency 
 
 
 
-
-### 校对到此处 ~~~ ###
-
-
-
-### 对承载力进行调优(Tuning for Capacity)
+### 对硬件能力进行调优(Tuning for Capacity)
 
 
 
@@ -698,7 +693,7 @@ It is important to note that if we simultaneously needed to fulfill the latency 
 Let us assume we have to deploy our solution to the commodity-class hardware with up to four cores and 10 G RAM available. From this we can derive our capacity requirement that the maximum heap space for the application cannot exceed 8 GB. Having this requirement in place, we would need to turn to the third configuration on which the test was run:
 
 
-假设我们必须将解决方案部署到 企业级的硬件中(commodity-class hardware), 有`4`个核心以及 `10G` RAM可用。从这一点可以得出我们的承载力要求是程序的最大的堆空间不能超过`8 GB`。有了这个需求, 我们需要根据第三套配置进行测试:
+假设需要将软件系统部署到 企业级硬件中(commodity-class hardware), 配置为 `4核10G`。这样的话, 系统容量的要求就变成: 最大的堆内存空间不能超过 `8GB`。有了这个需求, 我们需要调整到第三套配置来进行测试:
 
 
 
@@ -740,7 +735,7 @@ Let us assume we have to deploy our solution to the commodity-class hardware wit
 The application is able to run on this configuration as
 
 
-程序可以通过如下配置运行:
+程序可以通过如下参数执行:
 
 
 	java -Xmx8g -XX:+UseConcMarkSweepGC Producer
@@ -750,8 +745,13 @@ but both the latency and especially throughput numbers fall drastically:
 
 
 
-但却伴随着延迟大幅上涨, 特别是吞吐量却大幅下跌:
+但结果是延迟大幅增长, 而且吞吐量也大幅下降:
 
+
+
+
+
+### 校对到此处 ~~~ ###
 
 
 - GC now blocks CPUs from doing useful work a lot more, as this configuration only leaves 66.3% of the CPUs for useful work. As a result, this configuration would drop the throughput from the best-case-scenario of 13,176,000 jobs/hour to a meager 9,547,200 jobs/hour
@@ -760,8 +760,8 @@ but both the latency and especially throughput numbers fall drastically:
 <br/>
 
 
-- 现在,GC阻塞了 CPU 做更多的有用功, 这个配置只有 `66.3%` 的有效CPU时间。因此,这个配置将吞吐量从最好的情况 13,176,000 作业/小时 下降到 不足 9,547,200次作业/小时.
-- 最坏情况延迟不是560 ms，现在面临的延迟是 1,610 ms 
+- 现在,GC占用了更多的CPU资源, 这套配置只有 `66.3%` 的有效CPU时间。因此,这个配置让吞吐量从最好的情况 13,176,000 操作/小时 下降到 不足 9,547,200次操作/小时.
+- 最坏情况延迟的不再是 560ms，而是变成 1,610 ms 
 
 
 
@@ -771,7 +771,7 @@ Walking through the three dimensions it is indeed obvious that you cannot just o
 
 
 
-通过三个维度,很明显,你不能只是优化你的“性能(performance)”, 而是应该从三个不同的维度进行考虑, 测量以及调优延迟和吞吐量,并需要考虑承载力约束。
+通过这三个维度的讲解, 我们了解到, 不只是简单的进行“性能(performance)”优化, 而是需要从三个不同的维度来进行考虑, 测量并调优 延迟和吞吐量, 还要考虑硬件能力约束。
 
 
 
