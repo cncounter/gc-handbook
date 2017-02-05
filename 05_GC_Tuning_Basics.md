@@ -33,7 +33,7 @@ GC调优(Tuning Garbage Collection)和其他性能调优都是一样的原理。
 So, as the first step we need to set clear performance goals in regards of Garbage Collection. The goals fall into three categories, which are common to all performance monitoring and management topics:
 
 
-那么,第一步我们需要做的事情就是: 制定明确的GC性能指标。目标分为三大类, 对所有性能监控和管理来说都是通用的:
+那么,第一步我们需要做的事情就是: 制定明确的GC性能指标。对所有性能监控和管理来说, 有三个维度是通用的:
 
 
 
@@ -334,11 +334,6 @@ Thus, capacity has to be taken into account when fulfilling the latency and thro
 因此, 在满足延迟和吞吐量需求的基础上必须考虑承载力。如果有无限的计算资源可供挥霍, 那么任何 延迟和吞吐量指标 都不是问题, 但现实情况是, 预算(budget)和其他约束限制了可用的资源。
 
 
-
-
-
-### 校对到此处 ~~~ ###
-
 ## 相关示例(Example)
 
 
@@ -347,13 +342,13 @@ Thus, capacity has to be taken into account when fulfilling the latency and thro
 Now that we have covered the three dimensions of performance tuning, we can start investigating setting and hitting GC performance goals in practice.
 
 
-介绍完性能调优的三个维度之后,我们在实践中进行配置以达成GC性能目标。
+介绍完性能调优的三个维度之后, 我们进行实际的配置以达成GC性能指标。
 
 
 For this purpose, let us take a look at an example code:
 
 
-为此,让我们看一段示例代码:
+请看下面的示例代码:
 
 
 
@@ -404,7 +399,7 @@ For this purpose, let us take a look at an example code:
 The code submits two jobs to run every 100 ms. Each job emulates objects with a specific lifespan: it creates objects, lets them leave for a predetermined amount of time and then forgets about them, allowing GC to reclaim the memory.
 
 
-这段代码每100毫秒提交两个作业(job)来调度执行。每个作业都模拟特定的生命周期: 创建对象,在预定的时间后释放,接着就不管了, 以允许GC回收内存。
+这段程序代码每 100毫秒 提交两个作业(job)来执行。每个作业都模拟特定的生命周期: 先创建对象,然后在预定的时间释放, 接着就不管了, 之后GC就可以回收对应的内存。
 
 
 
@@ -414,14 +409,18 @@ When running the example with GC logging turned on with the following parameters
 在运行这个示例程序时，通过以下参数打开GC日志记录:
 
 
-
 	-XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps
+
+
+还应该加上JVM参数 `-Xloggc`以指定GC日志的存储位置,类似这样:
+
+	-Xloggc:C:\\Producer_gc.log
 
 
 we immediately see the impact of GC in the log files, similarly to the following:
 
 
-在日志文件中我们可以看到对GC的影响,类似下面这样:
+在日志文件中我们可以看到GC的行为, 类似下面这样:
 
 
 
@@ -453,7 +452,7 @@ we immediately see the impact of GC in the log files, similarly to the following
 Based on the information in the log we can start improving the situation with three different goals in mind:
 
 
-基于日志中的信息, 我们可以通过三个不同的目标来改善这种情况:
+基于日志中的信息, 可以通过三个优化目标来提升性能:
 
 
 
@@ -463,9 +462,9 @@ Based on the information in the log we can start improving the situation with th
 
 <br/>
 
-1. 确保最坏情况下GC暂停实际不超过预定的阀值
-1. 确保在总的运行时间中,线程暂停的实际不超过预定的阀值
-1. 降低设备成本, 同时确保仍然可以实现合理的延迟和吞吐量目标
+1. 确保最坏情况下,GC暂停时间不超过预定的阀值
+1. 确保线程暂停的总时间, 不超过预定的阀值
+1. 在确保可以达到延迟和吞吐量指标的情况下, 降低硬件的配置和成本。
 
 
 
@@ -473,7 +472,7 @@ Based on the information in the log we can start improving the situation with th
 For this, the code above was run for 10 minutes on three different configurations providing three very different results summarized in the following table:
 
 
-为此,将上面的代码在三种不同的配置下运行10分钟, 提供了三个不同的结果, 汇总如下:
+为此, 用三种不同的配置, 将以上代码运行10分钟, 得到了三种不同的结果, 汇总之后如下所示:
 
 
 
@@ -511,12 +510,11 @@ For this, the code above was run for 10 minutes on three different configuration
 
 
 
-
 The experiment ran the same code with different GC algorithms and different heap sizes to measure the duration of Garbage Collection pauses with regards to latency and throughput. Details of the experiments and an interpretation of the results are given in the following chapters.
 
 
 
-实验通过不同的GC算法和不同的堆大小来运行相同的代码, 以衡量GC暂停时间与延迟、吞吐量的关系。实验的细节和结果将在后面的章节进行解释。
+通过不同的GC算法,以及不同的堆内存配置,运行相同的代码, 以测量GC暂停时间与延迟、吞吐量之间的关系。实验的细节和结果将在后面的章节介绍。
 
 
 
@@ -524,8 +522,13 @@ The experiment ran the same code with different GC algorithms and different heap
 Note that in order to keep the example as simple as possible only a limited amount of input parameters were changed, for example the experiments do not test on different number of cores or with a different heap layout.
 
 
-注意,为了保持尽可能简单, 示例中只改变了很小的输入参数, 而实验没有在不同的CPU数量或不同的堆布局下进行测试。
+注意, 为了尽可能的简单, 示例中只改变了很少的输入参数, 此实验也没有在不同的CPU数量以及不同的堆布局下进行测试。
 
+
+
+
+
+### 校对到此处 ~~~ ###
 
 ### 对延迟进行调优(Tuning for Latency)
 
