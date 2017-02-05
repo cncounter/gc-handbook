@@ -1,6 +1,12 @@
 # 5. GC 调优(基础篇)
 
 
+> **说明**:
+>
+> Capacity: 性能,系统容量,承载能力; 文中翻译为承载力; 意为硬件配置约束,参见下文。
+
+
+
 Tuning garbage collection is no different from any other performance-tuning activity. It is easy to fall into the trap of randomly tweaking one of the 200 GC-related JVM parameters or to start changing random parts of your application code. Instead, following a simple process will guarantee that you are actually moving towards the right target while being transparent about the progress:
 
 
@@ -33,14 +39,14 @@ So, as the first step we need to set clear performance goals in regards of Garba
 
 - 延迟(Latency)
 - 吞吐量(Throughput)
-- 容量(Capacity)
+- 承载力(Capacity)
 
 
 
 After explaining the concepts in general, we will demonstrate how to apply these goals in the context of Garbage Collection. If you are already familiar with the concepts of latency, throughput and capacity, you may decide to skip the next section.
 
 
-我们先讲解基本概念,然后再演示在垃圾收集时如何使用这些指标。如果您已经很熟悉 延迟、吞吐量和容量等概念, 则可以决定跳过下一小节。
+我们先讲解基本概念,然后再演示在垃圾收集时如何使用这些指标。如果您已经很熟悉 延迟、吞吐量和承载力等概念, 则可以决定跳过下一小节。
 
 
 ## 核心概念(Core Concepts)
@@ -300,18 +306,13 @@ Extracting the information similar to the above from the GC logs across the test
 
 
 
-
-### 校对到此处 ~~~ ###
-
-
-
-### 容量(Capacity)
+### 承载力(Capacity)
 
 
 
 Capacity requirements put additional constraints on the environment where the throughput and latency goals can be met. These requirements might be expressed either in terms of computing resources or in cold hard cash. The ways in which such requirements can be described can, for example, take the following form:
 
-容量(Capacity)需求是对吞吐量和延迟指标达成的环境进行的额外约束。这些需求可能会因为计算资源或者资金的原因而被压缩。例如下面这样的要求:
+承载力(Capacity)需求是在对达成吞吐量和延迟指标的情况下对环境的额外约束。这类需求大多是来源于计算资源或者预算方面的原因。例如:
 
 
 
@@ -321,17 +322,22 @@ Capacity requirements put additional constraints on the environment where the th
 
 
 
-- 系统必须部署在小于512 MB内存的Android设备上
-- 系统必须部署在Amazon EC2实例上, 最大不得超过c3.xlarge (8 G, 4 cores)配置。
-- 运行系统的Amazon EC2月度账单不得超过 12000 美元
+- 系统必须能部署到小于512 MB内存的Android设备上
+- 系统必须部署在Amazon EC2实例上, 不得超过 c3.xlarge(4核8G)的配置。
+- 每个月 Amazon EC2的账单不得超过 $12,000
 
 
 
 Thus, capacity has to be taken into account when fulfilling the latency and throughput requirements. With unlimited computing power, any kind of latency and throughput targets could be met, yet in the real world the budget and other constraints have a tendency to set limits on the resources one can use.
 
 
-因此, 在满足延迟和吞吐量需求的基础上必须考虑容量问题。如果有无限的计算能力,任何延迟和吞吐量目标都能够达成,然而在现实世界中预算(budget)和其他约束限制了可用的资源。
+因此, 在满足延迟和吞吐量需求的基础上必须考虑承载力。如果有无限的计算资源可供挥霍, 那么任何 延迟和吞吐量指标 都不是问题, 但现实情况是, 预算(budget)和其他约束限制了可用的资源。
 
+
+
+
+
+### 校对到此处 ~~~ ###
 
 ## 相关示例(Example)
 
@@ -585,7 +591,7 @@ we can see that there is one configuration that already matches this requirement
 results in a maximum GC pause of 560 ms, which nicely passes the 900 ms threshold set for satisfying the latency requirement. If neither the throughput nor the capacity requirements are violated, we can conclude that we have fulfilled our GC tuning task and can finish the tuning exercise.
 
 
-结果中最大的GC停顿时间为 `560 ms`, 这很好地通过了为延迟设置的`900 ms`阀值的要求。如果不违反吞吐量和容量的要求,则可以得出结论,我们成功达成GC调优目标, 可以结束调优活动了。
+结果中最大的GC停顿时间为 `560 ms`, 这很好地通过了为延迟设置的`900 ms`阀值的要求。如果不违反吞吐量和承载力的要求,则可以得出结论,我们成功达成GC调优目标, 可以结束调优活动了。
 
 
 
@@ -689,7 +695,7 @@ It is important to note that if we simultaneously needed to fulfill the latency 
 ##
 
 
-### 对容量进行调优(Tuning for Capacity)
+### 对承载力进行调优(Tuning for Capacity)
 
 
 
@@ -697,7 +703,7 @@ It is important to note that if we simultaneously needed to fulfill the latency 
 Let us assume we have to deploy our solution to the commodity-class hardware with up to four cores and 10 G RAM available. From this we can derive our capacity requirement that the maximum heap space for the application cannot exceed 8 GB. Having this requirement in place, we would need to turn to the third configuration on which the test was run:
 
 
-假设我们必须将解决方案部署到 企业级的硬件中(commodity-class hardware), 有`4`个核心以及 `10G` RAM可用。从这一点可以得出我们的容量要求是程序的最大的堆空间不能超过`8 GB`。有了这个需求, 我们需要根据第三套配置进行测试:
+假设我们必须将解决方案部署到 企业级的硬件中(commodity-class hardware), 有`4`个核心以及 `10G` RAM可用。从这一点可以得出我们的承载力要求是程序的最大的堆空间不能超过`8 GB`。有了这个需求, 我们需要根据第三套配置进行测试:
 
 
 
@@ -770,7 +776,7 @@ Walking through the three dimensions it is indeed obvious that you cannot just o
 
 
 
-通过三个维度,很明显,你不能只是优化你的“性能(performance)”, 而是应该从三个不同的维度进行考虑, 测量以及调优延迟和吞吐量,并需要考虑容量约束。
+通过三个维度,很明显,你不能只是优化你的“性能(performance)”, 而是应该从三个不同的维度进行考虑, 测量以及调优延迟和吞吐量,并需要考虑承载力约束。
 
 
 
