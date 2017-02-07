@@ -3,12 +3,12 @@
 
 Before you can optimize your JVM for more efficient garbage collection, you need to get information about its current behavior to understand the impact that GC has on your application and its perception by end users. There are multiple ways to observe the work of GC and in this chapter we will cover several different possibilities.
 
-你需要明确了解当前的GC行为对应用系统和对用户感知有多大的影响,才能更好地优化JVM的GC效率. 有很多种方法来观察GC行为,在本章我们将介绍一些常用的工具。
+在调优JVM的GC性能之前, 需要明确知道, 当前的GC行为对系统和用户有多大的影响. 有很多监控GC行为的方式, 本章介绍常用的工具。
 
 
 While observing GC behavior there is raw data provided by the JVM runtime. In addition, there are derived metrics that can be calculated based on that raw data. The raw data, for instance, contains:
 
-在JVM运行的同时,可以提供原始的GC行为数据。此外,可以根据原始数据生成各种指标。原始数据(raw data)包含:
+在程序运行的过程中,JVM提供了GC相关行为的原始数据。另外, 可以利用原始数据生成各种报告。原始数据(raw data)包含以下部分:
 
 
 - current occupancy of memory pools,
@@ -18,15 +18,15 @@ While observing GC behavior there is raw data provided by the JVM runtime. In ad
 
 <br/>
 
-- 当前内存池的使用情况,
+- 当前各内存池的使用情况,
 - 各个内存池的容量,
-- 每个GC暂停的持续时间,
-- GC暂停不同阶段的持续时间。
+- 每次GC暂停的持续时间,
+- GC暂停各个阶段的持续时间。
 
 
 The derived metrics include, for example, the allocation and promotion rates of the application. In this chapter will talk mainly about ways of acquiring the raw data. The most important derived metrics are described in the following chapter discussing the most common GC-related performance problems.
 
-派生的指标主要包括: 程序内存的分配率和晋升率。本章主要讨论获取原始数据的方式.后续章节中将介绍和讨论最重要的派生指标，以及GC相关的性能问题。
+可以计算出各种指标, 例如: 程序的内存分配率和提升率。本章主要介绍获取原始数据的方法. 后续章节将讨论最重要的派生指标(derived metrics)，以及GC性能相关的问题。
 
 
 ## JMX API
@@ -34,20 +34,20 @@ The derived metrics include, for example, the allocation and promotion rates of 
 
 The most basic way to get GC-related information from the running JVM is via the standard JMX API. This is a standardized way for the JVM to expose internal information regarding the runtime state of the JVM. You can access this API either programmatically from your own application running inside the very same JVM, or using JMX clients.
 
-从运行中的JVM 获取GC相关(GC-related)信息的最基本方式是通过标准 JMX API . JMX是揭露JVM内部关于运行时状态信息的标准化API. 我们可以用编程的方式通过这个AP来访问当前运行此程序的JVM，也可以通过JMX客户端来(远程)访问。
+从 JVM 运行时获取GC相关(GC-related)信息, 最基本的方式是通过标准 JMX API 接口. JMX是展示JVM内部运行时相关状态信息的标准API. 我们可以通过编程的方式,通过 JMX API 访问运行本程序的JVM，还可以通过JMX客户端来(远程)访问。
 
 
 
 Two of the most popular JMX clients are JConsole and JVisualVM (with a corresponding plugin installed). Both of these tools are part of the standard JDK distribution, so getting started is easy. If you are running on JDK 7u40 or later, a third tool bundled into the JDK called Java Mission Control is also available.
 
-最常见的两个JMX客户端是 JConsole 和 JVisualVM (需要安装相关插件)。这两款工具都是标准JDK的一部分,所以很容易入门. 如果使用的是JDK 7u40或之后的版本,还可以使用Java Mission Control 工具( 大致翻译为 Java飞行控制中心, `jmc.exe`)。
+最常见的两种JMX客户端是 JConsole 和 JVisualVM (可以安装各种插件,十分强大)。这两个工具都是标准JDK的一部分, 很容易使用. 如果使用的是 JDK 7u40 及更新的版本,还可以使用第三种工具: Java Mission Control( 大致翻译为 Java控制中心, `jmc.exe`)。
 
-> JVisualVM安装MBeans插件,通过 工具(T)--插件(G)--可用插件-勾选VisualVM-MBeans--安装--下一步--等待...
+> JVisualVM安装MBeans插件,通过 工具(T) -- 插件(G) -- 可用插件 -- 勾选VisualVM-MBeans -- 安装 -- 下一步 -- 等待安装完成... 其他的插件安装也类似。
 
 
 All the JMX clients run as a separate application connecting to the target JVM. The target JVM can be either local to the client if running both in the same machine, or remote. For the remote connections from client, JVM has to explicitly allow remote JMX connections. This can be achieved by setting a specific system property to the port where you wish to enable the JMX RMI connection to arrive:
 
-所有的JMX客户端都是一个单独的程序,可以连接到目标JVM。目标JVM可以是本机的JVM,也可以是远程的JVM. 如果要连接远程JVM, 则目标JVM必须显式地允许远程JMX连接. 如果要启用远程JMX RMI连接可以通过设置系统属性来指定端口号,例如:
+所有的JMX客户端都是独立的程序,可以连接到目标JVM。目标JVM可以是本地JVM, 也可以是远程JVM. 如果要连接远程JVM, 则目标JVM必须通过特定的环境变量参数来启动,以开启远程JMX连接。 开启远程JMX RMI连接, 并指定端口号的示例如下:
 
 
 	java -Dcom.sun.management.jmxremote.port=5432 com.yourcompany.YourApp
@@ -56,12 +56,12 @@ All the JMX clients run as a separate application connecting to the target JVM. 
 
 In the example above, the JVM opens port 5432 for JMX connections.
 
-在上面的示例中,JVM 打开端口5432以支持JMX连接。
+在此示例中, JVM 打开端口5432以支持JMX连接。
 
 
 After connecting your JMX client to the JVM of interest and navigating to the MBeans list, select MBeans under the node “java.lang/GarbageCollector”. See below for two screenshots exposing information about GC behavior from JVisualVM and Java Mission Control, respectively:
 
-通过 JVisualVM  连接到某个JVM之后, 导航到 MBeans list, 选择 “java.lang/GarbageCollector” 下的 MBeans. 下面是展示 JVisualVM 和Java Mission Control 中GC行为信息的截图:
+通过 JVisualVM  连接到某个JVM之后, 导航到 MBeans list, 展开 “java.lang/GarbageCollector” 下的 MBeans. 下图显示了 JVisualVM 和Java Mission Control 中的GC行为信息:
 
 
 ![](06_01_JMX-view.png)
@@ -71,6 +71,8 @@ After connecting your JMX client to the JVM of interest and navigating to the MB
 
 ![](06_02_JMX-view-Mbean.png)
 
+
+##### 校对到此处 !!!
 
 
 
