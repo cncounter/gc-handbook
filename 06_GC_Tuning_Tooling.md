@@ -72,18 +72,16 @@ After connecting your JMX client to the JVM of interest and navigating to the MB
 ![](06_02_JMX-view-Mbean.png)
 
 
-##### 校对到此处 !!!
-
 
 
 As the screenshots above indicate, there are two garbage collectors present. One of these collectors is responsible for cleaning the young generation and one for the old generation. The names of those elements correspond to the names of the garbage collectors used. In the screenshots above we can see that the particular JVM is running with ParallelNew for the young generation and with Concurrent Mark and Sweep for the old generation.
 
-上面的截图信息显示, 存在两个垃圾收集器。其中一个负责清理年轻代，另一个负责清理老年代. 元素的名称就对应所使用的垃圾收集器的名字. 上面截图中可以看到,该JVM使用的年轻代垃圾收集器是 **PS Scavenge** , 而老年代使用的是 **PS MarkSweep**。
+上面的截图信息中, 共有两种垃圾收集器。其中一种负责清理年轻代，另一种负责清理老年代. 图中两个元素的名字就是的垃圾收集器名称. 从图中可以看到, 此JVM中, 年轻代垃圾收集器是 **PS Scavenge**; 老年代使用的是 **PS MarkSweep** 算法。
 
 
 For each collector the JMX API exposes the following information:
 
-对每个垃圾收集器, JMX API 公开的信息包括:
+对每一款垃圾收集器, 通过 JMX API 展示的信息以下:
 
 
 - CollectionCount – the total number of times this collector has run in this JVM,
@@ -96,19 +94,21 @@ For each collector the JMX API exposes the following information:
 
 <br/>
 
-- **CollectionCount** : 此垃圾收集器在JVM中运行的总次数,
-- **CollectionTime**: 收集器运行时间的累计。此时间是所有GC事件时间的总和,
-- **LastGcInfo**: 最后一次GC事件的详细信息。包括GC事件的 持续时间(duration),  开始时间(startTime) 和 结束时间(endTime), 以及各个内存池在最后一次GC之前和之后的使用情况,
-- **MemoryPoolNames**:  该收集器管理的内存池的名字,
+- **CollectionCount** : 此垃圾收集器执行GC的总次数,
+- **CollectionTime**: 收集器运行时间的累计。此时间是所有GC事件的时间总和,
+- **LastGcInfo**: 最近一次GC事件的详细信息。包括GC事件的 持续时间(duration),  开始时间(startTime) 和 结束时间(endTime), 以及各个内存池在最近一次GC之前和之后的使用情况,
+- **MemoryPoolNames**:  此款垃圾收集器所管理内存池的名称,
 - **Name**: 垃圾收集器的名称
-- **ObjectName**: 此 MBean的名字,由JMX规范定义,
-- **Valid**: 在此JVM中这个收集器是否有效。本人只见过为 "true"的情况
+- **ObjectName**: 由JMX规范定义的 MBean的名字,,
+- **Valid**: 此收集器是否有效。本人只见过为 "true"的情况
 
 
 In my experience this information is not enough to make any conclusions about the efficiency of the garbage collector. The only case where it can be of any use is when you are willing to build custom software to get JMX notifications about garbage collection events. This approach can rarely be used as we will see in the next sections, which give better ways of getting beneficial insight into garbage collection activities.
 
-根据我的经验, 这些信息并不足以对GC的效率得出任何结论. 唯一可能使用的情况是用来构建自己的软件,通过定制来获取GC事件相关的 JMX 通知. 在下一节中我们可以看到,这种方法使用的较少, 但对于我们认识垃圾收集活动倒是挺有用的。
+根据经验, 这些信息对GC的性能来说,不能得出什么结论. 唯一可行的方式, 是自己编写程序, 通过获取GC相关的 JMX 通知来进行统计。 从下一节可以看到, 一般也不怎么查看 MBean , 但对于理解GC活动倒是挺有用的。
 
+
+##### 校对到此处 !!!
 
 
 ## JVisualVM
