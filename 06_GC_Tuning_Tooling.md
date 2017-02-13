@@ -358,10 +358,6 @@ As we can see, GC logs can give us very detailed information about what is going
 
 
 
-##### 校对到此处 !!!
-
-
-
 
 ## GCViewer
 
@@ -369,52 +365,65 @@ As we can see, GC logs can give us very detailed information about what is going
 
 One way to cope with the information flood in GC logs is to write custom parsers for GC log files to visualize the information. In most cases it would not be a reasonable decision due to the complexity of different GC algorithms that are producing the information. Instead, a good way would be to start with a solution that already exists: GCViewer.
 
-有一种方法用来对付庞大的GC日志, 那就是编写自定义解析器, 来将GC日志文件解析为直观易懂的图形信息. 但很多时候这也不是个很好的解决方案, 因为各种GC算法的复杂性导致产生的日志信息并不一样。那么神器来了: [GCViewer](https://github.com/chewiebug/GCViewer)。
+可以编写自定义解析器, 来将庞大的GC日志文件解析为直观易读的图形信息。 但很多时候这并不是最好的解决方案, 因为各种GC算法的复杂性, 导致日志信息格式互不兼容。那么神器来了: [GCViewer](https://github.com/chewiebug/GCViewer)。
 
 
 [GCViewer](https://github.com/chewiebug/GCViewer) is an open source tool for parsing and analyzing GC log files. The GitHub web page provides a full description of all the presented metrics. In the following we will review the most common way to use this tool.
 
-[GCViewer](https://github.com/chewiebug/GCViewer) 是一款开源工具, 专门用来解析和分析GC日志文件。GitHub 页面提供了对各个指标的完整描述信息. 下面我们介绍最常见的使用方式。
+[GCViewer](https://github.com/chewiebug/GCViewer) 是一款开源的GC日志分析工具。项目的 GitHub 主页对各个指标提供了完整的描述信息. 下面我们介绍最常用的指标。
 
 
 The first step is to get useful garbage collection log files. They should reflect the usage scenario of your application that you are interested in during this performance optimization session. If your operational department complains that every Friday afternoon, the application slows down, and if you want to verify whether GC is the culprit, there is no point in analyzing GC logs from Monday morning.
 
-第一步是获取有用的GC日志文件。这些日志文件应该能够反映系统在性能优化时的具体场景. 比如运营部门(operational department)抱怨说每周五下午,程序就运行缓慢, 不管GC是不是头号杀手,从周一早上的日志开始分析是没有多少意义的。
+第一步是获取GC日志文件。这些日志文件要能够反映系统在性能调优时的具体场景. 假若运营部门(operational department)反馈每周五下午,程序就运行缓慢, 不管GC是不是主要原因,从周一早晨的日志开始分析是没有多少意义的。
 
 
 After you have received the log, you can feed it into GCViewer to see a result similar to the following:
 
-收到日志文件之后, 可以用 GCViewer 分析,大致会看到类似下面的结果:
+收到日志文件之后, 可以用 GCViewer 进行分析,大致会看到类似下面的结果:
 
 
 ![](06_04_gcviewer-screenshot.png)
 
 
+使用的命令行大致如下:
+
+	java -jar gcviewer_1.3.4.jar gc.log
+
+
+当然, 如果不想打开程序界面,也可以在后面加上其他参数,直接将分析结果输出到文件。
+
+大致是这样: 
+
+	java -jar gcviewer_1.3.4.jar gc.log summary.csv chart.png
+
+
+点击下载: [gcviewer的jar包及使用示例](http://download.csdn.net/detail/renfufei/9753654) 。
 
 
 The chart area is devoted to the visual representation of GC events. The information available includes the sizes of all memory pools and GC events. In the picture above, only two metrics are visualized: the total used heap is visualized with blue lines and individual GC pause durations with black bars underneath.
 
-Chart 区域是对GC事件的图形化展示。提供的信息包括所有内存池的大小和GC事件。在上面的图片中,只有两个可视化指标: 蓝色线条表示堆内存的使用情况, 黑色的Bar则表示每次GC暂停时间的长短。
+Chart 区域是对GC事件的图形化显示。展示的信息包括所有内存池的大小和GC事件。在上面的图片中,只有两个可视化指标: 蓝色线条表示堆内存的使用情况, 黑色的Bar则表示每次GC暂停时间的长短。
 
 
 The first interesting thing that we can see from this picture is the fast growth of memory usage. In just around a minute the total heap consumption reaches almost the maximum heap available. This indicates a problem – almost all the heap is consumed and new allocations cannot proceed, triggering frequent full GC cycles. The application is either leaking memory or set to run with under-provisioned heap size.
 
-首先, 从图中我们可以看到,内存的使用量快速增长。仅仅一分钟左右就达到了堆内存的最大可用值. 这说明一个问题 —— 几乎所有堆内存都被消耗, 新的内存分配不能顺利进行, 并引发频繁的 Full GC周期. 程序可能是存在内存泄露,或者是启动时指定的内存空间不足。
+从图中可以看到, 内存的使用量快速增长。仅仅一分钟左右就达到了堆内存的最大可用值.  几乎所有堆内存都被消耗, 新的内存分配不能顺利进行, 并引发频繁的 Full GC周期. 这说明程序可能存在内存泄露, 或者在启动时指定的内存空间不够。
 
 
 The next problem visible in the charts is the frequency and duration of GC pauses. We can see that after the initial 30 seconds GC is almost constantly running, with the longest pauses exceeding 1.4 seconds.
 
-从图中还可以看出GC暂停的频率和持续时间。可以看到, 在最初的30秒之后, GC几乎不间断地运行,最长的暂停时间超过1.4秒。
+从图中还可以看出, GC暂停的频率和持续时间。在最初的30秒之后, GC几乎不间断地运行,最长的暂停时间超过1.4秒。
 
 
 On the right there is small panel with three tabs. Under the “Summary” tab the most interesting numbers are “Throughput” and “Number of GC pauses”, along with the “Number of full GC pauses”. Throughput shows the portion of the application run time that was devoted to running your application, as opposed to spending time in garbage collection.
 
-在右边有三个选项卡。“**Summary**(摘要)”选项卡中比较有用的是 “Throughput”(吞吐量) 和 “Number of GC pauses”(GC暂停的次数), 以及“Number of full GC pauses”(Full GC 暂停的次数). 吞吐量显示了有多少CPU时间在运行你的应用程序, 剩余的部分就是花在垃圾收集上的时间。
+在右边有三个选项卡。“**Summary**(摘要)” 中比较有用的是 “Throughput”(吞吐量百分比) 和 “Number of GC pauses”(GC暂停的次数), 以及“Number of full GC pauses”(Full GC 暂停的次数). 吞吐量显示了有多少CPU时间在执行程序, 剩下的就是垃圾收集所消耗的时间。
 
 
 In our example we are facing throughput of 6.28%. This means that 93.72% of the CPU time was spent on GC. It is a clear symptom of the application suffering – instead of spending precious CPU cycles on actual work, it spends most of the time trying to get rid of the garbage.
 
-在示例中我们的吞吐量是 **6.28%**。这意味着有 **93.72%** 的CPU时间花在了GC上面. 很明显程序面临一个痛苦的症状 —— 没有把宝贵的CPU时间花在实际工作上, 大部分的时间都是在试图清理垃圾。
+示例中的吞吐量是 **6.28%**。这意味着有 **93.72%** 的CPU时间花在了GC上面. 很明显程序面临一个困境 —— 没有把宝贵的CPU时间用在实际工作上, 大部分的时间都在试图清理垃圾。
 
 
 The next interesting tab is “Pause”:
@@ -429,16 +438,20 @@ The next interesting tab is “Pause”:
 
 The “Pause” tab exposes the totals, averages, minimum and maximum values of GC pauses, both as a grand total and minor/major pauses separately. Optimizing the application for low latency, this gives the first glimpse of whether or not you are facing pauses that are too long. Again, we can get confirmation that both the accumulated pause duration of 634.59 seconds and the total number of GC pauses of 3,938 is much too high, considering the total runtime of just over 11 minutes.
 
-“Pause” 展示了GC暂停的 汇总信息,平均值,最小值和最大值, 并且将 total 与minor/major 暂停分开统计。如果要优化程序的低延迟, 这可以让你一眼就能判断出暂停时间是否过长了。另外, 我们可以得出明确的信息: 累计的暂停时间是 `634.59` 秒, GC暂停的总次数为 3,938 次, 这在11分钟的总运行时间里面实在是太高了。
+“Pause” 展示了GC暂停的总时间,平均值,最小值和最大值, 并且将 total 与minor/major 暂停分开统计。如果要优化程序的低延迟, 这可以让你一眼就能判断出暂停时间是否过长了。另外, 我们可以得出明确的信息: 累计的暂停时间是 `634.59` 秒, GC暂停的总次数为 3,938 次, 这在11分钟的总运行时间里确实是太高了。
 
 
 More detailed information about GC events can be obtained from the “Event details” tab of the main area:
 
-关于GC事件更详细的信息请参考主界面中的 “**Event details**” 标签:
+更详细的GC暂停汇总信息, 请查看主界面中的 “**Event details**” 标签:
 
 
 ![](06_06_gcviewer-screenshot-eventdetails.png)
 
+
+
+
+##### 校对到此处 !!!
 
 
 
