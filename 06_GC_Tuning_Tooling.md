@@ -274,26 +274,22 @@ As seen from the example, jstat output can quickly reveal symptoms about JVM hea
 
 
 
-
-##### 校对到此处 !!!
-
-
 ## GC日志(GC logs)
 
 
 The next source for GC-related information is accessible via garbage collector logs. As they are built in the JVM, GC logs give you (arguably) the most useful and comprehensive overview about garbage collector activities. GC logs are de facto standard and should be referenced as the ultimate source of truth for garbage collector evaluation and optimization.
 
-GC相关信息的第二来源是GC日志。因为内建于JVM中的,可以说GC日志是对GC活动最有用和最全面的概括. GC日志是事实上的标准,应该作为对垃圾收集器评估和优化的最真实的依据。
+通过GC日志也可以获取垃圾收集相关的信息。因为JVM内置了GC日志模块, 所以对垃圾收集活动最全面最有用的内容都包含在GC日志里. GC日志是事实上的标准, 可以作为对垃圾收集评估和优化的最真实数据。
 
 
 A garbage collector log is in plain text and can be either printed out by the JVM to standard output or redirected to a file. There are many JVM options related to GC logging. For example, you can log the total time for which the application was stopped before and during each GC event (-XX:+PrintGCApplicationStoppedTime) or expose the information about different reference types being collected (-XX:+PrintReferenceGC).
 
-GC日志是纯文本格式的,一般是输出到文件之中,当然也可以打印到标准输出。有许多JVM选项来控制GC日志记录。例如,可以记录每次GC事件的持续时间, 以及程序暂停了多久(`-XX:+PrintGCApplicationStoppedTime`) 或者是垃圾回收清理多少引用类型(`-XX:+PrintReferenceGC`)。
+GC日志是纯文本格式的,一般输出到文件之中, 当然也可以打印到控制台。有很多个JVM参数可以控制GC的日志。例如,可以打印每次GC事件的持续时间, 以及程序暂停了多久(`-XX:+PrintGCApplicationStoppedTime`), 还有垃圾回收清理多少引用类型(`-XX:+PrintReferenceGC`)。
 
 
 The minimum that each JVM should be logging can be achieved by specifying the following in your startup scripts:
 
-要记录GC日志,则至少应该在启动脚本设置如下这样的JVM参数:
+要记录GC日志, 需要在启动脚本设置下面这样的JVM参数:
 
 
 	-XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCDetails -Xloggc:<filename>
@@ -302,7 +298,7 @@ The minimum that each JVM should be logging can be achieved by specifying the fo
 
 This will instruct JVM to print every GC event to the log file and add the timestamp of each event to the log. The exact information exposed to the logs varies depending on the GC algorithm used. When using ParallelGC the output should look similar to the following:
 
-这指示JVM需要将所有GC事件打印到日志文件,并将每个事件的时间戳添加到日志中。具体信息根据GC算法不同而不一样. 当使用 ParallelGC 时输出应该类似下面这样:
+以上参数指示JVM: 将所有的GC事件打印到日志文件, 并打印每次事件的日期和时间戳。具体的输出内容, 根据GC算法不同而略有不同. ParallelGC 的输出内容示例如下:
 
 
 	199.879: [Full GC (Ergonomics) [PSYoungGen: 64000K->63998K(74240K)] [ParOldGen: 169318K->169318K(169472K)] 233318K->233317K(243712K), [Metaspace: 20427K->20427K(1067008K)], 0.1473386 secs] [Times: user=0.43 sys=0.01, real=0.15 secs]
@@ -317,7 +313,7 @@ This will instruct JVM to print every GC event to the log file and add the times
 
 These different formats are discussed in detail in the chapter “GC Algorithms: Implementations”, so if you are not familiar with the output, please read this chapter first. If you can already interpret the output above, then you are able to deduct that:
 
-这些不同的格式在章节 “04 GC算法:实现篇” 中详细讨论过了,如果对输出不熟悉, 可以先阅读第4章. 如果解析上面的输出,则可以得知:
+这些不同的格式在 “04 GC算法:实现篇” 中详细讨论过了,如果对此不了解, 可以先阅读第4章. 解析以上输出内容,可以得知:
 
 
 - The log is extracted around 200 seconds after the JVM was started.
@@ -329,19 +325,19 @@ These different formats are discussed in detail in the chapter “GC Algorithms:
 
 - 这部分日志截取自JVM启动后200秒左右。
 - 日志片段中显示, 在780毫秒之内, JVM因为GC停顿了五次(去掉第六次暂停,这样更精确一些). 所有停顿都是 Full GC暂停。
-- 这些停顿的总持续时间是 777毫秒, 占总运行时间的 **99.6%**
-- 与此同时, 可以看到老年代的容量与使用情况, 在GC完成之后几乎所有的老年代空间(`169,472 kB`)仍然被使用(`169,318 K`)。
+- 这些暂停事件的总持续时间是 777毫秒, 占总运行时间的 **99.6%**。
+- 与此同时, 可以看到老年代的容量与使用情况, 在GC完成之后,几乎所有的老年代空间(`169,472 KB`)仍被占用(`169,318 K`)。
 
 
 From the output, we can confirm that the application is not performing well in terms of GC. The JVM is almost stalled, with GC eating away more than 99% of the available computing power. And as a result of all this cleaning, almost all the old generation still remains in use, further confirming our suspicions. The example application, being the same as used in the previous jstat section, died in just a few minutes later with the “java.lang.OutOfMemoryError: GC overhead limit exceeded” error, confirming that the problem was severe.
 
 
-从输出可以证实, 该应用的GC执行状况非常不好。JVM几乎处于停滞状态, 因为GC侵蚀了超过99%的可用计算时间. 而垃圾回收的结果是, 几乎全部的老年代空间仍然被占用, 这进一步证实了我们的猜测。示例程序和 jstat 小节中是同一个, 几分钟后就挂了, 抛出的也是 “java.lang.OutOfMemoryError: GC overhead limit exceeded” 错误, 确认问题是很严重的.
+通过日志信息可以确认, 该应用的GC状况非常恶劣。JVM几乎处于停滞状态, 因为GC占用了超过99%的CPU时间. 而垃圾回收的结果, 是整个老年代空间仍然被占用, 这进一步证实了我们的猜测。 和jstat 小节中是同一个示例程序, 几分钟之后程序就挂了, 抛出的也是 “java.lang.OutOfMemoryError: GC overhead limit exceeded” 错误, 确认问题是很严重的.
 
 
 As seen from the example, GC logs are valuable input to reveal symptoms about JVM health in terms of misbehaving garbage collectors. As general guidelines, the following symptoms can quickly be revealed by just looking at GC logs:
 
-从这个例子中可以看出, GC日志对于显示JVM的GC行为健康状态是很有价值的输入。一般情况下, 通过查看 GC 日志可以很快揭示以下症状:
+从这个例子中可以看出, GC日志对监控JVM的GC行为状态是否健康非常有价值。一般情况下, 查看 GC 日志就可以很快确定以下症状:
 
 
 - Too much GC overhead. When the total time for GC pauses is too long, the throughput of the application suffers. The limit is application-specific, but as a general rule anything over 10% already looks suspicious.
@@ -350,15 +346,19 @@ As seen from the example, GC logs are valuable input to reveal symptoms about JV
 
 <br/>
 
-- 太多的GC开销。当总的GC暂停时间太长, 系统的吞吐量就会受到损害。具体允许多大比例由特定程序决定,但一般超过 10% 则很可能不太正常。
- 极个别的暂停时间过长。当某一个人GC停顿太久,则开始影响程序的延迟. 如果延迟需求要求事务在 1,000 ms内完成, 那你肯定不能容忍任何GC暂停超过 1000毫秒。
-- 老年代的使用率超过限制。当老年代空间在 Full GC 之后仍然接近用满, 此时GC就成为瓶颈, 也许是内存太小,或者是内存泄漏。这种症状总是让GC开销飞涨。
+- GC开销太大。如果GC暂停的总时间太长, 系统的吞吐量就会受到损害。具体允许多大比例由系统特性而确定, 但超过 10% 的开销一般认为是不正常的。
+- 极个别的暂停时间过长。当某次GC停顿太久, 就会影响程序的延迟指标. 如果延迟需求规定事务必须在 1,000 ms内完成, 那就不能容忍任何超过 1000毫秒的GC暂停。
+- 老年代的使用量超过限制。如果老年代空间在 Full GC 之后仍然接近满值, 那么GC就成为了性能瓶颈, 可能是内存太小, 也可能存在内存泄漏。这种症状就会让GC开销暴涨。
 
 
 As we can see, GC logs can give us very detailed information about what is going on inside the JVM in relation to garbage collection. However, for all but the most trivial applications, this results in vast amounts of data, which tend to be difficult to read and interpret by a human being.
 
-我们可以看到,GC日志给出了JVM内部非常详细的GC信息。然而,除了最简单的那些示例程序, 其他情况下都会导致生成大量的数据, 这往往是人工难以阅读和理解的。
+我们可以看到,日志中显示了非常详细的GC信息。但除了最简单的Demo程序, 其他情况下都会生成大量的日志数据, 纯靠人工是很难进行阅读和理解的。
 
+
+
+
+##### 校对到此处 !!!
 
 
 
