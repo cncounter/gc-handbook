@@ -3,7 +3,7 @@
 
 > **说明**:
 >
-> Capacity: 性能,能力,系统容量; 文中翻译为硬件能力; 意为硬件配置约束,参见下文。
+> **Capacity**: 性能,能力,系统容量; 文中翻译为"**系统容量**"; 意为硬件配置约束,参见下文。
 
 
 
@@ -13,10 +13,10 @@ Tuning garbage collection is no different from any other performance-tuning acti
 GC调优(Tuning Garbage Collection)和其他性能调优都是一样的原理。一般人可能会对 200 多个 GC相关的JVM参数一头雾水, 随机调整几个来看结果,又或者随便改变程序的一些代码。其实只要按照下面的步骤，就能保证你的调优方向正确:
 
 1. State your performance goals
-1. Run tests
-1. Measure the results
-1. Compare the results with the goals
-1. If goals are not met, make a change and go back to running tests
+2. Run tests
+3. Measure the results
+4. Compare the results with the goals
+5. If goals are not met, make a change and go back to running tests
 
 <br/>
 
@@ -37,21 +37,19 @@ So, as the first step we need to set clear performance goals in regards of Garba
 
 
 
-- 延迟(Latency)
-- 吞吐量(Throughput)
-- 硬件能力(Capacity)
+- Latency(延迟)
+- Throughput(吞吐量)
+- Capacity(系统容量)
 
 
 
 After explaining the concepts in general, we will demonstrate how to apply these goals in the context of Garbage Collection. If you are already familiar with the concepts of latency, throughput and capacity, you may decide to skip the next section.
 
 
-我们先讲解基本概念,然后再演示在垃圾收集时如何使用这些指标。如果您已经很熟悉 延迟、吞吐量和硬件能力等概念, 则可以决定跳过下一小节。
+我们先讲解基本概念,然后再演示在垃圾收集时如何使用这些指标。如果您已经很熟悉 延迟、吞吐量和系统容量等概念, 则可以决定跳过下一小节。
 
 
 ## 核心概念(Core Concepts)
-
-
 
 
 
@@ -67,19 +65,19 @@ Let us start with an example from manufacturing by observing an assembly line in
 
 
 
-Continuing our observations we can also see that one bike is assembled after each minute, 24 hours a day, every day. Simplifying the example and ignoring maintenance windows, we can forecast that in any given hour such an assembly line assembles 60 bikes.
+Continuing our observations we can also see that one bike is assembled after each minute, 24 hours a day, every day. Simplifying the example and ignoring maintenance windows, we can forecast that in **any given hour such an assembly line assembles 60 bikes**.
 
 
-继续观察,我们还发现,此后每分钟就有1辆自行车完成组装, 每天24小时,一直如此。将示例简化并忽略维护窗口期后, 可以说, 这条流水线每小时可以组装60辆自行车。
+继续观察,我们还发现,此后每分钟就有1辆自行车完成组装, 每天24小时,一直如此。将示例简化并忽略维护窗口期后得出:  **这条流水线每小时可以组装60辆自行车**。
 
 > **说明**: 时间窗口、窗口期，请类比车站卖票的窗口，是一段规定/限定做某件事的时间段。
 
 
 
-Equipped with these two measurements, we now possess crucial information about the current performance of the assembly line in regards of latency and throughput:
+Equipped with these two measurements, we now possess crucial information about the current performance of the assembly line in regards of **latency** and **throughput**:
 
 
-通过这两种测量方式, 现在就知道了生产线的相关性能信息： 延迟与吞吐量:
+通过这两种测量方式, 现在就知道了生产线的相关性能信息： **延迟**与**吞吐量**:
 
 
 
@@ -87,8 +85,8 @@ Equipped with these two measurements, we now possess crucial information about t
 - Throughput of the assembly line: 60 bikes/hour
 
 
-- 生产线的延迟: 4小时
-- 生产线的吞吐量: 60辆/小时
+- 生产线的延迟: **4小时**
+- 生产线的吞吐量: **60辆/小时**
 
 
 
@@ -155,7 +153,7 @@ Whether or not reducing latency was possible or economical in this case is not r
 
 
 
-### 延迟(Latency)
+### Latency(延迟)
 
 
 
@@ -235,7 +233,7 @@ Extracting information similar to the example above from all GC pauses, we can a
 
 
 
-### 吞吐量(Throughput)
+### Throughput(吞吐量)
 
 
 
@@ -306,13 +304,13 @@ Extracting the information similar to the above from the GC logs across the test
 
 
 
-### 硬件能力(Capacity)
+### Capacity(系统容量)
 
 
 
 Capacity requirements put additional constraints on the environment where the throughput and latency goals can be met. These requirements might be expressed either in terms of computing resources or in cold hard cash. The ways in which such requirements can be described can, for example, take the following form:
 
-硬件能力(Capacity)需求是在对达成吞吐量和延迟指标的情况下对环境的额外约束。这类需求大多是来源于计算资源或者预算方面的原因。例如:
+系统容量(Capacity)需求是在对达成吞吐量和延迟指标的情况下对环境的额外约束。这类需求大多是来源于计算资源或者预算方面的原因。例如:
 
 
 
@@ -323,7 +321,7 @@ Capacity requirements put additional constraints on the environment where the th
 
 
 - 系统必须能部署到小于512 MB内存的Android设备上
-- 系统必须部署在Amazon EC2实例上, 不得超过 c3.xlarge(4核8G)的配置。
+- 系统必须部署在Amazon **EC2**实例上, 不得超过 **c3.xlarge(4核8G)**的配置。
 - 每个月 Amazon EC2的账单不得超过 $12,000
 
 
@@ -331,10 +329,10 @@ Capacity requirements put additional constraints on the environment where the th
 Thus, capacity has to be taken into account when fulfilling the latency and throughput requirements. With unlimited computing power, any kind of latency and throughput targets could be met, yet in the real world the budget and other constraints have a tendency to set limits on the resources one can use.
 
 
-因此, 在满足延迟和吞吐量需求的基础上必须考虑硬件能力。如果有无限的计算资源可供挥霍, 那么任何 延迟和吞吐量指标 都不是问题, 但现实情况是, 预算(budget)和其他约束限制了可用的资源。
+因此, 在满足延迟和吞吐量需求的基础上必须考虑系统容量。如果有无限的计算资源可供挥霍, 那么任何 延迟和吞吐量指标 都不是问题, 但现实情况是, 预算(budget)和其他约束限制了可用的资源。
 
 
-## 相关示例(Example)
+## 相关示例
 
 
 
@@ -430,13 +428,13 @@ we immediately see the impact of GC in the log files, similarly to the following
 		421540K->421269K(745984K), 
 		0.0858176 secs] 
 		[Times: user=0.04 sys=0.06, real=0.09 secs] 
-
+	
 	2015-06-04T13:34:16.738-0200: 2.342: [GC (Allocation Failure) 
 			[PSYoungGen: 234462K->93677K(254976K)] 
 		582540K->593275K(766464K), 
 		0.2357086 secs] 
 		[Times: user=0.11 sys=0.14, real=0.24 secs] 
-
+	
 	2015-06-04T13:34:16.974-0200: 2.578: [Full GC (Ergonomics) 
 			[PSYoungGen: 93677K->70109K(254976K)] 
 			[ParOldGen: 499597K->511230K(761856K)] 
@@ -457,14 +455,14 @@ Based on the information in the log we can start improving the situation with th
 
 
 1. Making sure the worst-case GC pause does not exceed a predetermined threshold
-1. Making sure the total time during which application threads are stopped does not exceed a predetermined threshold
-1. Reducing infrastructure costs while making sure we can still achieve reasonable latency and/or throughput targets
+2. Making sure the total time during which application threads are stopped does not exceed a predetermined threshold
+3. Reducing infrastructure costs while making sure we can still achieve reasonable latency and/or throughput targets
 
 <br/>
 
 1. 确保最坏情况下,GC暂停时间不超过预定的阀值
-1. 确保线程暂停的总时间, 不超过预定的阀值
-1. 在确保可以达到延迟和吞吐量指标的情况下, 降低硬件的配置和成本。
+2. 确保线程暂停的总时间, 不超过预定的阀值
+3. 在确保可以达到延迟和吞吐量指标的情况下, 降低硬件的配置和成本。
 
 
 
@@ -525,7 +523,7 @@ Note that in order to keep the example as simple as possible only a limited amou
 注意, 为了尽可能的简单, 示例中只改变了很少的输入参数, 此实验也没有在不同的CPU数量以及不同的堆布局下进行测试。
 
 
-### 延迟调优(Tuning for Latency)
+### Tuning for Latency(优化延迟指标)
 
 
 
@@ -533,7 +531,7 @@ Let us assume we have a requirement stating that all jobs must be processed in u
 
 
 
-假设有一个需求, 每次作业必须在 1000ms 内处理完成。我们知道, 实际的作业处理只需要100 ms，简化后可以算出， 两者相减就是对 GC暂停的延迟要求。现在需求变成这种形式: GC暂停不能超过900ms。这个问题很容易找到答案, 只需要解析GC日志文件, 并找出每次GC暂停中最大的那个暂停时间即可。
+假设有一个需求, **每次作业必须在 1000ms 内处理完成**。我们知道, 实际的作业处理只需要100 ms，简化后可以算出， 两者相减就是对 GC暂停的延迟要求。现在需求变成这种形式:  **GC暂停不能超过900ms**。这个问题很容易找到答案, 只需要解析GC日志文件, 并找出每次GC暂停中最大的那个暂停时间即可。
 
 
 
@@ -587,12 +585,12 @@ we can see that there is one configuration that already matches this requirement
 results in a maximum GC pause of 560 ms, which nicely passes the 900 ms threshold set for satisfying the latency requirement. If neither the throughput nor the capacity requirements are violated, we can conclude that we have fulfilled our GC tuning task and can finish the tuning exercise.
 
 
-对应日志中最长的GC停顿时间为 `560 ms`, 这达到了设置的延迟指标 `900 ms` 的要求。如果还满足吞吐量和硬件能力的要求,就可以得出结论, 我们已经成功达成了GC调优目标, 可以结束调优活动了。
+对应日志中最长的GC停顿时间为 `560 ms`, 这达到了设置的延迟指标 `900 ms` 的要求。如果还满足吞吐量和系统容量的要求,就可以得出结论, 我们已经成功达成了GC调优目标, 可以结束调优活动了。
 
 
 
 
-### 吞吐量调优(Tuning for Throughput)
+### Tuning for Throughput(吞吐量调优)
 
 
 
@@ -600,7 +598,7 @@ results in a maximum GC pause of 560 ms, which nicely passes the 900 ms threshol
 Let us assume that we have a throughput goal to process 13,000,000 jobs/hour. The example configurations used again give us a configuration where the requirement is fulfilled:
 
 
-假定我们的吞吐量指标是: 每小时处理 1300万次操作。再次使用上面的配置, 其中有一个配置满足我们的需求:
+假定我们的吞吐量指标是: **每小时处理 1300万次操作**。再次使用上面的配置, 其中有一个配置满足我们的需求:
 
 
 
@@ -656,17 +654,17 @@ we can see that the CPUs are blocked by GC for 8.5% of the time, leaving 91.5% o
 
 
 1. One job is processed in 100 ms by a single core
-1. Thus, in one minute, 60,000 jobs could be processed by one core
-1. In one hour, a single core could thus process 3.6 M jobs
-1. We have four cores available, which could thus process 4 x 3.6 M = 14.4 M jobs in an hour
+2. Thus, in one minute, 60,000 jobs could be processed by one core
+3. In one hour, a single core could thus process 3.6 M jobs
+4. We have four cores available, which could thus process 4 x 3.6 M = 14.4 M jobs in an hour
 
 <br/>
 
 
 1. 每个CPU核心处理一次作业需要耗时 `100ms`
-1. 因此, 一分钟内每个核心可以处理 60,000 次操作(每个job内处理100次)
-1. 在一个小时内,一个核心可以处理 360万次操作
-1. 我们有四个可用的内核, 则每小时可以处理 4 x 3.6M = 1440万次操作
+2. 因此, 一分钟内每个核心可以处理 60,000 次操作(**每个job完成100次操作**)
+3. 在一个小时内,一个核心可以处理 360万次操作
+4. 我们有四个可用的内核, 则每小时可以处理 4 x 3.6M = 1440万次操作
 
 
 
@@ -674,18 +672,18 @@ we can see that the CPUs are blocked by GC for 8.5% of the time, leaving 91.5% o
 With this amount of theoretical processing power we can make a simple calculation and conclude that during one hour we can in reality process 91.5% of the 14.4 M theoretical maximum resulting in 13,176,000 processed jobs/hour, fulfilling our requirement.
 
 
-理论上，通过简单的计算就可以得出结论, 每小时可以处理的实际操作数为: 14.4 M *  91.5% = 13,176,000 次操作, 满足了需求。
+理论上，通过简单的计算就可以得出结论, 每小时可以处理的实际操作数为: `14.4 M *  91.5% = 13,176,000` 次操作, 满足了需求。
 
 
 It is important to note that if we simultaneously needed to fulfill the latency requirements set in the previous section, we would be in trouble, as the worst-case latency for this case is close to two times of the previous configuration. This time the longest GC pause on record was blocking the application threads for 1,104 ms.
 
 
-需要一提的是, 假若还要满足上一节中的延迟性需求, 那就有大麻烦了, 最坏情况下的延迟时间是上一种配置的两倍左右。此次最长的GC暂停时间为 `1,104 ms`。
+值得一提的是, 假若还要满足上一节中的延迟性需求, 那就有大麻烦了, 最坏情况下的延迟时间是上一种配置的两倍左右。此次最长的GC暂停时间为 `1,104 ms`。
 
 
 
 
-### 对硬件能力进行调优(Tuning for Capacity)
+### Tuning for Capacity(对系统容量进行调优)
 
 
 
@@ -693,7 +691,7 @@ It is important to note that if we simultaneously needed to fulfill the latency 
 Let us assume we have to deploy our solution to the commodity-class hardware with up to four cores and 10 G RAM available. From this we can derive our capacity requirement that the maximum heap space for the application cannot exceed 8 GB. Having this requirement in place, we would need to turn to the third configuration on which the test was run:
 
 
-假设需要将软件系统部署到 企业级硬件中(commodity-class hardware), 配置为 `4核10G`。这样的话, 系统容量的要求就变成: 最大的堆内存空间不能超过 `8GB`。有了这个需求, 我们需要调整到第三套配置来进行测试:
+假设需要将软件部署到服务器上(commodity-class hardware), 配置为 `4核10G`。这样的话, 系统容量的要求就变成: 最大的堆内存空间不能超过 `8GB`。有了这个需求, 我们需要调整到第三套配置来进行测试:
 
 
 
@@ -750,18 +748,14 @@ but both the latency and especially throughput numbers fall drastically:
 
 
 
-
-### 校对到此处 ~~~ ###
-
-
 - GC now blocks CPUs from doing useful work a lot more, as this configuration only leaves 66.3% of the CPUs for useful work. As a result, this configuration would drop the throughput from the best-case-scenario of 13,176,000 jobs/hour to a meager 9,547,200 jobs/hour
 - Instead of 560 ms we are now facing 1,610 ms of added latency in the worst case
 
 <br/>
 
 
-- 现在,GC占用了更多的CPU资源, 这套配置只有 `66.3%` 的有效CPU时间。因此,这个配置让吞吐量从最好的情况 13,176,000 操作/小时 下降到 不足 9,547,200次操作/小时.
-- 最坏情况延迟的不再是 560ms，而是变成 1,610 ms 
+- 现在,GC占用了更多的CPU资源, 这种配置只有 `66.3%` 的有效CPU时间。因此,这个配置让吞吐量从最好的情况 **13,176,000 操作/小时** 下降到 **不足 9,547,200次操作/小时**.
+- 最坏情况延迟的不再是 **560ms**，而是变成 **1,610 ms** 
 
 
 
@@ -771,7 +765,7 @@ Walking through the three dimensions it is indeed obvious that you cannot just o
 
 
 
-通过这三个维度的讲解, 我们了解到, 不只是简单的进行“性能(performance)”优化, 而是需要从三个不同的维度来进行考虑, 测量并调优 延迟和吞吐量, 还要考虑硬件能力约束。
+通过这三个维度的讲解, 我们了解到, 不只是简单的进行“性能(performance)”优化, 而是需要从三个不同的维度来进行考虑, 测量并调优 延迟和吞吐量, 还要考虑系统容量约束。
 
 
 
