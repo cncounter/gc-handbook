@@ -570,21 +570,17 @@ Now, knowing that 64.43% of the objects were allocated as integer arrays in the 
 
 
 
-
-##### 校对到此处 !!!
-
-
 ### Java VisualVM
 
 
 JVisualVM makes a second appearance in this chapter. In the first section we ruled JVisualVM out from the list of tools monitoring your JVM for GC behavior, but in this section we will demonstrate its strengths in allocation profiling.
 
-本章中 JVisualVM 第二次出现了。在第一部分,我们在监控 JVM 的GC行为工具中介绍了 JVisualVM, 本节中,我们将展示它在分配分析上的优点。
+这是本章第二次介绍 JVisualVM 了。在第一部分, 在监控 JVM 的GC行为工具中介绍了 JVisualVM , 本节将介绍其在分配分析上的优点。
 
 
 Attaching JVisualVM to your JVM is done via GUI where you can attach the profiler to a running JVM. After attaching the profiler:
 
-JVisualVM 通过GUI的方式连接并附加到运行的JVM中。连接 profiler 之后 :
+JVisualVM 通过GUI方式连接到正在运行的JVM。 连接上profiler以后 :
 
 
 1. Open the “Profiler” tab and make sure that under the “Settings” checkbox you have enabled “Record allocations stack traces”.
@@ -594,11 +590,11 @@ JVisualVM 通过GUI的方式连接并附加到运行的JVM中。连接 profiler 
 
 <br/>
 
-1. 打开 “工具” --> “选项” 菜单, 点击 **性能分析** 标签, 新增配置, 选择 Profiler 内存, 确保勾选了 “Record allocations stack traces”(记录分配栈跟踪)。
+1. 打开 “工具” --> “选项” 菜单, 点击 **性能分析(Profiler)** 标签, 新增配置, 选择 Profiler 内存, 确保勾选了 “Record allocations stack traces”(记录分配栈跟踪)。
 1. 勾选 “Settings”(设置) 复选框, 在内存设置标签下,修改预设配置。
 1. 点击 “Memory”(内存) 按钮开始进行内存分析。
-1. 让程序运行一段时间,以收集到关于对象分配的足够信息。
-1. 单击下面一点的 “Snapshot”(快照) 按钮。可以取得收集到的信息的快照。
+1. 让程序运行一段时间,以收集关于对象分配的足够信息。
+1. 单击下面一点的 “Snapshot”(快照) 按钮。可以取得收集到的信息快照。
 
 
 ![](06_07_01_trace.png)
@@ -606,7 +602,7 @@ JVisualVM 通过GUI的方式连接并附加到运行的JVM中。连接 profiler 
 
 After completing the steps above, you are exposed to information similar to the following:
 
-完成上面的步骤后, 可以得到类似下面这样的信息:
+完成上面的步骤后, 可以得到类似这样的信息:
 
 
 ![](06_07_jvisualvm-top-objects.png)
@@ -616,7 +612,7 @@ After completing the steps above, you are exposed to information similar to the 
 
 From the above, we can see the allocations ranked by the number of objects created per class. In the very first line we can see that the vast majority of all objects allocated were int[] arrays. By right-clicking the row you can access all stack traces where those objects were allocated:
 
-上图是按照每个类创建的对象数量来进行排序的。从第一行可以看到,分配的最多的对象是 `int[]` 数组. 右键单击这行就可以看到这些对象都是在哪里分配的:
+上图是按照每个类的对象创建数量来排序的。从第一行可以看到,分配的最多的对象是 `int[]` 数组. 右键单击这行就可以看到这些对象都是在哪个地方分配的:
 
 
 ![](06_08_jvisualvm-allocation-traces.png)
@@ -626,8 +622,12 @@ From the above, we can see the allocations ranked by the number of objects creat
 
 Compared to hprof, JVisualVM makes the information a bit easier to process – for example in the screenshot above you can see that all allocation traces for the int[] are exposed in single view, so you can escape the potentially repetitive process of matching different allocation traces.
 
-与 hprof 相比, JVisualVM 让信息更容易处理 —— 例如在上面的截图中可以在一处地方就可以看到所有的int[] 分配信息, 所以在同一个地方分配多次的问题就省心了好多。
+与 `hprof` 相比, JVisualVM 更加容易 —— 比如在上面的截图中, 在一个地方就可以看到所有的`int[]` 分配信息, 所以多次在同一处代码进行分配时就很容易看到了。
 
+
+
+
+##### 校对到此处 !!!
 
 
 
