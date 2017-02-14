@@ -515,21 +515,17 @@ In the following sections we will see three different allocation profilers in ac
 
 
 
-
-##### 校对到此处 !!!
-
-
-#### hprof
+### hprof
 
 
 Bundled with the JDK distribution is hprof profiler. As it is present in all environments, this is the first profiler to be considered when harvesting information.
 
-hprof 分析器与JDK捆绑分布。在各个环境下都可以使用, 一般优先考虑使用这个工具。
+hprof 分析器内置于JDK之中。在各种环境都可以使用, 一般优先使用这款工具。
 
 
 To run your application with hprof, you need to modify the startup scripts of the JVM similarly to the following example:
 
-让 hprof 与程序一起运行, 需要修改启动脚本, 类似下面这样:
+要让 hprof 和程序一起运行, 需要修改启动脚本, 类似这样:
 
 
 	java -agentlib:hprof=heap=sites com.yourcompany.YourApplication
@@ -538,7 +534,7 @@ To run your application with hprof, you need to modify the startup scripts of th
 
 On application exit, it will dump the allocation information to a java.hprof.txt file to the working directory. Open the file with a text editor of your choice and search for the phrase “SITES BEGIN” giving you information similar to the following:
 
-在程序退出时,会将分配信息dump(转储)到工作目录下的 java.hprof.txt 文件。使用文本编辑器打开, 并搜索 “**SITES BEGIN**” 关键字, 可以看到类似下面这样的信息:
+在程序退出时,会将分配信息dump(转储)到工作目录下的 java.hprof.txt 文件。使用文本编辑器打开, 并搜索 “**SITES BEGIN**” 关键字, 可以看到:
 
 
 	SITES BEGIN (ordered by live bytes) Tue Dec  8 11:16:15 2015
@@ -556,7 +552,7 @@ On application exit, it will dump the allocation information to a java.hprof.txt
 
 From the above, we can see the allocations ranked by the number of objects created per allocation. The first line shows that 64.43% of all objects were integer arrays (int[]) created at the site identified by the number 302116. Searching the file for “TRACE 302116” gives us the following information:
 
-从上面的片段可以看到, allocations 排名是根据每次创建的对象数量来排序的。第一行显示所有对象中 **64.43%** 的对象都是整型数组(int[]), 在标识为数字 302116 的位置创建。搜索 “**TRACE 302116**” 可以看到如下信息:
+从以上片段可以看到, allocations 是根据每次创建的对象数量来排序的。第一行显示所有对象中有 **64.43%** 的对象是整型数组(`int[]`), 在标识为数字 302116 的位置创建。搜索 “**TRACE 302116**” 可以看到:
 
 
 	TRACE 302116:	
@@ -570,11 +566,15 @@ From the above, we can see the allocations ranked by the number of objects creat
 
 Now, knowing that 64.43% of the objects were allocated as integer arrays in the ClonableClass0006 constructor, in the line 11, you can proceed with optimizing the code to reduce the burden on GC.
 
-现在, 知道了 64.43% 的对象被分配为整数数组, 在 ClonableClass0006 构造函数中, 第11行, 那么可以继续优化代码, 以减少GC的压力。
+现在, 知道了 64.43% 的对象被分配为整数数组, 在 ClonableClass0006 类的构造函数中, 第11行, 那么就可以优化代码, 以减少GC的压力。
 
 
 
-#### Java VisualVM
+
+##### 校对到此处 !!!
+
+
+### Java VisualVM
 
 
 JVisualVM makes a second appearance in this chapter. In the first section we ruled JVisualVM out from the list of tools monitoring your JVM for GC behavior, but in this section we will demonstrate its strengths in allocation profiling.
@@ -632,7 +632,7 @@ Compared to hprof, JVisualVM makes the information a bit easier to process – f
 
 
 
-#### AProf
+### AProf
 
 
 Last, but not least, is AProf by Devexperts. AProf is a memory allocation profiler packaged as a Java agent.
