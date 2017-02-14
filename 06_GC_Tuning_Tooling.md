@@ -627,22 +627,18 @@ Compared to hprof, JVisualVM makes the information a bit easier to process – f
 
 
 
-##### 校对到此处 !!!
-
-
-
 
 ### AProf
 
 
 Last, but not least, is AProf by Devexperts. AProf is a memory allocation profiler packaged as a Java agent.
 
-最后, 但也很重要的是, 由 Devexperts 开发的 **AProf**。AProf 是打包为 Java agent 的一个内存分配分析器。
+第三款, 同时也是最重要的工具,是由 Devexperts 开发的 **AProf**。AProf 也是打包为 Java agent 的内存分配分析器。
 
 
 To run your application with AProf, you need to modify the startup scripts of the JVM similarly to the following example:
 
-用AProf 来分析应用程序, 需要修改JVM的启动脚本,类似下面这样:
+用AProf 来分析应用程序, 需要修改JVM的启动脚本,类似这样:
 
 
 	java -javaagent:/path-to/aprof.jar com.yourcompany.YourApplication
@@ -651,7 +647,7 @@ To run your application with AProf, you need to modify the startup scripts of th
 
 Now, after restarting the application, an aprof.txt file will be created to the working directory. The file is updated once every minute and contains information similar to the following:
 
-重启应用程序之后, 工作目录下会生成一个 aprof.txt 文件。这个文件每分钟更新一次, 包含类似下面这样的信息:
+重启应用程序以后, 工作目录下会生成一个 aprof.txt 文件。这个文件每分钟更新一次, 包含这样的信息:
 
 
 	========================================================================================================================
@@ -675,12 +671,12 @@ Now, after restarting the application, an aprof.txt file will be created to the 
 
 In the output above allocations are ordered by size. From the above you can see right away that 80.44% of the bytes and 68.81% of the objects were allocated in the ManyTargetsGarbageProducer.newRandomClassObject() method. Out of these, int[] arrays took the most space with 40.19% of total memory consumption.
 
-上面的输出是按照 size 进行排序的。从上面的输出立刻可以看出, `80.44%` 的bytes 和 68.81% 的objects 是在 `ManyTargetsGarbageProducer.newRandomClassObject()` 方法中分配的。 其中, **int[]** 数组消耗了最多的内存空间, 占总量的 40.19%。
+上面的输出是按照 size 进行排序的。可以看出, `80.44%` 的 bytes 和 68.81% 的 objects 是在 `ManyTargetsGarbageProducer.newRandomClassObject()` 方法中分配的。 其中, **int[]** 数组消耗了最多的内存, 占总量的 40.19%。
 
 
 Scrolling further down the file, you will discover a block with allocation traces, also ordered by allocation sizes:
 
-继续往下看, 你会发现 分配痕迹(allocation traces)相关的块, 也是根据 allocation size 来排序的:
+继续往下看, 你会发现 allocation traces(分配痕迹)相关的内容, 也是根据 allocation size 来排序的:
 
 
 	Top allocated data types with reverse location traces
@@ -697,12 +693,12 @@ Scrolling further down the file, you will discover a block with allocation trace
 
 From the above we can see the allocations for int[] arrays, again zooming in to the ClonableClass0006 constructor where these arrays were created.
 
-从上面我们可以看到, int[] 数组的分配, 在 ClonableClass0006 构造函数中继续扩大。
+可以看到, `int[]` 数组的分配, 在 ClonableClass0006 构造函数中继续增大。
 
 
 So, like other solutions, AProf exposed information about allocation size and locations, making it possible to zoom in to the most memory-hungry parts of your application. However, in our opinion AProf is the most useful allocation profiler, as it focuses on just one thing and does it extremely well. In addition, this open-source tool is free and has the least overhead compared to alternatives.
 
-所以,和其他解决方案一样, AProf 揭露了 分配大小和位置信息(allocation size and locations), 从而能够放大最耗内存的部分。然而,在我们看来, AProf 是最有用的分配分析器, 因为它只专注于一件事, 而且做的非常好。 另外, 这个开源工具是免费的, 相比起来也是开销最小的。
+和其他工具一样, AProf 揭露了 分配大小以及位置信息(allocation size and locations), 从而能够快速找到最耗内存的部分。在我们看来, **AProf** 是最有用的分配分析器, 因为它只专注于内存分配, 而且做的非常棒。 当然, 此工具是开源免费的, 资源开销也是最小的。
 
 
 
