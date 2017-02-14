@@ -451,18 +451,14 @@ More detailed information about GC events can be obtained from the “Event deta
 
 
 
-##### 校对到此处 !!!
-
-
-
 Here you can see a summary of all the important GC events recorded in the logs: minor and major pauses and concurrent, not stop-the-world GC events. In our case, we can see an obvious “winner”, a situation in which full GC events are contributing the most to both throughput and latency, by again confirming the fact that the 3,928 full GC pauses took 634 seconds to complete.
 
-在这里可以看到记录在日志所有重要的GC事件汇总: minor 和 major 停顿和并发数, 非 stop-the-world 事件等。在这个示例中,我们可以看到有一个明显的 “winner”, full GC事件影响了最大的吞吐量和延迟, 再次确认了一个事实, 3,928 次 Full GC,暂停了634秒。
+从“**Event details**” 标签, 可以看到日志中所有重要的GC事件汇总: 普通GC停顿 和 Full GC 停顿次数, 以及并发执行数, 非 stop-the-world 事件等。此示例中, 可以看到有一个明显的地方, Full GC 暂停验证影响了吞吐量和延迟, 事实是: 3,928 次 Full GC, 暂停了634秒。
 
 
 As seen from the example, GCViewer can quickly visualize symptoms that tell us whether or not the JVM is healthy in terms of misbehaving garbage collectors. As general guidelines, the following symptoms can quickly be revealed, visualizing the behavior of the GC:
 
-从这个例子可以看到, GCViewer 能用可视化的方式迅速显示出JVM中的GC行为是否正常。一般来说,可视化信息能迅速揭示以下症状:
+可以看到, GCViewer 能用可视化的方式快速展现JVM中异常的GC行为。一般来说, 图像化的信息能迅速揭示以下症状:
 
 
 - Low throughput. When the throughput of the application decreases and falls under a tolerable level, the total time that the application spends doing useful work gets reduced. What is “tolerable” depends on your application and its usage scenario. One rule of thumb says that any value below 90% should draw your attention and may require GC optimization.
@@ -471,14 +467,14 @@ As seen from the example, GCViewer can quickly visualize symptoms that tell us w
 
 <br/>
 
-- 低吞吐量。当应用程序的吞吐量下降,低到不能容忍的地步,程序做有用工作的总时间就会大量减少. 具体有多大的 “容忍度”(tolerable) 取决于具体场景。按照经验, 低于 90% 的有效时间就应该注意了,可能GC真的需要好好优化。
-- 单个GC暂停时间过长。只要有一次GC停顿太久,就会影响程序的延迟指标.例如, 当延迟需求指明事务要在1000 ms以内完成, 那么,就不能容忍任何的GC暂停时间超过1000毫秒。
-- 堆内存搞使用率。当老年代的空间占用在 Full GC 之后仍然接近全满, 你面临的情况可能就是程序性能大降, 可能是资源不足或者是内存泄漏。这个症状会对吞吐量产生重大影响。
+- 低吞吐量。当应用的吞吐量下降到不能容忍的地步时, 有用的工作的总时间就大量减少. 具体有多大的 “容忍度”(tolerable) 取决于具体场景。按照经验, 低于 90% 的有效时间就值得警惕了, 可能真的需要好好优化下GC。
+- 单次GC的暂停时间过长。只要有一次GC停顿时间过长,就会影响程序的延迟指标. 例如, 如果延迟需求指明要在 1000 ms以内完成交易, 那就不能容忍任何一次超过1000毫秒的GC暂停。
+- 堆内存使用率过高。如果老年代空间在 Full GC 之后仍然全部占用, 那么程序性能就会大幅降低, 有可能是资源不足或者内存泄漏。这个症状会对吞吐量产生严重影响。
 
 
 As a general comment – visualizing GC logs is definitely something we recommend. Instead of directly working with lengthy and complex GC logs, you get access to humanly understandable visualization of the very same information.
 
-业界良心 —— 图形化展示GC日志信息绝对是我们要重磅推荐的。不用去直接面对冗长而又复杂的GC日志,你可以通过易于理解的图形得知相同的信息。
+业界良心 —— 图形化展示的GC日志信息绝对是我们重磅推荐的。不用去直面冗长而又复杂的GC日志,通过易于理解的图形你可以得到同样的信息。
 
 
 
@@ -488,35 +484,39 @@ As a general comment – visualizing GC logs is definitely something we recommen
 
 The next set of tools to introduce is profilers. As opposed to the tools introduced in previous sections, GC-related areas are a subset of the functionality that profilers offer. In this section we focus only on the GC-related functionality of profilers.
 
-下面要介绍的是分析器(profilers,Oracle官方翻译是:抽样器)。相对于前面介绍的工具,GC分析只是分析器的一部分功能.本节我们只关注GC相关的功能。
+下面介绍分析器(profilers, Oracle官方翻译是:抽样器)。相对于前面介绍的工具, 分析器只关心GC的一部分领域. 本节我们只关注分析器相关的GC功能。
 
 
 The chapter starts with a warning – profilers as a tool category tend to be misunderstood and used in situations for which there are better alternatives. There are times when profilers truly shine, for example when detecting CPU hot spots in your application code. But for several other situations there are better alternatives.
 
 
-首先警告 —— 分析器往往会被误认为适合所有的情况。有时候分析器确实光芒四射, 例如在检测代码中的CPU热点时。但对于其他情况不一定是最好的方案。
+首先警告 —— 分析器往往会被认为适合所有的场景。有时候分析器确实功勋卓著, 比如检测代码中的CPU热点时。但对某些情况不一定是个好方案。
 
 
 
 This also applies to garbage collection tuning. When it comes to detecting whether or not you are suffering from GC-induced latency or throughput issues, you do not really need a profiler. The tools mentioned in previous chapters (jstat or raw/visualized GC logs) are quicker and cheaper ways of detecting whether or not you have anything to worry about in the first place. Especially when gathering data from production deployments, profilers should not be your tool of choice due to the introduced performance overhead.
 
-对GC调优来说也是同样的。当检测是否因GC而导致延迟或吞吐量问题时,并不需要使用分析器. 前面提到的工具( jstat 或 原生/可视化GC日志)都能更快和更好地检测是否需要操心GC. 特别是从生产环境收集数据时, 分析器不应是你选择的工具,因为性能开销很大。
+对GC调优来说也是同样的。要检测是否因为GC而引起延迟或吞吐量问题时,并不需要使用分析器. 前面提到的工具( jstat 或 原生/可视化GC日志)都能更好更快地检测出是否需要关注GC. 特别是从生产环境收集数据时, 最好不要选择分析器, 因为性能开销实在是太大了。
 
 
 But whenever you have verified you indeed need to optimize the impact GC has on your application, profilers do have an important role to play by exposing information about object creation. If you take a step back – GC pauses are triggered by objects not fitting into a particular memory pool. This can only happen when you create objects. And all profilers are capable of tracking object allocations via allocation profiling, giving you information about what actually resides in the memory along with the allocation traces.
 
-但当你确定需要对对GC进行优化时, 分析器可以发挥重要的作用, 让对象创建信息一目了然. 就算退一步讲, 导致很多GC暂停的原因不在某个特定内存池中。那也只会发生创建对象时. 所有的分析器都能够跟踪对象分配（通过分配分析）, 根据内存分配的痕迹让你知道实际驻留在内存中的是什么。
+如果确定需要对GC进行优化, 那么分析器就可以发挥重要的作用, 让 Object 的创建信息一目了然. 再往前看, 造成大量GC暂停的原因不在某个特定内存池中。那就只能发生创建对象的时候. 所有的分析器都能够跟踪对象分配(via allocation profiling), 根据内存分配的轨迹, 让你知道实际驻留在内存中的是哪些对象。
 
 
 Allocation profiling gives you information about the places where your application creates the majority of the objects. Exposing the top memory consuming objects and the threads in your application that produce the largest number of objects is the benefit you should be after when using profilers for GC tuning.
 
-分配分析能告诉你在什么地方创建了大多数对象. 使用分析器辅助进行GC调优的好处是, 能显示出最消耗内存的是什么类型, 以及生成最多对象的是哪些线程,。
+分配分析能定位到哪个地方创建了大量的对象. 使用分析器辅助进行GC调优的好处是, 能确定是什么类型最占用内存, 以及是哪些线程生成了最多的对象。
 
 
 In the following sections we will see three different allocation profilers in action: hprof, JVisualVM and AProf. There are plenty more different profilers out there to choose from, both commercial and free solutions, but the functionality and benefits of each are similar to the ones discussed in the following sections.
 
-下面我们将在实例中介绍三种不同的分配分析器: **hprof**, **JVisualVM** 和 **AProf**。实际上有很多种不同的分析器可供选择, 包括商业的和免费的, 但各自的功能和优点都会在下面的部分中进行讨论。
+我们将在实例中介绍三种不同的分配分析器: **`hprof`**, **`JVisualV`M** 和 **`AProf`**。实际上还有很多分析器可供选择, 包括商业的和免费的, 但其功能和优点都类似于下面讨论的这些。
 
+
+
+
+##### 校对到此处 !!!
 
 
 #### hprof
