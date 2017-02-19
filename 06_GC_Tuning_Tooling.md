@@ -32,15 +32,15 @@ The derived metrics include, for example, the allocation and promotion rates of 
 ## JMX API
 
 
-The most basic way to get GC-related information from the running JVM is via the standard JMX API. This is a standardized way for the JVM to expose internal information regarding the runtime state of the JVM. You can access this API either programmatically from your own application running inside the very same JVM, or using JMX clients.
+The most basic way to get GC-related information from the running JVM is via the standard [JMX API](https://docs.oracle.com/javase/tutorial/jmx/index.html). This is a standardized way for the JVM to expose internal information regarding the runtime state of the JVM. You can access this API either programmatically from your own application running inside the very same JVM, or using JMX clients.
 
-从 JVM 运行时获取GC相关(GC-related)信息, 最基本的方式是通过标准 JMX API 接口. JMX是展示JVM内部运行时相关状态信息的标准API. 我们可以通过编程的方式,通过 JMX API 访问运行本程序的JVM，还可以通过JMX客户端来(远程)访问。
+从 JVM 运行时获取GC相关(GC-related)信息, 最基本的方式是通过标准 [JMX API 接口](https://docs.oracle.com/javase/tutorial/jmx/index.html). JMX是展示JVM内部运行时相关状态信息的标准API. 我们可以通过编程的方式,通过 JMX API 访问运行本程序的JVM，还可以通过JMX客户端来(远程)访问。
 
 
 
-Two of the most popular JMX clients are JConsole and JVisualVM (with a corresponding plugin installed). Both of these tools are part of the standard JDK distribution, so getting started is easy. If you are running on JDK 7u40 or later, a third tool bundled into the JDK called Java Mission Control is also available.
+Two of the most popular JMX clients are [JConsole](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) and [JVisualVM](http://docs.oracle.com/javase/7/docs/technotes/tools/share/jvisualvm.html) (with a corresponding plugin installed). Both of these tools are part of the standard JDK distribution, so getting started is easy. If you are running on JDK 7u40 or later, a third tool bundled into the JDK called Java Mission Control is also available.
 
-最常见的两种JMX客户端是 JConsole 和 JVisualVM (可以安装各种插件,十分强大)。这两个工具都是标准JDK的一部分, 很容易使用. 如果使用的是 JDK 7u40 及更新的版本,还可以使用第三种工具: Java Mission Control( 大致翻译为 Java控制中心, `jmc.exe`)。
+最常见的两种JMX客户端是 [JConsole](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) 和 [JVisualVM](http://docs.oracle.com/javase/7/docs/technotes/tools/share/jvisualvm.html) (可以安装各种插件,十分强大)。这两个工具都是标准JDK的一部分, 很容易使用. 如果使用的是 JDK 7u40 及更新的版本,还可以使用第三种工具: [Java Mission Control](http://www.oracle.com/technetwork/java/javaseproducts/mission-control/java-mission-control-1998576.html)( 大致翻译为 Java控制中心, `jmc.exe`)。
 
 > JVisualVM安装MBeans插件,通过 工具(T) -- 插件(G) -- 可用插件 -- 勾选VisualVM-MBeans -- 安装 -- 下一步 -- 等待安装完成... 其他的插件安装也类似。
 
@@ -112,9 +112,9 @@ In my experience this information is not enough to make any conclusions about th
 ## JVisualVM
 
 
-JVisualVM adds extra information to the basic JMX client functionality via a separate plugin called “VisualGC”. It provides a real-time view into GC events and the occupancy of different memory regions inside JVM.
+[JVisualVM](http://docs.oracle.com/javase/7/docs/technotes/tools/share/jvisualvm.html) adds extra information to the basic JMX client functionality via a separate plugin called “[VisualGC](http://www.oracle.com/technetwork/java/visualgc-136680.html)”. It provides a real-time view into GC events and the occupancy of different memory regions inside JVM.
 
-JVisualVM 通过 “VisualGC” 插件提供JMX客户端的基本功能, 此外还提供了实时界面, 展示 GC事件以及JVM各个内存空间的使用情况。
+[JVisualVM](http://docs.oracle.com/javase/7/docs/technotes/tools/share/jvisualvm.html) 通过 “[VisualGC](http://www.oracle.com/technetwork/java/visualgc-136680.html)” 插件提供JMX客户端的基本功能, 此外还提供了实时界面, 展示 GC事件以及JVM各个内存空间的使用情况。
 
 
 The most common use-case for the Visual GC plugin is the monitoring of the locally running application, when an application developer or a performance specialist wants an easy way to get visual information about the general behavior of the GC during a test run of the application.
@@ -152,9 +152,9 @@ When compared with pure JMX tools, the VisualGC add-on to JVisualVM does offer s
 
 
 
-The next tool to look at is also part of the standard JDK distribution. The tool is called “jstat” – a Java Virtual Machine statistics monitoring tool. This is a command line tool that can be used to get metrics from the running JVM. The JVM connected can again either be local or remote. A full list of metrics that jstat is capable of exposing can be obtained by running “jstat -option” from the command line. The most commonly used options are:
+The next tool to look at is also part of the standard JDK distribution. The tool is called “[jstat](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jstat.html)” – a Java Virtual Machine statistics monitoring tool. This is a command line tool that can be used to get metrics from the running JVM. The JVM connected can again either be local or remote. A full list of metrics that jstat is capable of exposing can be obtained by running “jstat -option” from the command line. The most commonly used options are:
 
-jstat 也是标准JDK提供的一款JVM统计监控工具(Java Virtual Machine statistics monitoring tool). jstat 可以从JVM中获取各种指标。既可以连接到本地JVM,也可以连到远程JVM. 可以执行 “`jstat -options`” 来查看支持的指标和对应选项。常用的包括:
+[jstat](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jstat.html) 也是标准JDK提供的一款JVM统计监控工具(Java Virtual Machine statistics monitoring tool). jstat 可以从JVM中获取各种指标。既可以连接到本地JVM,也可以连到远程JVM. 可以执行 “`jstat -options`” 来查看支持的指标和对应选项。常用的包括:
 
 
 	+-----------------+---------------------------------------------------------------+
@@ -210,22 +210,22 @@ This tool is extremely useful for getting a quick overview of JVM health to see 
 
 
 
-Let us interpret the output above using the explanation given to output attributes in the jstat manpage. Using the knowledge acquired, we can see that:
+Let us interpret the output above using the explanation given to output attributes in the [jstat manpage](http://www.manpagez.com/man/1/jstat/). Using the knowledge acquired, we can see that:
 
-稍微解释一下上面的内容。通过以上信息, 我们可以知道:
+稍微解释一下上面的内容。通过以上信息, 参考 [jstat manpage](http://www.manpagez.com/man/1/jstat/) , 我们可以知道:
 
 
 - jstat connected to the JVM 200 seconds from the time this JVM was started. This information is present in the first column labeled “Timestamp”. As seen from the very same column, the jstat harvests information from the JVM once every second as specified in the “1s” argument given in the command.
 - From the first line we can see that up to this point the young generation has been cleaned 34 times and the whole heap has been cleaned 658 times, as indicated by the “YGC” and “FGC” columns, respectively.
 - The young generation garbage collector has been running for a total of 0.720 seconds, as indicated in the “YGCT” column.
-- The total duration of the full GC has been 133.684 seconds, as indicated in the “FGCT” column. This should immediately catch our eye – we can see that out of the total 200 seconds the JVM has been running, 66% of the time has been spent in Full GC cycles.
+- The total duration of the full GC has been 133.684 seconds, as indicated in the “FGCT” column. This should immediately catch our eye – we can see that out of the total 200 seconds the JVM has been running, **66% of the time has been spent in Full GC cycles**.
 
 <br/>
 
 - jstat 连接到 JVM 的时间, 是此JVM启动后的 200秒。此信息由第一行的 “Timestamp” 列得知。继续查看下一行, jstat 每秒钟从JVM 接收一次信息, 也就是命令行参数中 "`1s`" 的意思。
 - 从第一行我们还可以看到, 年轻代共执行了34次清理(由 “**YGC**” 列得知), 整个堆内存已经执行了 658次清理(由  “**FGC**” 列得知)。
 - 年轻代的垃圾收集的总耗时时间为 0.720 秒, 显示在“**YGCT**” 这一列。
-- Full GC 的总耗时时间为 133.684 秒, 由“**FGCT**”列表示. 这立马就引起了我们的注意, 可以看到,JVM 总的只运行了 200 秒的时间, 但其中 66% 的部分被 Full GC 占用了。
+- Full GC 的总耗时时间为 133.684 秒, 由“**FGCT**”列表示. 这立马就引起了我们的注意, 可以看到,JVM 总的只运行了 200 秒的时间, **但其中 66% 的部分被 Full GC 占用了**。
 
 
 The problem becomes even clearer when we look at the next line, harvesting information a second later.
@@ -236,14 +236,14 @@ The problem becomes even clearer when we look at the next line, harvesting infor
 
 
 - Now we can see that there have been four more Full GCs running during the one second between the last time jstat printed out the data as indicated in the “FGC” column.
-- These four GC pauses have taken almost the entire second – as seen in the difference in the “FGCT” column. Compared to the first row, the Full GC has been running for 928 milliseconds, or 92.8% of the total time.
+- These four GC pauses have taken almost the entire second – as seen in the difference in the “FGCT” column. Compared to the first row, the Full GC has been running for **928 milliseconds**, or 92.8% of the total time.
 - At the same time, as indicated by the “OC” and “OU” columns, we can see that from almost all of the old generation capacity of 169,344.0 KB (“OC“), after all the cleaning work that the four collection cycles tried to accomplish, 169,344.2 KB (“OU“) is still in use. Cleaning 800 bytes in 928 ms should not be considered a normal behavior.
 
 <br/>
 
 - 可以看到, 在接下来的一秒之内共执行了 4 次Full GC。参见 "**FGC**" 列.
-- 这4次GC暂停几乎占用了整整 1秒的时间(根据 **FGCT**列的差得知)。与第一行相比,  Full GC 运行了 928 毫秒, 也就是 92.8% 的时间。
-- 与此同时, 根据 “**OC** 和 “**OU**” 列, 可以得知, 整个老年代的空间为 169,344.0 KB (“OC“), 在 4 次GC之后依然占用了 169,344.2 KB (“OU“)。在 928ms 的时间内只释放了 800个字节, 怎么看都觉得不正常。
+- 这4次GC暂停几乎占用了整整 1秒的时间(根据 **FGCT**列的差得知)。与第一行相比,  Full GC 运行了`928 毫秒`, 也就是 `92.8%` 的时间。
+- 与此同时, 根据 “**OC** 和 “**OU**” 列, 可以得知, **整个老年代的空间**为 169,344.0 KB (“OC“), 在 4 次GC之后依然占用了 169,344.2 KB (“OU“)。在 928ms 的时间内只释放了 800个字节, 怎么看都觉得不正常。
 
 
 Only these two rows from the jstat output give us insight that something is terribly wrong with the application. Applying the same analytics to the next rows, we can confirm that the problem persists and is getting even worse.
@@ -252,9 +252,9 @@ Only these two rows from the jstat output give us insight that something is terr
 
 
 
-The JVM is almost stalled, with GC eating away more than 90% of the available computing power. And as a result of all this cleaning, almost all the old generation still remains in use, further confirming our doubts. As a matter of fact, the example died in under a minute later with a “java.lang.OutOfMemoryError: GC overhead limit exceeded” error, removing the last remaining doubts whether or not things are truly sour.
+The JVM is almost stalled, with GC eating away more than 90% of the available computing power. And as a result of all this cleaning, almost all the old generation still remains in use, further confirming our doubts. As a matter of fact, the example died in under a minute later with a “[java.lang.OutOfMemoryError: GC overhead limit exceeded](https://plumbr.eu/outofmemoryerror/gc-overhead-limit-exceeded)” error, removing the last remaining doubts whether or not things are truly sour.
 
-JVM几乎完全卡住了(stalled), 因为GC占用了超过90%的计算资源。清理之后, 所有的老代空间还在占用着, 这进一步证实了我们的猜测。事实上, 这个程序在运行一分钟以后就挂了, 抛出了一个 “java.lang.OutOfMemoryError: GC overhead limit exceeded”  错误。
+JVM几乎完全卡住了(stalled), 因为GC占用了超过90%的计算资源。清理之后, 所有的老代空间还在占用着, 这进一步证实了我们的猜测。事实上, 这个程序在运行一分钟以后就挂了, 抛出了一个 “[java.lang.OutOfMemoryError: GC overhead limit exceeded](https://plumbr.eu/outofmemoryerror/gc-overhead-limit-exceeded)”  错误。
 
 
 As seen from the example, jstat output can quickly reveal symptoms about JVM health in terms of misbehaving garbage collectors. As general guidelines, just looking at the jstat output will quickly reveal the following symptoms:
@@ -311,9 +311,9 @@ This will instruct JVM to print every GC event to the log file and add the times
 
 
 
-These different formats are discussed in detail in the chapter “GC Algorithms: Implementations”, so if you are not familiar with the output, please read this chapter first. If you can already interpret the output above, then you are able to deduct that:
+These different formats are discussed in detail in the chapter “[GC Algorithms: Implementations](https://plumbr.eu/handbook/garbage-collection-algorithms-implementations)”, so if you are not familiar with the output, please read this chapter first. If you can already interpret the output above, then you are able to deduct that:
 
-这些不同的格式在 “04 GC算法:实现篇” 中详细讨论过了,如果对此不了解, 可以先阅读第4章. 解析以上输出内容,可以得知:
+这些不同的格式在 “[04 GC算法:实现篇](http://blog.csdn.net/renfufei/article/details/54885190)” 中详细讨论过了,如果对此不了解, 可以先阅读第4章. 解析以上输出内容,可以得知:
 
 
 - The log is extracted around 200 seconds after the JVM was started.
@@ -329,10 +329,10 @@ These different formats are discussed in detail in the chapter “GC Algorithms:
 - 与此同时, 可以看到老年代的容量与使用情况, 在GC完成之后,几乎所有的老年代空间(`169,472 KB`)仍被占用(`169,318 K`)。
 
 
-From the output, we can confirm that the application is not performing well in terms of GC. The JVM is almost stalled, with GC eating away more than 99% of the available computing power. And as a result of all this cleaning, almost all the old generation still remains in use, further confirming our suspicions. The example application, being the same as used in the previous jstat section, died in just a few minutes later with the “java.lang.OutOfMemoryError: GC overhead limit exceeded” error, confirming that the problem was severe.
+From the output, we can confirm that the application is not performing well in terms of GC. The JVM is almost stalled, with GC eating away more than 99% of the available computing power. And as a result of all this cleaning, almost all the old generation still remains in use, further confirming our suspicions. The example application, being the same as used in the previous jstat section, died in just a few minutes later with the “[java.lang.OutOfMemoryError: GC overhead limit exceeded](https://plumbr.eu/outofmemoryerror/gc-overhead-limit-exceeded)” error, confirming that the problem was severe.
 
 
-通过日志信息可以确认, 该应用的GC状况非常恶劣。JVM几乎处于停滞状态, 因为GC占用了超过99%的CPU时间. 而垃圾回收的结果, 是整个老年代空间仍然被占用, 这进一步证实了我们的猜测。 和jstat 小节中是同一个示例程序, 几分钟之后程序就挂了, 抛出的也是 “java.lang.OutOfMemoryError: GC overhead limit exceeded” 错误, 确认问题是很严重的.
+通过日志信息可以确认, 该应用的GC状况非常恶劣。JVM几乎处于停滞状态, 因为GC占用了超过99%的CPU时间. 而垃圾回收的结果, 是整个老年代空间仍然被占用, 这进一步证实了我们的猜测。 和jstat 小节中是同一个示例程序, 几分钟之后程序就挂了, 抛出的也是 “[java.lang.OutOfMemoryError: GC overhead limit exceeded](https://plumbr.eu/outofmemoryerror/gc-overhead-limit-exceeded)” 错误, 确认问题是很严重的.
 
 
 As seen from the example, GC logs are valuable input to reveal symptoms about JVM health in terms of misbehaving garbage collectors. As general guidelines, the following symptoms can quickly be revealed by just looking at GC logs:
@@ -482,9 +482,9 @@ As a general comment – visualizing GC logs is definitely something we recommen
 
 
 
-The next set of tools to introduce is profilers. As opposed to the tools introduced in previous sections, GC-related areas are a subset of the functionality that profilers offer. In this section we focus only on the GC-related functionality of profilers.
+The next set of tools to introduce is [profilers](http://zeroturnaround.com/rebellabs/developer-productivity-report-2015-java-performance-survey-results/3/). As opposed to the tools introduced in previous sections, GC-related areas are a subset of the functionality that profilers offer. In this section we focus only on the GC-related functionality of profilers.
 
-下面介绍分析器(profilers, Oracle官方翻译是:抽样器)。相对于前面介绍的工具, 分析器只关心GC的一部分领域. 本节我们只关注分析器相关的GC功能。
+下面介绍分析器([profilers](http://zeroturnaround.com/rebellabs/developer-productivity-report-2015-java-performance-survey-results/3/), Oracle官方翻译是:抽样器)。相对于前面介绍的工具, 分析器只关心GC的一部分领域. 本节我们只关注分析器相关的GC功能。
 
 
 The chapter starts with a warning – profilers as a tool category tend to be misunderstood and used in situations for which there are better alternatives. There are times when profilers truly shine, for example when detecting CPU hot spots in your application code. But for several other situations there are better alternatives.
@@ -499,9 +499,9 @@ This also applies to garbage collection tuning. When it comes to detecting wheth
 对GC调优来说也是同样的。要检测是否因为GC而引起延迟或吞吐量问题时,并不需要使用分析器. 前面提到的工具( jstat 或 原生/可视化GC日志)都能更好更快地检测出是否需要关注GC. 特别是从生产环境收集数据时, 最好不要选择分析器, 因为性能开销实在是太大了。
 
 
-But whenever you have verified you indeed need to optimize the impact GC has on your application, profilers do have an important role to play by exposing information about object creation. If you take a step back – GC pauses are triggered by objects not fitting into a particular memory pool. This can only happen when you create objects. And all profilers are capable of tracking object allocations via allocation profiling, giving you information about what actually resides in the memory along with the allocation traces.
+But whenever you have verified you indeed need to optimize the impact GC has on your application, profilers do have an important role to play by exposing information about object creation. If you take a step back – GC pauses are triggered by objects not fitting into a particular memory pool. This can only happen when you create objects. And all profilers are capable of tracking object allocations via allocation profiling, **giving you information about what actually resides in the memory along with the allocation traces**.
 
-如果确定需要对GC进行优化, 那么分析器就可以发挥重要的作用, 让 Object 的创建信息一目了然. 再往前看, 造成大量GC暂停的原因不在某个特定内存池中。那就只能发生创建对象的时候. 所有的分析器都能够跟踪对象分配(via allocation profiling), 根据内存分配的轨迹, 让你知道实际驻留在内存中的是哪些对象。
+如果确定需要对GC进行优化, 那么分析器就可以发挥重要的作用, 让 Object 的创建信息一目了然. 再往前看, 造成大量GC暂停的原因不在某个特定内存池中。那就只能发生创建对象的时候. 所有的分析器都能够跟踪对象分配(via allocation profiling), 根据内存分配的轨迹, 让你知道**实际驻留在内存中的是哪些对象**。
 
 
 Allocation profiling gives you information about the places where your application creates the majority of the objects. Exposing the top memory consuming objects and the threads in your application that produce the largest number of objects is the benefit you should be after when using profilers for GC tuning.
@@ -518,9 +518,9 @@ In the following sections we will see three different allocation profilers in ac
 ### hprof
 
 
-Bundled with the JDK distribution is hprof profiler. As it is present in all environments, this is the first profiler to be considered when harvesting information.
+Bundled with the JDK distribution is [hprof profiler](http://docs.oracle.com/javase/8/docs/technotes/samples/hprof.html). As it is present in all environments, this is the first profiler to be considered when harvesting information.
 
-hprof 分析器内置于JDK之中。在各种环境都可以使用, 一般优先使用这款工具。
+[hprof 分析器](http://docs.oracle.com/javase/8/docs/technotes/samples/hprof.html)内置于JDK之中。在各种环境都可以使用, 一般优先使用这款工具。
 
 
 To run your application with hprof, you need to modify the startup scripts of the JVM similarly to the following example:
@@ -544,7 +544,7 @@ On application exit, it will dump the allocation information to a java.hprof.txt
 	    2  3.26% 88.49%    482976 20124   1587696 66154 302104 java.util.ArrayList
 	    3  1.76% 88.74%    241704 20121   1587312 66138 302115 eu.plumbr.demo.largeheap.ClonableClass0006
 	    ... 部分省略 ...
-
+	
 	SITES END
 
 
@@ -584,17 +584,17 @@ JVisualVM 通过GUI方式连接到正在运行的JVM。 连接上profiler以后 
 
 
 1. Open the “Profiler” tab and make sure that under the “Settings” checkbox you have enabled “Record allocations stack traces”.
-1. Click the “Memory” button to start memory profiling.
-1. Let your application run for some time to gather enough information about object allocations.
-1. Click the “Snapshot” button. This will give you a snapshot of the profiling information gathered.
+2. Click the “Memory” button to start memory profiling.
+3. Let your application run for some time to gather enough information about object allocations.
+4. Click the “Snapshot” button. This will give you a snapshot of the profiling information gathered.
 
 <br/>
 
 1. 打开 “工具” --> “选项” 菜单, 点击 **性能分析(Profiler)** 标签, 新增配置, 选择 Profiler 内存, 确保勾选了 “Record allocations stack traces”(记录分配栈跟踪)。
-1. 勾选 “Settings”(设置) 复选框, 在内存设置标签下,修改预设配置。
-1. 点击 “Memory”(内存) 按钮开始进行内存分析。
-1. 让程序运行一段时间,以收集关于对象分配的足够信息。
-1. 单击下面一点的 “Snapshot”(快照) 按钮。可以取得收集到的信息快照。
+2. 勾选 “Settings”(设置) 复选框, 在内存设置标签下,修改预设配置。
+3. 点击 “Memory”(内存) 按钮开始进行内存分析。
+4. 让程序运行一段时间,以收集关于对象分配的足够信息。
+5. 单击下面一点的 “Snapshot”(快照) 按钮。可以取得收集到的信息快照。
 
 
 ![](06_07_01_trace.png)
@@ -633,7 +633,7 @@ Compared to hprof, JVisualVM makes the information a bit easier to process – f
 
 Last, but not least, is AProf by Devexperts. AProf is a memory allocation profiler packaged as a Java agent.
 
-第三款, 同时也是最重要的工具,是由 Devexperts 开发的 **AProf**。AProf 也是打包为 Java agent 的内存分配分析器。
+第三款, 同时也是最重要的工具,是由 Devexperts 开发的 **[AProf](https://code.devexperts.com/display/AProf/About+Aprof)**。AProf 也是打包为 Java agent 的内存分配分析器。
 
 
 To run your application with AProf, you need to modify the startup scripts of the JVM similarly to the following example:
