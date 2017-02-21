@@ -94,7 +94,7 @@ Visual GC 插件常用来监控本机运行的Java程序, 比如开发者和性�
 ## jstat
 
 
-[jstat](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jstat.html) 也是标准JDK提供的一款JVM统计监控工具(Java Virtual Machine statistics monitoring tool). jstat 可以从JVM中获取各种指标。既可以连接到本地JVM,也可以连到远程JVM. 可以执行 “`jstat -options`” 来查看支持的指标和对应选项。常用的包括:
+[jstat](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/jstat.html) 也是标准JDK提供的一款监控工具(Java Virtual Machine statistics monitoring tool),可以统计各种指标。既可以连接到本地JVM,也可以连到远程JVM.  查看支持的指标和对应选项可以执行 “`jstat -options`” 。例如:
 
 
 	+-----------------+---------------------------------------------------------------+
@@ -122,7 +122,7 @@ Visual GC 插件常用来监控本机运行的Java程序, 比如开发者和性�
 
 
 
-这款工具对于快速查看GC行为是否健康运行是很有用的。启动方式为: “`jstat -gc -t PID 1s`” , 其中,PID 就是要监视的JVM进程ID。正在运行的Java进程可用通过 `jps` 命令得到。
+jstat 对于快速确定GC行为是否健康非常有用。启动方式为: “`jstat -gc -t PID 1s`” , 其中,PID 就是要监视的Java进程ID。可以通过 `jps` 命令查看正在运行的Java进程列表。
 
 
 	jps
@@ -130,7 +130,7 @@ Visual GC 插件常用来监控本机运行的Java程序, 比如开发者和性�
 	jstat -gc -t 2428 1s
 
 
-以上命令的结果, 是 jstat 每秒向标准输出输出一行新内容, 示例如下:
+以上命令的结果, 是 jstat 每秒向标准输出输出一行新内容,  比如:
 
 
 	Timestamp  S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT   
@@ -146,35 +146,35 @@ Visual GC 插件常用来监控本机运行的Java程序, 比如开发者和性�
 
 
 
-稍微解释一下上面的内容。通过以上信息, 参考 [jstat manpage](http://www.manpagez.com/man/1/jstat/) , 我们可以知道:
+稍微解释一下上面的内容。参考 [jstat manpage](http://www.manpagez.com/man/1/jstat/) , 我们可以知道:
 
 
-- jstat 连接到 JVM 的时间, 是此JVM启动后的 200秒。此信息由第一行的 “Timestamp” 列得知。继续查看下一行, jstat 每秒钟从JVM 接收一次信息, 也就是命令行参数中 "`1s`" 的意思。
-- 从第一行我们还可以看到, 年轻代共执行了34次清理(由 “**YGC**” 列得知), 整个堆内存已经执行了 658次清理(由  “**FGC**” 列得知)。
-- 年轻代的垃圾收集的总耗时时间为 0.720 秒, 显示在“**YGCT**” 这一列。
-- Full GC 的总耗时时间为 133.684 秒, 由“**FGCT**”列表示. 这立马就引起了我们的注意, 可以看到,JVM 总的只运行了 200 秒的时间, **但其中 66% 的部分被 Full GC 占用了**。
+- jstat 连接到 JVM 的时间, 是JVM启动后的 200秒。此信息从第一行的 “**Timestamp**” 列得知。继续看下一行, jstat 每秒钟从JVM 接收一次信息, 也就是命令行参数中 "`1s`" 的含义。
+- 从第一行的 “**YGC**” 列得知年轻代共执行了34次GC,   由  “**FGC**” 列得知整个堆内存已经执行了 658次 full GC。
+- 年轻代的GC耗时总共为 `0.720 秒`, 显示在“**YGCT**” 这一列。
+- Full GC 的总计耗时为 `133.684 秒`, 由“**FGCT**”列得知。 这立马就吸引了我们的目光,  总的JVM 运行时间只有 200 秒, **但其中有 66% 的部分被 Full GC 消耗了**。
 
 
-我们再看下一行, 问题就更明显了。
+再看下一行, 问题就更明显了。
 
 
-- 可以看到, 在接下来的一秒之内共执行了 4 次Full GC。参见 "**FGC**" 列.
-- 这4次GC暂停几乎占用了整整 1秒的时间(根据 **FGCT**列的差得知)。与第一行相比,  Full GC 运行了`928 毫秒`, 也就是 `92.8%` 的时间。
-- 与此同时, 根据 “**OC** 和 “**OU**” 列, 可以得知, **整个老年代的空间**为 169,344.0 KB (“OC“), 在 4 次GC之后依然占用了 169,344.2 KB (“OU“)。在 928ms 的时间内只释放了 800个字节, 怎么看都觉得不正常。
+- 在接下来的一秒内共执行了 4 次 Full GC。参见 "**FGC**" 列.
+- 这4次 Full GC 暂停占用了差不多 1秒的时间(根据 **FGCT**列的差得知)。与第一行相比,  Full GC 耗费了`928 毫秒`, 即 `92.8%` 的时间。
+- 根据 “**OC** 和 “**OU**” 列得知, **整个老年代的空间**为 `169,344.0 KB` (“OC“), 在 4 次 Full GC 后依然占用了 `169,344.2 KB` (“OU“)。用了 `928ms` 的时间却只释放了 800 字节的内存, 怎么看都觉得很不正常。
 
 
-只看这两行输出内容, 就知道应用程序出了些严重的问题。继续分析下一行, 可以确定问题依然存在,而且变得更糟。
+只看这两行的内容, 就知道程序出了很严重的问题。继续分析下一行, 可以确定问题依然存在,而且变得更糟。
 
 
-JVM几乎完全卡住了(stalled), 因为GC占用了超过90%的计算资源。清理之后, 所有的老代空间还在占用着, 这进一步证实了我们的猜测。事实上, 这个程序在运行一分钟以后就挂了, 抛出了一个 “[java.lang.OutOfMemoryError: GC overhead limit exceeded](https://plumbr.eu/outofmemoryerror/gc-overhead-limit-exceeded)”  错误。
+JVM几乎完全卡住了(stalled), 因为GC占用了90%以上的计算资源。GC之后, 所有的老代空间仍然还在占用。事实上, 程序在一分钟以后就挂了, 抛出了 “[java.lang.OutOfMemoryError: GC overhead limit exceeded](https://plumbr.eu/outofmemoryerror/gc-overhead-limit-exceeded)”  错误。
 
 
-从示例可以看到, 通过 jstat 的输出内容可以快速发现对JVM健康极为不利的GC行为。一般来说, 只看 jstat 的输出可以很快发现以下问题:
+可以看到, 通过 jstat 能很快发现对JVM健康极为不利的GC行为。一般来说, 只看 jstat 的输出就能快速发现以下问题:
 
 
-- 最后一列 “**GCT**”, 与JVM的总运行时间 “**Timestamp**” 的比值, 就是GC 的开销。如果每一秒中, "**GCT**" 的值都会显著增加, 与总运行时间相比, 就暴露出GC高开销的事实. 具体多少比例的GC开销是可容忍的, 不同的系统有不同的容忍度, 具体是由性能需求而决定, 但作为一般原则, 超过 10% 的GC开销看起来都是有问题的。
-- “**YGC**” 和 “**FGC**” 列的快速变化往往也是有问题的. 太频繁的GC暂停会积累并导致更多的线程停顿(stop-the-world pauses),影响到吞吐量。
-- 如果看到 “**OU**” 列中,老年代的使用量大约等于老年代的最大容量(**OC**), 而且不会降低, 那就表示虽然执行了老年代GC, 但GC的性能非常烂。
+- 最后一列 “**GCT**”, 与JVM的总运行时间 “**Timestamp**” 的比值, 就是GC 的开销。如果每一秒内, "**GCT**" 的值都会明显增大, 与总运行时间相比, 就暴露出GC开销过大的问题.  不同系统对GC开销有不同的容忍度, 由性能需求决定, 一般来讲, 超过 `10%` 的GC开销都是有问题的。
+- “**YGC**” 和 “**FGC**” 列的快速变化往往也是有问题的征兆。频繁的GC暂停会累积,并导致更多的线程停顿(stop-the-world pauses), 进而影响吞吐量。
+- 如果看到 “**OU**” 列中,老年代的使用量约等于老年代的最大容量(**OC**), 并且不降低的话, 那就表示虽然执行了老年代GC, 但基本上属于无效GC。
 
 
 ## GC日志(GC logs)
