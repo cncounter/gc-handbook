@@ -19,50 +19,52 @@ JVM 在程序执行的过程中, 提供了GC行为的原生数据。那么, 我�
 ## JMX API
 
 
-从 JVM 运行时获取GC相关(GC-related)信息, 最基本的方式是通过标准 [JMX API 接口](https://docs.oracle.com/javase/tutorial/jmx/index.html). JMX是展示JVM内部运行时相关状态信息的标准API. 我们可以通过编程的方式,通过 JMX API 访问运行本程序的JVM，还可以通过JMX客户端来(远程)访问。
+从 JVM 运行时获取GC行为数据, 最简单的办法是使用标准 [JMX API 接口](https://docs.oracle.com/javase/tutorial/jmx/index.html). JMX是获取 JVM内部运行时状态信息 的标准API. 可以编写程序代码, 通过 JMX API 来访问本程序所在的JVM，也可以通过JMX客户端执行(远程)访问。
 
 
-最常见的两种JMX客户端是 [JConsole](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) 和 [JVisualVM](http://docs.oracle.com/javase/7/docs/technotes/tools/share/jvisualvm.html) (可以安装各种插件,十分强大)。这两个工具都是标准JDK的一部分, 很容易使用. 如果使用的是 JDK 7u40 及更新的版本,还可以使用第三种工具: [Java Mission Control](http://www.oracle.com/technetwork/java/javaseproducts/mission-control/java-mission-control-1998576.html)( 大致翻译为 Java控制中心, `jmc.exe`)。
+最常见的 JMX客户端是 [JConsole](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) 和 [JVisualVM](http://docs.oracle.com/javase/7/docs/technotes/tools/share/jvisualvm.html) (可以安装各种插件,十分强大)。两个工具都是标准JDK的一部分, 而且很容易使用. 如果使用的是 JDK 7u40 及更高版本, 还可以使用另一个工具: [Java Mission Control](http://www.oracle.com/technetwork/java/javaseproducts/mission-control/java-mission-control-1998576.html)( 大致翻译为 Java控制中心, `jmc.exe`)。
 
-> JVisualVM安装MBeans插件,通过 工具(T) -- 插件(G) -- 可用插件 -- 勾选VisualVM-MBeans -- 安装 -- 下一步 -- 等待安装完成... 其他的插件安装也类似。
+> JVisualVM安装MBeans插件的步骤: 通过 工具(T) -- 插件(G) -- 可用插件 -- 勾选VisualVM-MBeans -- 安装 -- 下一步 -- 等待安装完成...... 其他插件的安装过程基本一致。
 
 
-所有的JMX客户端都是独立的程序,可以连接到目标JVM。目标JVM可以是本地JVM, 也可以是远程JVM. 如果要连接远程JVM, 则目标JVM必须通过特定的环境变量参数来启动,以开启远程JMX连接。 开启远程JMX RMI连接, 并指定端口号的示例如下:
+所有 JMX客户端都是独立的程序,可以连接到目标JVM上。目标JVM可以在本机, 也可能是远端JVM. 如果要连接远端JVM, 则目标JVM启动时必须指定特定的环境变量,以开启远程JMX连接/以及端口号。 示例如下:
 
 
 	java -Dcom.sun.management.jmxremote.port=5432 com.yourcompany.YourApp
 
 
-在此示例中, JVM 打开端口5432以支持JMX连接。
+在此处, JVM 打开端口`5432`以支持JMX连接。
 
 
-通过 JVisualVM  连接到某个JVM之后, 导航到 MBeans list, 展开 “java.lang/GarbageCollector” 下的 MBeans. 下图显示了 JVisualVM 和Java Mission Control 中的GC行为信息:
+通过 JVisualVM  连接到某个JVM以后, 切换到 MBeans 标签, 展开 “java.lang/GarbageCollector” . 就可以看到GC行为信息, 下图是 JVisualVM 中的截图:
 
 
 ![](06_01_JMX-view.png)
 
 
 
+下图是Java Mission Control 中的截图: 
+
 ![](06_02_JMX-view-Mbean.png)
 
 
 
-上面的截图信息中, 共有两种垃圾收集器。其中一种负责清理年轻代，另一种负责清理老年代. 图中两个元素的名字就是的垃圾收集器名称. 从图中可以看到, 此JVM中, 年轻代垃圾收集器是 **PS Scavenge**; 老年代使用的是 **PS MarkSweep** 算法。
+从以上截图中可以看到两款垃圾收集器。其中一款负责清理年轻代(**PS Scavenge**)，另一款负责清理老年代(**PS MarkSweep**); 列表中显示的就是垃圾收集器的名称。可以看到 , jmc 的功能和展示数据的方式更强大。
 
 
-对每一款垃圾收集器, 通过 JMX API 展示的信息以下:
+对所有的垃圾收集器, 通过 JMX API 获取的信息包括:
 
 
-- **CollectionCount** : 此垃圾收集器执行GC的总次数,
-- **CollectionTime**: 收集器运行时间的累计。此时间是所有GC事件的时间总和,
-- **LastGcInfo**: 最近一次GC事件的详细信息。包括GC事件的 持续时间(duration),  开始时间(startTime) 和 结束时间(endTime), 以及各个内存池在最近一次GC之前和之后的使用情况,
-- **MemoryPoolNames**:  此款垃圾收集器所管理内存池的名称,
+- **CollectionCount** :  垃圾收集器执行的GC总次数,
+- **CollectionTime**: 收集器运行时间的累计。这个值等于所有GC事件持续时间的总和,
+- **LastGcInfo**: 最近一次GC事件的详细信息。包括 GC事件的持续时间(duration),  开始时间(startTime) 和 结束时间(endTime), 以及各个内存池在最近一次GC之前和之后的使用情况,
+- **MemoryPoolNames**:  各个内存池的名称,
 - **Name**: 垃圾收集器的名称
 - **ObjectName**: 由JMX规范定义的 MBean的名字,,
-- **Valid**: 此收集器是否有效。本人只见过为 "true"的情况
+- **Valid**: 此收集器是否有效。本人只见过 "`true`"的情况 (^_^)
 
 
-根据经验, 这些信息对GC的性能来说,不能得出什么结论. 唯一可行的方式, 是自己编写程序, 通过获取GC相关的 JMX 通知来进行统计。 从下一节可以看到, 一般也不怎么查看 MBean , 但对于理解GC活动倒是挺有用的。
+根据经验, 这些信息对GC的性能来说,不能得出什么结论.  只有编写程序,  获取GC相关的 JMX 信息来进行统计和分析。 在下文可以看到, 一般也不怎么关注 MBean , 但 MBean  对于理解GC的原理倒是挺有用的。
 
 
 ## JVisualVM
