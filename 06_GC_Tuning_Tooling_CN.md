@@ -70,25 +70,25 @@ JVM 在程序执行的过程中, 提供了GC行为的原生数据。那么, 我�
 ## JVisualVM
 
 
-[JVisualVM](http://docs.oracle.com/javase/7/docs/technotes/tools/share/jvisualvm.html) 通过 “[VisualGC](http://www.oracle.com/technetwork/java/visualgc-136680.html)” 插件提供JMX客户端的基本功能, 此外还提供了实时界面, 展示 GC事件以及JVM各个内存空间的使用情况。
+[JVisualVM](http://docs.oracle.com/javase/7/docs/technotes/tools/share/jvisualvm.html) 工具的 “[VisualGC](http://www.oracle.com/technetwork/java/visualgc-136680.html)” 插件提供了基本的 JMX客户端功能,  还实时显示出 GC事件以及各个内存空间的使用情况。
 
 
-Visual GC 插件最常用的功能, 是监控本机运行的Java程序, 比如开发者和性能调优专家,想要快速获取测试程序的GC相关信息时, 就会很有用。
+Visual GC 插件常用来监控本机运行的Java程序, 比如开发者和性能调优专家经常会使用此插件, 以快速获取程序运行时的GC信息。
 
 
 ![](06_03_jvmsualvm-garbage-collection-monitoring.png)
 
 
-左边的图表部分,可以看到各个内存池的使用情况: Metaspace/永久代, 老年代, Eden区以及两个存活区。
+左侧的图表展示了各个内存池的使用情况: Metaspace/永久代, 老年代, Eden区以及两个存活区。
 
 
-在右边, 顶部的两个图表与 GC无关, 分别显示的是 JIT编译时间 和 类加载时间。下面的6个图显示的是内存池使用情况的历史记录, 每个内存池对应的GC次数,GC总时间, 还有每个内存池的最大值，峰值, 及当前使用情况。
+在右边, 顶部的两个图表与 GC无关, 显示的是 JIT编译时间 和 类加载时间。下面的6个图显示的是内存池的历史记录, 每个内存池的GC次数,GC总时间, 以及最大值，峰值, 当前使用情况。
 
 
-再下面是 HistoGram, 显示的是年轻代中的对象年龄分布。关于对象的年龄监控(objects tenuring monitoring), 超出了本章的范围, 不再进行描述。
+再下面是 HistoGram, 显示了年轻代对象的年龄分布。至于对象的年龄监控(objects tenuring monitoring),  本章不进行讲解。
 
 
-与纯粹的JMX工具相比, VisualGC 插件对 JVM 的内部信息提供了更直观的界面, 如果暂时没有其他工具, 请选择VisualGC插件. 本章接下来会继续介绍其他工具, 这些工具可以提供更多的信息, 以及更好的视角. 当然, 在“Profilers(分析器)”一节中，也会介绍 JVisualVM 的适用场景 —— 如: 分配分析(allocation profiling), 所以我们绝不是在贬低哪一款工具, 关键还得看实际情况。
+与纯粹的JMX工具相比, VisualGC 插件提供了更友好的界面, 如果没有其他趁手的工具, 请选择VisualGC. 本章接下来会介绍其他工具, 这些工具可以提供更多的信息, 以及更好的视角. 当然, 在“Profilers(分析器)”一节中，也会介绍 JVisualVM 的适用场景 —— 如: 分配分析(allocation profiling), 所以我们绝不会贬低哪一款工具, 关键还得看实际情况。
 
 
 ## jstat
