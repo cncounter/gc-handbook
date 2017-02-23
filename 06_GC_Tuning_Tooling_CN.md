@@ -309,37 +309,37 @@ GC日志一般输出到文件之中, 是纯 text 格式的, 当然也可以打�
 ## 分析器(Profilers)
 
 
-下面介绍分析器([profilers](http://zeroturnaround.com/rebellabs/developer-productivity-report-2015-java-performance-survey-results/3/), Oracle官方翻译是:抽样器)。相对于前面介绍的工具, 分析器只关心GC的一部分领域. 本节我们只关注分析器相关的GC功能。
+下面介绍分析器([profilers](http://zeroturnaround.com/rebellabs/developer-productivity-report-2015-java-performance-survey-results/3/), Oracle官方翻译是:`抽样器`)。相对于前面的工具, 分析器只关心GC中的一部分领域. 本节我们也只关注分析器相关的GC功能。
 
 
-首先警告 —— 分析器往往会被认为适合所有的场景。有时候分析器确实功勋卓著, 比如检测代码中的CPU热点时。但对某些情况不一定是个好方案。
+首先警告 —— 不要认为分析器适用于所有的场景。分析器有时确实作用很大, 比如检测代码中的CPU热点时。但某些情况使用分析器不一定是个好方案。
 
 
-对GC调优来说也是同样的。要检测是否因为GC而引起延迟或吞吐量问题时,并不需要使用分析器. 前面提到的工具( jstat 或 原生/可视化GC日志)都能更好更快地检测出是否需要关注GC. 特别是从生产环境收集数据时, 最好不要选择分析器, 因为性能开销实在是太大了。
+对GC调优来说也是一样的。要检测是否因为GC而引起延迟或吞吐量问题时, 不需要使用分析器. 前面提到的工具( `jstat` 或 原生/可视化GC日志)就能更好更快地检测出是否存在GC问题. 特别是从生产环境中收集性能数据时, 最好不要使用分析器, 因为性能开销非常大。
 
 
-如果确定需要对GC进行优化, 那么分析器就可以发挥重要的作用, 让 Object 的创建信息一目了然. 再往前看, 造成大量GC暂停的原因不在某个特定内存池中。那就只能发生创建对象的时候. 所有的分析器都能够跟踪对象分配(via allocation profiling), 根据内存分配的轨迹, 让你知道**实际驻留在内存中的是哪些对象**。
+如果确实需要对GC进行优化, 那么分析器就可以派上用场了, 可以对 Object 的创建信息一目了然. 换个角度看, 如果GC暂停的原因不在某个内存池中, 那就只会是因为创建对象太多了。 所有分析器都能够跟踪对象分配(via allocation profiling), 根据内存分配的轨迹, 让你知道 **实际驻留在内存中的是哪些对象**。
 
 
-分配分析能定位到哪个地方创建了大量的对象. 使用分析器辅助进行GC调优的好处是, 能确定是什么类型最占用内存, 以及是哪些线程生成了最多的对象。
+分配分析能定位到在哪个地方创建了大量的对象. 使用分析器辅助进行GC调优的好处是, 能确定哪种类型的对象最占用内存, 以及哪些线程创建了最多的对象。
 
 
-我们将在实例中介绍三种不同的分配分析器: **`hprof`**, **`JVisualV`M** 和 **`AProf`**。实际上还有很多分析器可供选择, 包括商业的和免费的, 但其功能和优点都类似于下面讨论的这些。
+下面我们通过实例介绍3种分配分析器: **`hprof`**, **`JVisualV`M** 和 **`AProf`**。实际上还有很多分析器可供选择, 有商业产品,也有免费工具, 但其功能和应用基本上都是类似的。
 
 
 ### hprof
 
 
-[hprof 分析器](http://docs.oracle.com/javase/8/docs/technotes/samples/hprof.html)内置于JDK之中。在各种环境都可以使用, 一般优先使用这款工具。
+[hprof 分析器](http://docs.oracle.com/javase/8/docs/technotes/samples/hprof.html)内置于JDK之中。 在各种环境下都可以使用, 一般优先使用这款工具。
 
 
-要让 hprof 和程序一起运行, 需要修改启动脚本, 类似这样:
+要让 `hprof` 和程序一起运行, 需要修改启动脚本, 类似这样:
 
 
 	java -agentlib:hprof=heap=sites com.yourcompany.YourApplication
 
 
-在程序退出时,会将分配信息dump(转储)到工作目录下的 java.hprof.txt 文件。使用文本编辑器打开, 并搜索 “**SITES BEGIN**” 关键字, 可以看到:
+在程序退出时,会将分配信息dump(转储)到工作目录下的 `java.hprof.txt` 文件中。使用文本编辑器打开, 并搜索 “**SITES BEGIN**” 关键字, 可以看到:
 
 
 	SITES BEGIN (ordered by live bytes) Tue Dec  8 11:16:15 2015
@@ -353,7 +353,7 @@ GC日志一般输出到文件之中, 是纯 text 格式的, 当然也可以打�
 	SITES END
 
 
-从以上片段可以看到, allocations 是根据每次创建的对象数量来排序的。第一行显示所有对象中有 **64.43%** 的对象是整型数组(`int[]`), 在标识为数字 302116 的位置创建。搜索 “**TRACE 302116**” 可以看到:
+从以上片段可以看到, allocations 是根据每次创建的对象数量来排序的。第一行显示所有对象中有 **`64.43%`** 的对象是整型数组(`int[]`), 在标识为 `302116` 的位置创建。搜索 “**TRACE 302116**” 可以看到:
 
 
 	TRACE 302116:	
@@ -364,23 +364,23 @@ GC日志一般输出到文件之中, 是纯 text 格式的, 当然也可以打�
 
 
 
-现在, 知道了 64.43% 的对象被分配为整数数组, 在 ClonableClass0006 类的构造函数中, 第11行, 那么就可以优化代码, 以减少GC的压力。
+现在, 知道有 `64.43%` 的对象是整数数组, 在 `ClonableClass0006` 类的构造函数中, 第11行的位置, 接下来就可以优化代码, 以减少GC的压力。
 
 
 ### Java VisualVM
 
 
-这是本章第二次介绍 JVisualVM 了。在第一部分, 在监控 JVM 的GC行为工具中介绍了 JVisualVM , 本节将介绍其在分配分析上的优点。
+本章前面的第一部分, 在监控 JVM 的GC行为工具时介绍了 JVisualVM , 本节介绍其在分配分析上的应用。
 
 
-JVisualVM 通过GUI方式连接到正在运行的JVM。 连接上profiler以后 :
+JVisualVM 通过GUI的方式连接到正在运行的JVM。 连接上目标JVM之后 :
 
 
 1. 打开 “工具” --> “选项” 菜单, 点击 **性能分析(Profiler)** 标签, 新增配置, 选择 Profiler 内存, 确保勾选了 “Record allocations stack traces”(记录分配栈跟踪)。
 2. 勾选 “Settings”(设置) 复选框, 在内存设置标签下,修改预设配置。
 3. 点击 “Memory”(内存) 按钮开始进行内存分析。
 4. 让程序运行一段时间,以收集关于对象分配的足够信息。
-5. 单击下面一点的 “Snapshot”(快照) 按钮。可以取得收集到的信息快照。
+5. 单击下方的 “Snapshot”(快照) 按钮。可以获取收集到的快照信息。
 
 
 ![](06_07_01_trace.png)
@@ -392,28 +392,28 @@ JVisualVM 通过GUI方式连接到正在运行的JVM。 连接上profiler以后 
 ![](06_07_jvisualvm-top-objects.png)
 
 
-上图是按照每个类的对象创建数量来排序的。从第一行可以看到,分配的最多的对象是 `int[]` 数组. 右键单击这行就可以看到这些对象都是在哪个地方分配的:
+上图按照每个类被创建的对象数量多少来排序。看第一行可以知道, 创建的最多的对象是 `int[]` 数组. 鼠标右键单击这行, 就可以看到这些对象都在哪些地方创建的:
 
 
 ![](06_08_jvisualvm-allocation-traces.png)
 
 
-与 `hprof` 相比, JVisualVM 更加容易 —— 比如在上面的截图中, 在一个地方就可以看到所有的`int[]` 分配信息, 所以多次在同一处代码进行分配时就很容易看到了。
+与 `hprof` 相比, JVisualVM 更加容易使用 —— 比如上面的截图中, 在一个地方就可以看到所有`int[]` 的分配信息, 所以多次在同一处代码进行分配的情况就很容易发现。
 
 
 ### AProf
 
 
-第三款, 同时也是最重要的工具,是由 Devexperts 开发的 **[AProf](https://code.devexperts.com/display/AProf/About+Aprof)**。AProf 也是打包为 Java agent 的内存分配分析器。
+最重要的一款分析器,是由 Devexperts 开发的 **[AProf](https://code.devexperts.com/display/AProf/About+Aprof)**。 内存分配分析器 AProf 也被打包为 Java agent 的形式。
 
 
-用AProf 来分析应用程序, 需要修改JVM的启动脚本,类似这样:
+用 AProf 分析应用程序, 需要修改 JVM 启动脚本,类似这样:
 
 
 	java -javaagent:/path-to/aprof.jar com.yourcompany.YourApplication
 
 
-重启应用程序以后, 工作目录下会生成一个 aprof.txt 文件。这个文件每分钟更新一次, 包含这样的信息:
+重启应用之后, 工作目录下会生成一个 `aprof.txt` 文件。此文件每分钟更新一次, 包含这样的信息:
 
 
 	========================================================================================================================
@@ -434,10 +434,10 @@ JVisualVM 通过GUI方式连接到正在运行的JVM。 连接上profiler以后 
 
 
 
-上面的输出是按照 size 进行排序的。可以看出, `80.44%` 的 bytes 和 68.81% 的 objects 是在 `ManyTargetsGarbageProducer.newRandomClassObject()` 方法中分配的。 其中, **int[]** 数组消耗了最多的内存, 占总量的 40.19%。
+上面的输出是按照 `size` 进行排序的。可以看出, `80.44%` 的 bytes 和 `68.81%` 的 objects 是在 `ManyTargetsGarbageProducer.newRandomClassObject()` 方法中分配的。 其中, **int[]** 数组占用了 `40.19%` 的内存, 是最大的一个。
 
 
-继续往下看, 你会发现 allocation traces(分配痕迹)相关的内容, 也是根据 allocation size 来排序的:
+继续往下看, 会发现 `allocation traces`(分配痕迹)相关的内容, 也是以 allocation size 排序的:
 
 
 	Top allocated data types with reverse location traces
@@ -454,7 +454,7 @@ JVisualVM 通过GUI方式连接到正在运行的JVM。 连接上profiler以后 
 可以看到, `int[]` 数组的分配, 在 `ClonableClass0006` 构造函数中继续增大。
 
 
-和其他工具一样, AProf 揭露了 分配大小以及位置信息(`allocation size and locations`), 从而能够快速找到最耗内存的部分。在我们看来, **AProf** 是最有用的分配分析器, 因为它只专注于内存分配, 而且做的非常棒。 当然, 此工具是开源免费的, 资源开销也是最小的。
+和其他工具一样, `AProf` 揭露了 分配的大小以及位置信息(`allocation size and locations`), 从而能够快速找到最耗内存的部分。在我们看来, **AProf** 是最有用的分配分析器, 因为它只专注于内存分配, 所以做得最好。 当然, 这款工具是开源免费的, 资源开销也最小。
 
 
 原文链接:  [GC Tuning: Tooling](https://plumbr.eu/handbook/gc-tuning-measuring)
