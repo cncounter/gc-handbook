@@ -3,7 +3,7 @@
 
 This chapter covers several typical performance problems that one may encounter with garbage collection. The examples given here are derived from real applications, but are simplified for the sake of clarity.
 
-本章介绍几种垃圾收集可能导致的典型的性能问题。其中的示例都来自于真实的应用,但为了演示方便,做了一些简化处理。
+本章介绍可能会导致GC性能问题的几种典型情况。相关示例都来源于生产环境, 为了演示的需要,做了一定简化。
 
 
 ## 高分配速率(High Allocation Rate)
@@ -12,14 +12,14 @@ This chapter covers several typical performance problems that one may encounter 
 Allocation rate is a term used when communicating the amount of memory allocated per time unit. Often it is expressed in MB/sec, but you can use PB/year if you feel like it. So that is all there is – no magic, just the amount of memory you allocate in your Java code measured over a period of time.
 
 
-分配速率(Allocation rate)是用来表示每时间单位内,内存分配数量的术语。通常表示为 MB/sec, 但也可以使用 PB/year。很简单, 没什么复杂的, 在Java代码中通过一段时间周期来衡量内存分配的数量。
+分配速率(`Allocation rate`)用来表示 单位时间内分配的内存容量。通常表示为 `MB/sec`, 也可以使用 `PB/year` 等等。这很容易理解, 通过一段时间来衡量Java代码所分配的内存总量。
 
 
 
 
 An excessively high allocation rate can mean trouble for your application’s performance. When running on a JVM, the problem will be revealed by garbage collection posing a large overhead.
 
-过高的分配速率可能会严重影响程序的性能。在JVM中, 这个问题的影响是带来大量的GC开销。
+过高的分配速率会严重影响程序性能。在JVM中, 这个问题会导致大量的GC开销。
 
 
 ### 如何衡量分配速率?
