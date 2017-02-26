@@ -27,7 +27,7 @@ An excessively high allocation rate can mean trouble for your application’s pe
 
 One way to measure the allocation rate is to turn on GC logging by specifying -XX:+PrintGCDetails -XX:+PrintGCTimeStamps flags for the JVM. The JVM now starts logging the GC pauses similar to the following:
 
-测量分配速率的一种方法是,通过指定 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` 标志开启JVM的GC日志. 则JVM开始记录类似下面这样的GC停顿日志:
+通过指定JVM参数: `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` ,记录GC日志, 可以用来测量分配速率. GC日志类似这样:
 
 
 	0.291: [GC (Allocation Failure) 
@@ -48,7 +48,7 @@ One way to measure the allocation rate is to turn on GC logging by specifying -X
 
 From the GC log above, we can calculate the allocation rate as the difference between the sizes of the young generation after the completion of the last collection and before the start of the next one. Using the example above, we can extract the following information:
 
-从上面的GC日志中,我们就可以计算出分配速率. 通过上一次垃圾收集之后,与下一次GC开始之前的年轻代大小的差值. 比如上面的示例中, 我们可以得到如下信息:
+根据GC日志就可以计算出分配速率。 计算 `上一次垃圾收集之后`,与`下一次GC开始之前`的年轻代使用量的差值。 比如上面的日志中, 可以获取以下信息:
 
 
 - At 291 ms after the JVM was launched, 33,280 K of objects were created. The first minor GC event cleaned the young generation, after which there were 5,088 K of objects in the young generation left.
@@ -57,15 +57,15 @@ From the GC log above, we can calculate the allocation rate as the difference be
 
 <br/>
 
-- 在JVM启动后 **291ms**, 创建了 `33,280 KB` 的对象。 第一次清理年轻代的 Minor GC(小型GC)事件, 完成之后还有 `5,088 KB` 的对象存在于年轻代中。
-- 在启动 **446 ms**之后, 年轻代使用量增长至 `38,368 KB`,触发了下一次GC, 然后让年轻代使用量减少到了 `5120 KB`。
-- 在启动后 **829 ms**, 年轻代的大小为 `71,680 KB`, GC后再让其减少到 `5,120 KB`。
+- JVM启动之后 `291ms`, 共创建了 `33,280 KB` 的对象。 第一次 Minor GC(小型GC) 完成后, 年轻代中还有 `5,088 KB` 的对象存活。
+- 在启动之后 `446 ms`, 年轻代的使用量增加到 `38,368 KB`, 触发第二次GC, 完成后年轻代的使用量减少到 `5,120 KB`。
+- 在启动之后 `829 ms`, 年轻代的使用量为 `71,680 KB`, GC后变为 `5,120 KB`。
 
 
 
 This data can then be expressed in the following table calculating the allocation rate as deltas of the young occupancy:
 
-然后可以通过年轻代的变化来计算出分配速率,如下表所示:
+可以通过年轻代的使用量来计算分配速率, 如下表所示:
 
 
 <table class="data compact">
@@ -120,27 +120,27 @@ This data can then be expressed in the following table calculating the allocatio
 
 Having this information allows us to say that this particular piece of software had the allocation rate of 161 MB/sec during the period of measurement.
 
-通过这个信息,我们可以说在测量期间, 该软件的分配速率是 **161 MB/秒**。。
+通过这些信息可以知道, 在测量期间, 该程序的内存分配速率为 `161 MB/sec`。
 
 
 
-### 为什么要关心分配速率?
+### 为何要关心分配速率?
 
 
 After measuring the allocation rate we can understand how the changes in allocation rate affect application throughput by increasing or reducing the frequency of GC pauses. First and foremost, you should notice that only minor GC pauses cleaning the young generation are affected. Neither the frequency nor duration of the GC pauses cleaning the old generation are directly impacted by the allocation rate, but instead by the promotion rate, a term that we will cover separately in the next section.
 
 
-测量分配速率之后,我们就可以理解分配速率的变化是如何影响应用程序的吞吐量的: 因为分配速率会增加或减少GC暂停的频率。首先,也是最重要的,你应该注意到,只有清理年轻代的 minor GC pauses 受影响.而清理老年代的GC暂停, 其频率和持续时间都不受分配速率的直接影响, 而是受**提升速率**(promotion rate,晋升速率)的影响,在下一节中我们将单独介绍这个术语。
+计算出分配速率, 就会知道分配速率如何影响吞吐量: 分配速率的变化,会增加或降低GC暂停的频率。 请记住, 只有年轻代的 minor GC 受分配速率的影响。 而老年代GC的频率和持续时间不受分配速率的直接影响, 而是受**提升速率**(`promotion rate`)的影响,我们在下一节中介绍。
 
 
 Knowing that we can focus only on Minor GC pauses, we should next look into the different memory pools inside the young generation. As the allocation takes place in Eden, we can immediately look into how sizing Eden can impact the allocation rate. So we can hypothesize that increasing the size of Eden will reduce the frequency of minor GC pauses and thus allow the application to sustain faster allocation rates.
 
-这里我们只关心 Minor GC 暂停, 接下来应该考虑的是年轻代中的不同内存池。因为分配发生在 Eden 区, 我们可以立即调查如何设置 Eden 的大小来影响分配速率. 所以我们可以增加 Eden 的大小来看看是否会减少 Minor GC 暂停的频率, 从而使程序能够维持更快的分配速率。
+这样我们就只关心 Minor GC 暂停, 接下来看年轻代的这几个内存池。因为对象分配在 Eden 区, 所以我们来审查 Eden 区的大小和分配速率的关系.  看看增加 Eden 区的容量能不能减少 Minor GC 暂停次数, 从而使程序能够维持更快的分配速率。
 
 
 And indeed, when running the same application with different Eden sizes using -XX:NewSize -XX:MaxNewSize & -XX:SurvivorRatio parameters, we can see a two-fold difference in allocation rates.
 
-的确,当通过 `-XX:NewSize -XX:MaxNewSize & -XX:SurvivorRatio` 参数设置不同的 Eden 空间来运行同一应用程序时, 我们可以看到分配速率有两种不同的差别。
+事实上, 通过参数 `-XX:NewSize`、 `-XX:MaxNewSize` 以及 `-XX:SurvivorRatio` 设置不同的 Eden 空间来运行同一程序时, 可以看到:
 
 
 - Re-running with 100 M of Eden reduces the allocation rate to below 100 MB/sec.
@@ -148,19 +148,21 @@ And indeed, when running the same application with different Eden sizes using -X
 
 <br/>
 
-- 用 100 MB的 Eden 空间来运行, 分配速率会低于 **100 MB/秒**。
-- 增加Eden区的大小为 **1 GB**, 分配速率也跟着增长,大约是 **200 MB/秒** 的样子。
+- Eden 空间为 `100 MB` 时, 分配速率低于 `100 MB/秒`。
+- 将 Eden 区增大为 `1 GB`, 分配速率也随之增长,大约等于 `200 MB/秒`。
 
 
 If you are still wondering how this can be true – if you stop your application threads for GC less frequently you can do more useful work. More useful work also happens to create more objects, thus supporting the increased allocation rate.
 
 
-为什么会这样? —— 因为减少暂停所有线程的GC次数，则可以做更多有用功。更有用的工作也创造了更多的对象, 因此同样的程序,分配速率增加是挺好的事情。
+为什么会这样? —— 因为减少GC暂停,就等价于减少任务线程的停顿，就可以做更多工作, 也就创建了更多对象, 所以对同一应用程序, 分配速率越高越好。
+
+-- 校对到此处 !!!!!
 
 
 Now, before you jump to the conclusion that “bigger Eden is better”, you should notice that the allocation rate might and probably does not directly correlate with the actual throughput of your application. It is a technical measurement contributing to throughput. The allocation rate can and will have an impact on how frequently your minor GC pauses stop application threads, but to see the overall impact, you also need to take into account major GC pauses and measure throughput not in MB/sec but in the business operations your application provides.
 
-那么, 在得出 “Eden去越大越好” 这种结论之前, 你应该注意到分配速率可能会,也可能不会直接影响到程序的实际吞吐量。 这是和吞吐量有关系的一个技术指标. 分配速率会影响让所以线程停止的 minor GC暂停, 但对于总体影响, 还要考虑 Major GC(大型GC)暂停, 而且衡量吞吐量的单位不是 **MB/秒**， 而是程序处理的业务量。
+在得出 “Eden去越大越好” 这种结论前, 我们注意到, 分配速率可能会,也可能不会直接影响程序的实际吞吐量。 这是和吞吐量有关系的一个技术指标. 分配速率会影响让所以线程停止的 minor GC暂停, 但对于总体影响, 还要考虑 Major GC(大型GC)暂停, 而且衡量吞吐量的单位不是 `MB/秒`， 而是程序处理的业务量。
 
 
 ### 示例
@@ -211,7 +213,7 @@ First and foremost, you should only be worried if the throughput of your applica
 
 When you run into a situation like this, you would be facing a log file similar to the following short snippet extracted from the GC logs of the demo application introduced in the previous section. The application was launched as with the -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m command line arguments:
 
-当遇到这种情况时,你将看到类似下面这样的日志片段，从前一节中介绍的[示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) 产生的GC日志中提取出来的. 命令行启动参数为 **-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m**:
+当遇到这种情况时,你将看到类似下面这样的日志片段，从前一节中介绍的[示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) 产生的GC日志中提取出来的. 命令行启动参数为 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m`:
 
 
 	2.808: [GC (Allocation Failure) 
@@ -269,7 +271,7 @@ The result is visible when we run the very same demo application with increased 
 
 However, just throwing more memory at it is not always a viable solution. Equipped with the knowledge on allocation profilers from the previous chapter, we may find out where most of the garbage is produced. Specifically, in this case, 99% are Doubles that are created with the readSensor method. As a simple optimization, the object can be replaced with a primitive double, and the null can be replaced with Double.NaN. Since primitive values are not actually objects, no garbage is produced, and there is nothing to collect. Instead of allocating a new object on the heap, a field in an existing object is directly overwritten.
 
-然而,仅仅增加内存的大小,并不总是一个可行的方案。通过前面章节了解到的分配分析器知识,我们可以找到大部分垃圾产生的地方。具体地说,在这种情况下,99%的是 **readSensor** 方法中创建的 **Double** 对象。作为一个简单的优化,对象可以被替换为原生类型 `double` , 而 null 值可以用  [Double.NaN](https://docs.oracle.com/javase/7/docs/api/java/lang/Double.html#NaN) 来替换。由于原始值不是实际的对象,所以不产生垃圾,也就没有垃圾收集。不在堆上分配一个新对象,而是直接覆盖对象的属性域。
+然而,仅仅增加内存的大小,并不总是一个可行的方案。通过前面章节了解到的分配分析器知识,我们可以找到大部分垃圾产生的地方。具体地说,在这种情况下,99%的是 `readSensor` 方法中创建的 `Double` 对象。作为一个简单的优化,对象可以被替换为原生类型 `double` , 而 null 值可以用  [Double.NaN](https://docs.oracle.com/javase/7/docs/api/java/lang/Double.html#NaN) 来替换。由于原始值不是实际的对象,所以不产生垃圾,也就没有垃圾收集。不在堆上分配一个新对象,而是直接覆盖对象的属性域。
 
 
 The simple change (diff) will, in the demo application, almost completely remove GC pauses. In some cases, the JVM may be clever enough to remove excessive allocations itself by using the escape analysis technique. To cut a long story short, the JIT compiler may in some cases prove that a created object never “escapes” the scope it is created in. In such cases, there is no actual need to allocate it on the heap and produce garbage this way, so the JIT compiler does just that: it eliminates the allocation. See this benchmark for an example.
@@ -547,7 +549,7 @@ If neither is a viable option, then perhaps data structures can be optimized to 
 
 Another class of issues affecting GC is linked to the use of non-strong references in the application. While this may help to avoid an unwanted OutOfMemoryError in many cases, heavy usage of such references may significantly impact the way garbage collection affects the performance of your application.
 
-另一类影响GC的问题与程序中的non-strong引用有关。虽然这些类可能在许多情况下能避免 **OutOfMemoryError**,  但使用过当也有可能会严重影响垃圾收集器的行为, 进而影响系统性能。
+另一类影响GC的问题与程序中的non-strong引用有关。虽然这些类可能在许多情况下能避免 `OutOfMemoryError`,  但使用过当也有可能会严重影响垃圾收集器的行为, 进而影响系统性能。
 
 
 ## 为什么要关心
@@ -555,7 +557,7 @@ Another class of issues affecting GC is linked to the use of non-strong referenc
 
 When using weak references, you should be aware of the way the weak references are garbage-collected. Whenever GC discovers that an object is weakly reachable, that is, the last remaining reference to the object is a weak reference, it is put onto the corresponding ReferenceQueue, and becomes eligible for finalization. One may then poll this reference queue and perform the associated cleanup activities. A typical example for such cleanup would be the removal of the now missing key from the cache.
 
-在使用**弱引用**(weak reference)时,您应该知道, 弱引用是允许被垃圾收集器强行回收的。每当GC发现一个弱可达对象(weakly reachable),即最后一个指向该对象的引用是一个弱引用, 则会将其置入相应的ReferenceQueue 中, 成为可以终结的对象. 之后可能会轮询这个引用队列,并执行相关的清理活动。一个典型的例子是从缓存中清理当前不再引用的KEY。
+在使用`弱引用`(weak reference)时,您应该知道, 弱引用是允许被垃圾收集器强行回收的。每当GC发现一个弱可达对象(weakly reachable),即最后一个指向该对象的引用是一个弱引用, 则会将其置入相应的ReferenceQueue 中, 成为可以终结的对象. 之后可能会轮询这个引用队列,并执行相关的清理活动。一个典型的例子是从缓存中清理当前不再引用的KEY。
 
 
 The trick here is that at this point you can still create new strong references to the object, so before it can be, at last, finalized and reclaimed, GC has to check again that it really is okay to do this. Thus, the weakly referenced objects are not reclaimed for an extra GC cycle.
@@ -570,12 +572,12 @@ Weak references are actually a lot more common than you might think. Many cachin
 
 When using soft references, you should bear in mind that soft references are collected much less eagerly than the weak ones. The exact point at which it happens is not specified and depends on the implementation of the JVM. Typically the collection of soft references happens only as a last ditch effort before running out of memory. What it implies is that you might find yourself in situations where you face either more frequent or longer full GC pauses than expected, since there are more objects resting in the old generation.
 
-在使用**软引用**(soft reference)时,你应该记住,软引用比弱引用更容易被垃圾收集器回收. 它发生的时间点没有确切指定,取决于JVM的实现. 通常软引用的收集只会在即将耗尽内存之前,作为最后的手段. 这意味着,你可能会发现自己面临着更频繁的完全GC, 暂停时间也比预期的时间更长, 因为有更多的对象在老年代。
+在使用`软引用`(soft reference)时,你应该记住,软引用比弱引用更容易被垃圾收集器回收. 它发生的时间点没有确切指定,取决于JVM的实现. 通常软引用的收集只会在即将耗尽内存之前,作为最后的手段. 这意味着,你可能会发现自己面临着更频繁的完全GC, 暂停时间也比预期的时间更长, 因为有更多的对象在老年代。
 
 
 When using phantom references, you have to literally do manual memory management in regards of flagging such references eligible for garbage collection. It is dangerous, as a superficial glance at the javadoc may lead one to believe they are the completely safe to use:
 
-在使用**虚引用**(phantom reference)时,你必须手动进行内存管理,以标记这些引用是否可以进行垃圾收集。这是很危险的,虽然表面上,看一眼javadoc可能会让人相信使用它们是完全安全的:
+在使用`虚引用`(phantom reference)时,你必须手动进行内存管理,以标记这些引用是否可以进行垃圾收集。这是很危险的,虽然表面上,看一眼javadoc可能会让人相信使用它们是完全安全的:
 
 
 In order to ensure that a reclaimable object remains so, the referent of a phantom reference may not be retrieved: The get method of a phantom reference always returns null.
@@ -696,7 +698,7 @@ main 线程中抛出异常 ` java.lang.OutOfMemoryError: Java heap space`.
 
 One must exercise extreme caution when using phantom references and always clear up the phantom reachable objects in a timely manner. Failing to do so will likely end up with an OutOfMemoryError. And trust us when we say that it is quite easy to fail at this: one unexpected exception in the thread that processes the reference queue, and you will have a dead application at your hand.
 
-使用虚引用时必须非常谨慎, 并及时清理虚可达的对象。如果不这样做,可能就会发生 **OutOfMemoryError**. 请相信我们的教训: 如果处理引用队列的线程抛出的 unexpected exception 没处理好, 那你的系统很快就挂了。
+使用虚引用时必须非常谨慎, 并及时清理虚可达的对象。如果不这样做,可能就会发生 `OutOfMemoryError`. 请相信我们的教训: 如果处理引用队列的线程抛出的 unexpected exception 没处理好, 那你的系统很快就挂了。
 
 
 ### Could my JVMs be Affected?
@@ -768,9 +770,9 @@ When you have verified the application actually is suffering from the mis-, ab- 
 
 <br/>
 
-- **弱引用**(Weak references) —— 如果问题是由于某个特定的内存池使用量的增长触发的, 那么增加相应池的大小(可能也需要增加总的堆内存大小)。正如在示例中所看到的, 增加总的堆内存以及年轻代的大小可以减轻症状。
-- **虚引用**(Phantom references) —— 请确保真正地清除了引用。编程中很容易忽略某些角落的虚引用, 或者在运行时清理线程无法跟上生产者队列的步伐,  或者完全停止清除队列,  就会对GC施加很多压力, 并且可能到最后会引起 **OutOfMemoryError**。
-- **软引用**(Soft references) ——  如果确定问题的根源是软引用, 真正缓解压力的办法就是修改源码,改变应用程序的内部逻辑。
+- `弱引用`(Weak references) —— 如果问题是由于某个特定的内存池使用量的增长触发的, 那么增加相应池的大小(可能也需要增加总的堆内存大小)。正如在示例中所看到的, 增加总的堆内存以及年轻代的大小可以减轻症状。
+- `虚引用`(Phantom references) —— 请确保真正地清除了引用。编程中很容易忽略某些角落的虚引用, 或者在运行时清理线程无法跟上生产者队列的步伐,  或者完全停止清除队列,  就会对GC施加很多压力, 并且可能到最后会引起 `OutOfMemoryError`。
+- `软引用`(Soft references) ——  如果确定问题的根源是软引用, 真正缓解压力的办法就是修改源码,改变应用程序的内部逻辑。
 
 
 
@@ -800,7 +802,7 @@ The problem is exposed by seemingly unnecessary and periodic full GC pauses. Whe
 
 This behavior of removing remote references via System.gc() is triggered by the sun.rmi.transport.ObjectTable class requesting garbage collection to be run periodically as specified in the sun.misc.GC.requestLatency() method.
 
-这种删除远程引用的行为, 是由  `sun.rmi.transport.ObjectTable` 类调用  `sun.misc.GC.requestLatency()` 方法, 周期性地通过  **System.gc()**  触发的。
+这种删除远程引用的行为, 是由  `sun.rmi.transport.ObjectTable` 类调用  `sun.misc.GC.requestLatency()` 方法, 周期性地通过  `System.gc()`  触发的。
 
 
 For many applications, this is not necessary or outright harmful. To disable such periodic GC runs, you can set up the following for your JVM startup scripts:
@@ -816,13 +818,13 @@ For many applications, this is not necessary or outright harmful. To disable suc
 
 This sets the period after which System.gc() is run to Long.MAX_VALUE; for all practical matters, this equals eternity.
 
-这让 **Long.MAX_VALUE** 之后才触发 **System.gc()** , 对于现实世界来说, 也就是永远不触发。
+这让 `Long.MAX_VALUE` 之后才触发 `System.gc()` , 对于现实世界来说, 也就是永远不触发。
 
 
 
 An alternative solution for the problem would to disable explicit calls to System.gc() by specifying -XX:+DisableExplicitGC in the JVM startup parameters. We do not however recommend this solution as it can have other side effects.
 
-另一种解决方式是指定 **-XX:+DisableExplicitGC**, 来禁止显式地调用 `System.gc()`.  然而我们**不推荐**这种解决方式,因为它有其他的副作用。
+另一种解决方式是指定 `-XX:+DisableExplicitGC`, 来禁止显式地调用 `System.gc()`.  然而我们**不推荐**这种解决方式,因为它有其他的副作用。
 
 
 ### JVMTI tagging & GC
@@ -927,12 +929,12 @@ Now, when you check the logs and discover sections like these:
 
 you have evidence that the application is indeed allocating humongous objects. The evidence is visible in the cause for a GC pause being identified as G1 Humongous Allocation and in the “allocation request: 1048592 bytes” section, where we can see that the application is trying to allocate an object with the size of 1,048,592 bytes, which is 16 bytes larger than the 50% of the 2 MB size of the humongous region specified for the JVM.
 
-现在有证据表明, 应用程序确实分配了巨无霸对象.  **G1 Humongous Allocation ** 这个GC暂停的原因就是证据, 在 “allocation request: 1048592 bytes” 这一节, 在这里我们可以看到程序试图分配一个 `1,048,592` 字节大小的对象, 这比JVM指定的巨无霸区域大小(**2MB**)的 50% 多出了 16 个字节。
+现在有证据表明, 应用程序确实分配了巨无霸对象.  `G1 Humongous Allocation ` 这个GC暂停的原因就是证据, 在 “allocation request: 1048592 bytes” 这一节, 在这里我们可以看到程序试图分配一个 `1,048,592` 字节大小的对象, 这比JVM指定的巨无霸区域大小(`2MB`)的 50% 多出了 16 个字节。
 
 
 The first solution for humongous allocation is to change the region size so that (most) of the allocations would not exceed the 50% limit triggering allocations in the humongous regions. The region size is calculated by the JVM during startup based on the size of the heap. You can override the size by specifying -XX:G1HeapRegionSize=XX in the startup script. The specified region size must be between 1 and 32 megabytes and has to be a power of two.
 
-处理巨无霸对象分配的第一种方式, 是修改 region size , 使得(大多数的)分配不超过50%的限制, 引起在大对象区域的分配. 区域大小是由JVM在启动期间基于堆的大小计算得出的。你可以通过指定 `-XX:G1HeapRegionSize=XX`  启动参数来覆盖默认设置. 指定的区域大小必须介于 **1~32MB** 之间, 还必须是2的幂。
+处理巨无霸对象分配的第一种方式, 是修改 region size , 使得(大多数的)分配不超过50%的限制, 引起在大对象区域的分配. 区域大小是由JVM在启动期间基于堆的大小计算得出的。你可以通过指定 `-XX:G1HeapRegionSize=XX`  启动参数来覆盖默认设置. 指定的区域大小必须介于 `1~32MB` 之间, 还必须是2的幂。
 
 
 This solution can have side effects – increasing the region size reduces the number of regions available so you need to be careful and run extra set of tests to see whether or not you actually improved the throughput or latency of the application.
