@@ -199,23 +199,20 @@ The demo application is impacted by the GC not keeping up with the allocation ra
 Demo 程序在运行的过程中, 由于分配速率太大而受GC拖累。下一节将确认问题, 并给出解决办法。
 
 
-
--- 校对到此处 !!!!!
-
 ### Could my JVMs be Affected?
 
-### 我的 JVM 会受影响吗?
+### JVM 会受到分配速率的影响吗?
 
 
 
 First and foremost, you should only be worried if the throughput of your application starts to decrease. As the application is creating too much objects that are almost immediately discarded, the frequency of minor GC pauses surges. Under enough of a load this can result in GC having a significant impact on throughput.
 
-首先，最重要的是,你应该只关心应用程序的吞吐量是否开始减少。如果程序创建了太多立即丢弃的对象,小型GC暂停就会激增。负荷足够的情况下这会导致GC对吞吐量产生显著的影响。
+首先，我们应该检查程序的吞吐量是否降低。如果创建了过多的临时对象, 小型GC的次数就会增加。如果并发较大, 则GC很可能会严重影响吞吐量。
 
 
 When you run into a situation like this, you would be facing a log file similar to the following short snippet extracted from the GC logs of the demo application introduced in the previous section. The application was launched as with the -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m command line arguments:
 
-当遇到这种情况时,你将看到类似下面这样的日志片段，从前一节中介绍的[示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) 产生的GC日志中提取出来的. 命令行启动参数为 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m`:
+遇到这种情况时, GC日志将会像下面这样，当然这是从上一节的[示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) 产生的GC日志中提取的。 JVM启动参数为 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m`:
 
 
 	2.808: [GC (Allocation Failure) 
@@ -242,8 +239,11 @@ When you run into a situation like this, you would be facing a log file similar 
 
 What should immediately grab your attention is the frequency of minor GC events. This indicates that there are lots and lots of objects being allocated. Additionally, the post-GC occupancy of the young generation remains low, and no full collections are happening. These symptoms indicate that the GC is having significant impact to the throughput of the application at hand.
 
-吸引你眼光的应该是小型GC的频率。这表明有很多很多的对象被分配。另外,年轻代的 post-GC 入住率仍然很低,也没有 full GC 发生.这些症状表明, GC对应用程序的吞吐量有重大影响。
+很显然 minor GC 的频率太高了。这说明创建了大量的对象。另外, 年轻代在 GC 之后的使用量又很低, 也没有 full GC 发生。 这种症状表明, GC对吞吐量有严重的影响。
 
+
+
+-- 校对到此处 !!!!!
 
 
 ### 解决方案
