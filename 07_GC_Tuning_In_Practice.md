@@ -165,15 +165,12 @@ Now, before you jump to the conclusion that “bigger Eden is better”, you sho
 
 
 
--- 校对到此处 !!!!!
-
-
 ### 示例
 
 
 Meet the demo application. Suppose that it works with an external sensor that provides a number. The application continuously updates the value of the sensor in a dedicated thread (to a random value, in this example), and from other threads sometimes uses the most recent value to do something meaningful with it in the processSensorValue() method:
 
-为了满足演示的需要。假设应用与提供一个数字的外部传感器协同工作。应用程序通过一个专用线程,不断更新传感器的值,(在本例中使用的是随机值), 有时从其他线程用最新的值来做一些有意义的事情, 调用 `processSensorValue()` 方法:
+为了演示需要。假设系统连接了一个外部的数字传感器。应用通过专有线程, 不断地获取传感器的值,(此处使用随机数模拟), 其他线程会调用 `processSensorValue()` 方法, 传入传感器的值来执行某些操作, :
 
 
 	public class BoxingFailure {
@@ -192,16 +189,18 @@ Meet the demo application. Suppose that it works with an external sensor that pr
 
 
 
-
 As the name of the class suggests, the problem here is boxing. Possibly to accommodate the null check, the author made the sensorValue field a capital-D Double. This example is quite a common pattern of dealing with calculations based on the most recent value, when obtaining this value is an expensive operation. And in the real world, it is usually much more expensive than just getting a random value. Thus, one thread continuously generates new values, and the calculating thread uses them, avoiding the expensive retrieval.
 
-如同类名所示, 这个示例问题是拳击(boxing)。为了适应 null 检查, 作者将 `sensorValue` 属性设置为包装类型 `Double`. 这个例子是基于最新数值进行计算的普遍模式, 如果获取这个值是一个笨重的操作时。在实际情况下, 通常比获取随机值的代价要高很多。因此,一个线程不断生成新值, 而计算线程使用它们,避免昂贵的检索。
+如同类名所示, 这个Demo是模拟 boxing 的。为了判断 null 值, 使用的是包装类型 `Double`。 基于传感器的最新值进行计算, 但从传感器取值是一个耗时操作, 所以采用了异步方式： 一个线程不断获取新值, 计算线程则直接使用暂存的最新值, 从而避免同步获取。
 
 
 The demo application is impacted by the GC not keeping up with the allocation rate. The ways to verify and solve the issue are given in the next sections.
 
-演示程序中由于GC跟不上分配速率而受到影响。在接下来的部分将验证并给出解决问题的方法。
+Demo 程序在运行的过程中, 由于分配速率太大而受GC拖累。下一节将确认问题, 并给出解决办法。
 
+
+
+-- 校对到此处 !!!!!
 
 ### Could my JVMs be Affected?
 
