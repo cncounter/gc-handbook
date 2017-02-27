@@ -157,12 +157,15 @@ If you are still wondering how this can be true – if you stop your application
 
 为什么会这样? —— 因为减少GC暂停,就等价于减少任务线程的停顿，就可以做更多工作, 也就创建了更多对象, 所以对同一应用程序, 分配速率越高越好。
 
--- 校对到此处 !!!!!
 
 
 Now, before you jump to the conclusion that “bigger Eden is better”, you should notice that the allocation rate might and probably does not directly correlate with the actual throughput of your application. It is a technical measurement contributing to throughput. The allocation rate can and will have an impact on how frequently your minor GC pauses stop application threads, but to see the overall impact, you also need to take into account major GC pauses and measure throughput not in MB/sec but in the business operations your application provides.
 
-在得出 “Eden去越大越好” 这种结论前, 我们注意到, 分配速率可能会,也可能不会直接影响程序的实际吞吐量。 这是和吞吐量有关系的一个技术指标. 分配速率会影响让所以线程停止的 minor GC暂停, 但对于总体影响, 还要考虑 Major GC(大型GC)暂停, 而且衡量吞吐量的单位不是 `MB/秒`， 而是程序处理的业务量。
+在得出 “Eden去越大越好” 这种结论前, 我们注意到, 分配速率可能会,也可能不会直接影响程序的实际吞吐量。 吞吐量和分配速率有一定关系, 分配速率会影响 minor GC 暂停, 但对总体吞吐量的影响, 还要考虑 Major GC(大型GC)暂停, 而且吞吐量的单位不是 `MB/秒`， 而是应用所处理的业务量。
+
+
+
+-- 校对到此处 !!!!!
 
 
 ### 示例
