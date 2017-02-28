@@ -243,20 +243,17 @@ What should immediately grab your attention is the frequency of minor GC events.
 
 
 
--- 校对到此处 !!!!!
-
-
 ### 解决方案
 
 
 In some cases, reducing the impact of high allocation rates can be as easy as increasing the size of the young generation. Doing so will not reduce the allocation rate itself, but will result in less frequent collections. The benefit of the approach kicks in when there will be only a few survivors every time. As the duration of a minor GC pause is impacted by the number of surviving objects, they will not noticeably increase here.
 
-在某些情况下,减少高分配速率的影响也很容易,只要增加年轻代的大小即可。这样做不会减少分配速率本身,但是会减少垃圾收集的频率。这样的好处是每次都只有少数的存活对象.小型GC的暂停时间受存活对象数量的影响,但这个数量并不会明显增加。
+在某些情况下,只要增加年轻代空间的大小, 即可降低分配速率过高的影响。增加年轻代空间并不会降低分配速率, 但是会减少GC的频率。如果每次GC后只有少量对象存活, minor GC 的暂停时间就不会明显增加。
 
 
 The result is visible when we run the very same demo application with increased heap size and, with it, the young generation size, by using the -Xmx64m parameter:
 
-结果是可见的,当我们增加堆内存的大小来运行 [示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) 时,同时也增大了年轻代的大小,通过使用参数 `-Xmx64m`:
+运行 [示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) , 增加堆内存大小,(同时也就增大了年轻代的大小), 使用的JVM参数为 `-Xmx64m`:
 
 
 	2.808: [GC (Allocation Failure) 
@@ -273,13 +270,16 @@ The result is visible when we run the very same demo application with increased 
 
 However, just throwing more memory at it is not always a viable solution. Equipped with the knowledge on allocation profilers from the previous chapter, we may find out where most of the garbage is produced. Specifically, in this case, 99% are Doubles that are created with the readSensor method. As a simple optimization, the object can be replaced with a primitive double, and the null can be replaced with Double.NaN. Since primitive values are not actually objects, no garbage is produced, and there is nothing to collect. Instead of allocating a new object on the heap, a field in an existing object is directly overwritten.
 
-然而,仅仅增加内存的大小,并不总是一个可行的方案。通过前面章节了解到的分配分析器知识,我们可以找到大部分垃圾产生的地方。具体地说,在这种情况下,99%的是 `readSensor` 方法中创建的 `Double` 对象。作为一个简单的优化,对象可以被替换为原生类型 `double` , 而 null 值可以用  [Double.NaN](https://docs.oracle.com/javase/7/docs/api/java/lang/Double.html#NaN) 来替换。由于原始值不是实际的对象,所以不产生垃圾,也就没有垃圾收集。不在堆上分配一个新对象,而是直接覆盖对象的属性域。
+但只增加堆内存的大小,有时候并不能解决问题。通过前面学习的知识, 我们可以通过分配分析器找出大部分垃圾产生的位置。实际上在此示例中, 99%的对象是 `Double` 包装类, 在`readSensor` 方法中创建。可以进行简单的优化, 将创建的 `Double` 对象替换为原生类型 `double`, 而 null 值的判断, 可以使用  [Double.NaN](https://docs.oracle.com/javase/7/docs/api/java/lang/Double.html#NaN) 来进行。由于原生类型不算是对象, 也就不会产生垃圾, 不容易产生GC事件。优化之后, 不在堆内存中分配新对象, 而是直接覆盖一个属性域即可。
 
 
 The simple change (diff) will, in the demo application, almost completely remove GC pauses. In some cases, the JVM may be clever enough to remove excessive allocations itself by using the escape analysis technique. To cut a long story short, the JIT compiler may in some cases prove that a created object never “escapes” the scope it is created in. In such cases, there is no actual need to allocate it on the heap and produce garbage this way, so the JIT compiler does just that: it eliminates the allocation. See this benchmark for an example.
 
-对示例程序进行 [简单的改变](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/FixedBoxing.java)( [diff](https://gist.github.com/gvsmirnov/0270f0f15f9498e3b655) ),几乎完全消除了GC暂停。在某些情况下,JVM可能会足够聪明,通过使用逃离分析技术来避免过度分配。长话短说,JIT编译器在某些情况下,创建的对象可能永远不会“逃出”创建它的作用域。在这种情况下,不需要在堆上进行实际的分配并产生垃圾,所以JIT编译器做的就是: 消除了分配。请参考 这个[基准测试的例子](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/jit/EscapeAnalysis.java)。
+对示例程序进行[简单的改造](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/FixedBoxing.java)( [diff](https://gist.github.com/gvsmirnov/0270f0f15f9498e3b655) ) 之后, GC暂停基本上完全消除。有时候 JVM 也会很智能, 使用 逃逸分析技术(escape analysis technique) 来避免过度分配。简单来说,JIT编译器可以分析得知, 方法创建的某些对象永远都不会“逃出”此方法的作用域。这时候就不需要在堆上分配这些对象, 也就不会产生垃圾, 所以JIT编译器所做的一种优化就是: 消除内存分配。请参考 [基准测试](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/jit/EscapeAnalysis.java) 。
 
+
+
+-- 校对到此处 !!!!!
 
 
 ## 过早晋升(Premature Promotion)
