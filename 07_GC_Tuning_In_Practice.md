@@ -3,7 +3,7 @@
 
 This chapter covers several typical performance problems that one may encounter with garbage collection. The examples given here are derived from real applications, but are simplified for the sake of clarity.
 
-本章介绍可能会导致GC性能问题的几种典型情况。相关示例都来源于生产环境, 为了演示的需要,做了一定简化。
+本章介绍会导致GC性能问题的典型情况。相关示例都来源于生产环境, 为了演示的需要,做了一定简化。
 
 
 ## 高分配速率(High Allocation Rate)
@@ -12,7 +12,7 @@ This chapter covers several typical performance problems that one may encounter 
 Allocation rate is a term used when communicating the amount of memory allocated per time unit. Often it is expressed in MB/sec, but you can use PB/year if you feel like it. So that is all there is – no magic, just the amount of memory you allocate in your Java code measured over a period of time.
 
 
-分配速率(`Allocation rate`)用来表示 单位时间内分配的内存容量。通常表示为 `MB/sec`, 也可以使用 `PB/year` 等等。这很容易理解, 通过一段时间来衡量Java代码所分配的内存总量。
+分配速率(`Allocation rate`)用来表示单位时间内分配的内存总量。单位通常是 `MB/sec`, 也可以使用 `PB/year` 等。这很容易理解, 通过一段时间来衡量Java代码创建的内存总量。
 
 
 
@@ -279,32 +279,31 @@ The simple change (diff) will, in the demo application, almost completely remove
 
 
 
--- 校对到此处 !!!!!
-
-
-## 过早晋升(Premature Promotion)
-
+## 过早提升(Premature Promotion)
 
 
 
 Before explaining the concept of premature promotion, we should familiarize ourselves with the concept it builds upon – the promotion rate. The promotion rate is measured in the amount of data propagated from the young generation to the old generation per time unit. It is often measured in MB/sec, similarly to the allocation rate.
 
-解释过早提升的概念之前,我们应该熟悉基本的概念 —— 提升速率。提升速率衡量每单位时间内从年轻代传播到老年代的数量。单位一般是 MB/秒, 类似于分配速率。
+先介绍一个基本概念 —— **提升速率**(`premature promotion`)。提升速率用于衡量单位时间内从年轻代提升到老年代的数据量。一般使用 `MB/sec` 作为单位, 和分配速率类似。
 
 
 
 Promoting long-lived objects from the young generation to the old is how JVM is expected to behave. Recalling the generation hypothesis we can now construct a situation where not only long-lived objects end up in the old generation. Such a situation, where objects with a short life expectancy are not collected in the young generation and get promoted to the old generation, is called premature promotion.
 
 
-从年轻代提升存活时间长的对象到老年代是JVM期待的行为。回忆分代假设,我们现在可以假设一种情况,不仅仅只有存活时间长的对象最终在老年代中。这种情况下,存活时间的对象不收集在年轻代中收集,而且会提升到老年代,这种现象被称为过早晋升。
+JVM会将长时间存活的对象从年轻代提升到老年代。根据分代假设, 可能存在一种情况, 老年代中不仅有存活时间长的对象,也可能有存活时间短的对象。这就是过早提升：存活时间还不长的对象被提升到了老年代。
 
 
 
 Cleaning these short-lived objects now becomes a job for major GC, which is not designed for frequent runs and results in longer GC pauses. This significantly affects the throughput of the application.
 
 
-清理这些生命短暂的对象现在成为了大型GC的工作,大型GC不是专为频繁运行设计的,所以会导致GC暂停时间很长。这大大影响应用程序的吞吐量。
+ major GC 不是为这种频繁回收而设计的, 但现在 major GC 也要清理这些生命短暂的对象, 所以会导致GC暂停时间过长。这就严重影响了系统吞吐量。
 
+
+
+-- 校对到此处 !!!!!
 
 ### How to Measure Promotion Rate
 
