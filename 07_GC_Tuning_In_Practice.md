@@ -302,18 +302,15 @@ Cleaning these short-lived objects now becomes a job for major GC, which is not 
  major GC 不是为这种频繁回收而设计的, 但现在 major GC 也要清理这些生命短暂的对象, 所以会导致GC暂停时间过长。这就严重影响了系统吞吐量。
 
 
-
--- 校对到此处 !!!!!
-
 ### How to Measure Promotion Rate
 
-### 如何衡量提升速率
+### 如何测量提升速率
 
 
 One of the ways you can measure the promotion rate is to turn on GC logging by specifying -XX:+PrintGCDetails -XX:+PrintGCTimeStamps flags for the JVM. The JVM now starts logging the GC pauses just like in the following snippet:
 
 
-测量提升速率的一种方法是指定JVM参数 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` 来启用GC日志记录. 则JVM开始记录GC停顿信息,像以下代码片段:
+可以指定JVM参数 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` , 通过GC日志来测量提升速率. JVM记录的GC停顿信息如下所示:
 
 
 	0.291: [GC (Allocation Failure) 
@@ -334,7 +331,7 @@ One of the ways you can measure the promotion rate is to turn on GC logging by s
 
 From the above we can extract the size of the young Generation and the total heap both before and after the collection event. Knowing the consumption of the young generation and the total heap, it is easy to calculate the consumption of the old generation as just the delta between the two. Expressing the information in GC logs as:
 
-从上面的信息我们可以得出, 在垃圾收集前后的 年轻代大小和总堆内存的大小。根据年轻代和整个堆的使用情况, 很容易计算出老年代的使用量就是是两者之间的差值。GC日志中的信息表示为:
+从上面的信息可以得知, GC前和GC之后,年轻代的使用量,以及堆内存使用的总量。这样就很可以算出, 老年代的使用量就是是两者的差值。GC日志中的信息可以表示为:
 
 
 <table class="data compact">
@@ -397,12 +394,16 @@ From the above we can extract the size of the young Generation and the total hea
 
 will allow us to extract the promotion rate for the measured period. We can see that on average the promotion rate was 92 MB/sec, peaking at 140.95 MB/sec for a while.
 
-根据观测时间内提取出晋升速度。我们可以看到,平均提升速率为92 MB/秒,峰值为140.95 MB/秒。
+根据这些信息, 就可以得出观察周期内的提升速率。平均提升速率为 `92 MB/秒`, 峰值为 `140.95 MB/秒`。
 
 
 Notice that you can extract this information only from minor GC pauses. Full GC pauses do not expose the promotion rate as the change in the old generation usage in GC logs also includes objects cleaned by the major GC.
 
-请注意, 只能从小型GC暂停中提取到这些信息. 完全GC暂停不公开提升速率的改变在老年代使用GC日志中还包括清洗的对象主要的GC。
+请注意, 只能根据 minor GC 计算这些信息. Full GC 暂停的日志,不能用于计算提升速率, 因为 major GC 会清理老年代中的一部分对象。
+
+
+
+-- 校对到此处 !!!!!
 
 
 ### 提升速率的意义
@@ -479,7 +480,7 @@ In general, the symptoms of premature promotion can take any of the following fo
 
 Showcasing this in a short and easy-to-understand demo application is a bit tricky, so we will cheat a little by making the objects tenure to the old generation a bit earlier than it happens by default. If we ran the demo with a specific set of GC parameters (-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1), we would see this in the garbage collection logs:
 
-要展示这种情况的代码有点麻烦,  所以我们使用作弊手段, 让对象晋升到老年代的生存周期比默认情况要小很多。如果我们指定这样的GC参数来运行示例程序(`-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1`), 则可以看到下面这样的垃圾收集日志:
+要展示这种情况的代码有点麻烦,  所以我们使用作弊手段, 让对象提升到老年代的生存周期比默认情况要小很多。如果我们指定这样的GC参数来运行示例程序(`-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1`), 则可以看到下面这样的垃圾收集日志:
 
 
 	2.176: [Full GC (Ergonomics) 
