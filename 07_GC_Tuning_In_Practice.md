@@ -422,15 +422,12 @@ As we have shown in earlier chapters, full garbage collections typically require
 此前我们说过, full GC 通常需要更多的时间, 因为需要处理更多的对象, 还要额外执行碎片整理等复杂的过程。
 
 
-
--- 校对到此处 !!!!!
-
 ### 示例
 
 
 Let us look at a demo application suffering from premature promotion. This app obtains chunks of data, accumulates them, and, when a sufficient number is reached, processes the whole batch at once:
 
-让我们看一个蕴含遭受过早提升的演示程序。这个程序获取并持有大量的数据,积累到一定数量时,才进行一次批量处理:
+让我们看一个过早提升的示例。 这个程序创建/获取大量的对象/数据,并暂存到集合之中, 累积到一定数量之后,进行批处理:
 
 
 	public class PrematurePromotion {
@@ -453,8 +450,11 @@ Let us look at a demo application suffering from premature promotion. This app o
 
 The demo application is impacted by premature promotion by the GC. The ways to verify and solve the issue are given in the next sections.
 
-演示程序受过早提升和GC的影响。在接下来的部分将验证并给出解决问题的方法。
+此 Demo 程序受到过早提升的影响。在接下来的部分将进行确认并给出解决办法。
 
+
+
+-- 校对到此处 !!!!!
 
 ### Could my JVMs be Affected?
 
