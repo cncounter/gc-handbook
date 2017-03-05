@@ -403,15 +403,12 @@ Notice that you can extract this information only from minor GC pauses. Full GC 
 
 
 
--- 校对到此处 !!!!!
-
-
 ### 提升速率的意义
 
 
 Similarly to the allocation rate, the main impact of the promotion rate is the change of frequency in GC pauses. But as opposed to the allocation rate that affects the frequency of minor GC events, the promotion rate affects the frequency of major GC events. Let me explain – the more stuff you promote to the old generation the faster you will fill it up. Filling the old generation faster means that the frequency of the GC events cleaning the old generation will increase.
 
-和分配速率类似,  提升速率主要影响的也是GC暂停出现的频率。但分配速率主要是影响小型GC事件的触发频率, 而提升速率影响的是大型GC事件的频率。有更多的东西提升到老年代,自然会很快就会把它填满. 老年代填充的越快,就意味着清理老年代的GC事件频率将会增加。
+和分配速率一样, 提升速率也会影响GC暂停的频率。但分配速率主要影响 minor GC, 而提升速率则影响的是 major GC 的频率。有大量的数据提升,自然很快就会把老年代填满。 老年代填充的越快, 则 major GC 事件的频率将会越快。
 
 
 
@@ -422,8 +419,11 @@ Similarly to the allocation rate, the main impact of the promotion rate is the c
 
 As we have shown in earlier chapters, full garbage collections typically require much more time, as they have to interact with many more objects, and perform additional complex activities such as defragmentation.
 
-在之前的章节中,我们说过,完全GC通常需要更多的时间, 因为必须处理更多的对象, 还要执行额外的碎片整理等复杂活动。
+此前我们说过, full GC 通常需要更多的时间, 因为需要处理更多的对象, 还要额外执行碎片整理等复杂的过程。
 
+
+
+-- 校对到此处 !!!!!
 
 ### 示例
 
