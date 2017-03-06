@@ -510,15 +510,14 @@ There is a simple explanation for this GC behavior: while many objects are being
 简单解释一下这种GC行为: 有很多对象提升到老年代的同时, 也有很多老年代中的对象被回收了, 这就造成了老年代使用量减少的假象. 但事实是大量的对象被不断地提升到老年代, 触发 full GC。
 
 
-
--- 校对到此处 !!!!!
-
 ### 解决方案
 
 
 In a nutshell, to fix this problem, we would need to make the buffered data fit into the young generation. There are two simple approaches for doing this. The first is to increase the young generation size by using -Xmx64m -XX:NewSize=32m parameters at JVM startup. Running the application with this change in configuration will make Full GC events much less frequent, while barely affecting the duration of minor collections:
 
-简而言之,为了解决这个问题,我们需要让年轻代存放得下缓存数据。有两个简单的方法来. 第一是增加年轻代的大小, 例如设置JVM启动参数 ` -Xmx64m -XX:NewSize=32m` . 这样在程序运行时就会让 Full  GC事件减少很多, 而仅仅是影响小型GC的持续时间:
+简单点, 要解决这类问题, 需要让年轻代存放得下暂存的数据。有两种简单的方法:
+
+一是增加年轻代的大小, 设置JVM启动参数, 类似这样: ` -Xmx64m -XX:NewSize=32m`, 程序在执行时, Full GC 自然会减少很多, 只影响 minor GC的持续时间:
 
 
 
@@ -534,13 +533,16 @@ In a nutshell, to fix this problem, we would need to make the buffered data fit 
 
 Another approach in this case would be to simply decrease the batch size, which would also give a similar result. Picking the right solution heavily depends on what is really happening in the application. In some cases, business logic does not permit decreasing batch size. In this case, increasing available memory or redistributing in favor of the young generation might be possible.
 
-另一种解决办法, 是减少每次批处理的数量, 这也能得到类似的结果. 哪种解决方案更好,很大程度上取决于应用程序中真正发生了什么。在某些情况下, 业务逻辑不允许减少批处理的数量。那种情况下, 增加可用内存或者重新分配年轻代的大小可能更恰当一些。
+二是减少每批次处理的数量, 也能得到类似的结果. 至于哪种方案更好, 很大程度上取决于应用程序中真正执行的逻辑。在某些情况下, 业务逻辑不允许减少批处理的数量, 就只能增加可用内存,或者重新指定年轻代的大小。
 
 
 If neither is a viable option, then perhaps data structures can be optimized to consume less memory. But the general goal in this case remains the same: make transient data fit into the young generation.
 
-如果没有一个可行的选择, 那么优化数据结构也能消耗更少的内存。但在这种情况下,总体目标依然是相同的: 使瞬态数据能存放在年轻代。
+如果都不可行, 那就优化数据结构, 减少内存消耗。但总体目标依然是一致的: 让临时数据能够在年轻代存放得下。
 
+
+
+-- 校对到此处 !!!!!
 
 
 
