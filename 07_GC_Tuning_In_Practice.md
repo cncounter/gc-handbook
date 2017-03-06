@@ -453,17 +453,14 @@ The demo application is impacted by premature promotion by the GC. The ways to v
 此 Demo 程序受到过早提升的影响。在接下来的部分将进行确认并给出解决办法。
 
 
-
--- 校对到此处 !!!!!
-
 ### Could my JVMs be Affected?
 
-### 我的jvm会受影响吗?
+### 我的JVM会受影响吗?
 
 
 In general, the symptoms of premature promotion can take any of the following forms:
 
-一般来说,过早提升的症状可能表现为以下形式:
+一般来说,过早提升的症状表现为以下形式:
 
 
 - The application goes through frequent full GC runs over a short period of time.
@@ -472,15 +469,15 @@ In general, the symptoms of premature promotion can take any of the following fo
 
 <br/>
 
-- 在很短的时间内应用程序频繁地进行完全GC。
-- 每次GC过后老年代的使用率都很低, 通常在10-20%的左右。
-- 提升速率接近分配速率。
+- 在很短的时间内频繁地执行 full GC。
+- 每次 full GC 后老年代的使用率都很低, 在10-20%或以下。
+- 提升速率约等于分配速率。
 
 
 
 Showcasing this in a short and easy-to-understand demo application is a bit tricky, so we will cheat a little by making the objects tenure to the old generation a bit earlier than it happens by default. If we ran the demo with a specific set of GC parameters (-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1), we would see this in the garbage collection logs:
 
-要展示这种情况的代码有点麻烦,  所以我们使用作弊手段, 让对象提升到老年代的生存周期比默认情况要小很多。如果我们指定这样的GC参数来运行示例程序(`-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1`), 则可以看到下面这样的垃圾收集日志:
+要演示这种情况稍微有点麻烦, 所以我们使用点特殊手段, 让对象提升到老年代的年龄比默认情况小很多。指定GC参数 `-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1`, 运行程序之后,可以看到下面的GC日志:
 
 
 	2.176: [Full GC (Ergonomics) 
@@ -505,13 +502,16 @@ Showcasing this in a short and easy-to-understand demo application is a bit tric
 
 At first glance it may seem that premature promotion is not the issue here. Indeed, the occupancy of the old generation seems to be decreasing on each cycle. However, if few or no objects were promoted, we would not be seeing a lot of full garbage collections.
 
-乍一看似乎过早提升不是问题。事实上,在每次GC周期中老年代的入住率似乎在减少。然而,如果很少或根本没有对象被提升, 则我们基本上不会看到有很多次垃圾收集。
+乍一看似乎不是过早提升的问题。事实上,在每次GC之后老年代的使用率似乎在减少。但反过来想, 要是没有对象提升或者提升率很小, 也就不会看到这么多的 Full GC。
 
 
 There is a simple explanation for this GC behavior: while many objects are being promoted to the old generation, some existing objects are collected. This gives the impression that the old generation usage is decreasing, while in fact, there are objects that are constantly being promoted, triggering full GC.
 
-对这种GC行为有一个简单的解释: 在很多对象被提升到老年代的同时, 也有很多现有的对象被回收了. 这造成了老年代使用量减少的印象, 而事实上,有很多对象不断地被提升, 进而触发完全GC。
+简单解释一下这种GC行为: 有很多对象提升到老年代的同时, 也有很多老年代中的对象被回收了, 这就造成了老年代使用量减少的假象. 但事实是大量的对象被不断地提升到老年代, 触发 full GC。
 
+
+
+-- 校对到此处 !!!!!
 
 ### 解决方案
 
