@@ -542,21 +542,18 @@ If neither is a viable option, then perhaps data structures can be optimized to 
 
 
 
--- 校对到此处 !!!!!
-
-
-
-## Weak, Soft and Phantom References
-
 ## Weak, Soft 以及 Phantom 引用
 
 
 Another class of issues affecting GC is linked to the use of non-strong references in the application. While this may help to avoid an unwanted OutOfMemoryError in many cases, heavy usage of such references may significantly impact the way garbage collection affects the performance of your application.
 
-另一类影响GC的问题与程序中的non-strong引用有关。虽然这些类可能在许多情况下能避免 `OutOfMemoryError`,  但使用过当也有可能会严重影响垃圾收集器的行为, 进而影响系统性能。
+另一类影响GC的问题是程序中的 non-strong 引用。虽然这类引用在很多情况下可以避免出现 `OutOfMemoryError`,  但滥用也会对GC行为造成严重影响, 进而降低系统性能。
 
 
-## 为什么要关心
+## 需要关注弱引用的原因
+
+
+-- 校对到此处 !!!!!
 
 
 When using weak references, you should be aware of the way the weak references are garbage-collected. Whenever GC discovers that an object is weakly reachable, that is, the last remaining reference to the object is a weak reference, it is put onto the corresponding ReferenceQueue, and becomes eligible for finalization. One may then poll this reference queue and perform the associated cleanup activities. A typical example for such cleanup would be the removal of the now missing key from the cache.
