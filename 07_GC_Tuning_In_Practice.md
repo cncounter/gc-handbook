@@ -607,7 +607,7 @@ That is right, we have to manually clear() up phantom references or risk facing 
 
 Let us take a look at another demo application that allocates a lot of objects, which are successfully reclaimed during minor garbage collections. Bearing in mind the trick of altering the tenuring threshold from the previous section on promotion rate, we could run this application with -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1 and see this in GC logs:
 
-让我们看看另一个分配大量对象的示例, 其在小型GC期间成功回收. 请记得像上一小节一样,修改提升阀值。使用参数 ` -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1` 来运行程序,那么GC日志如下所示:
+让我们看另一个示例, 其中创建了大量的对象, 并且在 minor GC 时完成回收. 和前面一样,修改提升阀值。使用的JVM参数为: ` -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1` , GC日志如下所示:
 
 
 	2.330: [GC (Allocation Failure)  20933K->8229K(22528K), 0.0033848 secs]
@@ -626,7 +626,7 @@ Let us take a look at another demo application that allocates a lot of objects, 
 
 Full collections are quite rare in this case. However, if the application also starts creating weak references (-Dweak.refs=true) to these created objects, the situation may change drastically. There may be many reasons to do this, starting from using the object as keys in a weak hash map and ending with allocation profiling. In any case, making use of weak references here may lead to this:
 
-此时完全GC次数很少。然而,如果对这些创建的对象, 也使用弱引用来指向他们 (-Dweak.refs=true), 则情况可能会显著改变. 可能有很多原因, 比如在weak hash map中使用对象作为Key, 最后进行分配分析。在任何情况下,利用弱引用可能会导致如下的结果:
+可以看到, Full GC 的次数很少。但假如程序使用弱引用来指向创建的对象, 使用JVM参数 `-Dweak.refs=true`, 则情况会发生明显变化. 使用弱引用的原因很多, 比如在 weak hash map 中使用对象作为Key, 最后进行分配分析。在任何情况下, 使用弱引用都可能会导致以下情形:
 
 
 	2.059: [Full GC (Ergonomics)  20365K->19611K(22528K), 0.0654090 secs]
@@ -641,7 +641,7 @@ Full collections are quite rare in this case. However, if the application also s
 
 As we can see, there are now many full collections, and the duration of the collections is an order of magnitude longer! Another case of premature promotion, but this time a tad trickier. The root cause, of course, lies with the weak references. Before we added them, the objects created by the application were dying just before being promoted to the old generation. But with the addition, they are now sticking around for an extra GC round so that the appropriate cleanup can be done on them. Like before, a simple solution would be to increase the size of the young generation by specifying -Xmx64m -XX:NewSize=32m:
 
-我们可以看到, 现在有很多次完全GC, 而且GC时间比上一个示例增加了一个数量级! 这是过早提升的另一个例子, 但这次的情况有点棘手. 当然,问题的根源在于弱引用。在添加他们之前,这些临死的对象被提升到老年代. 但是,他们现在粘在一个额外的GC循环中,这样可以对他们做适当的清理。像以前一样,一个简单的解决方案就是增加年轻代的大小, 指定参数 `-Xmx64m -XX:NewSize=32m`:
+可以看到, 发生了多次 full GC, 比起前一节的示例, GC时间增加了一个数量级! 这是过早提升的另一个例子, 但这次情况更加棘手. 当然,问题的根源在于弱引用。这些临死的对象, 在添加弱引用之后, 被提升到老年代. 但是, 他们现在陷入另一个GC循环之中, 所以需要对其做一些适当的清理。像之前一样, 最简单的解决办法是增加年轻代的大小, 例如指定JVM参数: `-Xmx64m -XX:NewSize=32m`:
 
 
 	2.328: [GC (Allocation Failure)  38940K->13596K(61440K), 0.0012818 secs]
@@ -656,7 +656,7 @@ As we can see, there are now many full collections, and the duration of the coll
 
 The objects are now once again reclaimed during minor garbage collection.
 
-现在对象又能在小型GC中被回收了。
+这时候, 对象又在 minor GC中被回收了。
 
 
 The situation is even worse when soft references are used as seen in the next demo application. The softly-reachable objects are not reclaimed until the application risks getting an OutOfMemoryError. Replacing weak references with soft references in the demo application immediately surfaces many more Full GC events:
