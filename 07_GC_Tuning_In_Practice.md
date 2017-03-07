@@ -553,54 +553,54 @@ Another class of issues affecting GC is linked to the use of non-strong referenc
 ## 需要关注弱引用的原因
 
 
--- 校对到此处 !!!!!
-
 
 When using weak references, you should be aware of the way the weak references are garbage-collected. Whenever GC discovers that an object is weakly reachable, that is, the last remaining reference to the object is a weak reference, it is put onto the corresponding ReferenceQueue, and becomes eligible for finalization. One may then poll this reference queue and perform the associated cleanup activities. A typical example for such cleanup would be the removal of the now missing key from the cache.
 
-在使用`弱引用`(weak reference)时,您应该知道, 弱引用是允许被垃圾收集器强行回收的。每当GC发现一个弱可达对象(weakly reachable),即最后一个指向该对象的引用是一个弱引用, 则会将其置入相应的ReferenceQueue 中, 成为可以终结的对象. 之后可能会轮询这个引用队列,并执行相关的清理活动。一个典型的例子是从缓存中清理当前不再引用的KEY。
+首先, 你应该知道, `弱引用`(weak reference) 是可以被垃圾收集器强制回收的。当GC发现一个弱可达对象(weakly reachable),即指向该对象的引用只剩下弱引用时, 则会将其置入相应的ReferenceQueue 中, 成为可终结的对象. 之后可能会遍历这个 reference queue, 并执行相应的清理。典型的示例是清除缓存中不再引用的KEY。
 
 
 The trick here is that at this point you can still create new strong references to the object, so before it can be, at last, finalized and reclaimed, GC has to check again that it really is okay to do this. Thus, the weakly referenced objects are not reclaimed for an extra GC cycle.
 
-这里的诀窍是,此时,您仍然可以创建该对象的新的强引用, 在最后的终结和回收之前, GC会再次检查,是否真的可以回收。因此, 弱引用对象不是在单个特定的GC循环中回收的。
+当然, 在这个时候, 我们还可以将该对象赋值给新的强引用, 在最后终结和回收前, GC会再次确认是否可以回收。因此, 弱引用对象的回收过程是横跨多个GC周期的。
 
 
 Weak references are actually a lot more common than you might think. Many caching solutions build the implementations using weak referencing, so even if you are not directly creating any in your code, there is a strong chance your application is still using weakly referenced objects in large quantities.
 
-弱引用实际上比你想象的更常见。许多缓存解决方案都是基于弱引用实现的, 所以虽然你没有直接在代码中创建任何弱引用, 但程序仍然有可能在大量使用弱引用对象。
+弱引用实际上使用的很多。大部分缓存框架(caching solution)都是基于弱引用来实现的, 所以我们虽然没有直接编写弱引用代码, 但程序中依然会存在大量的弱引用对象。
 
 
 When using soft references, you should bear in mind that soft references are collected much less eagerly than the weak ones. The exact point at which it happens is not specified and depends on the implementation of the JVM. Typically the collection of soft references happens only as a last ditch effort before running out of memory. What it implies is that you might find yourself in situations where you face either more frequent or longer full GC pauses than expected, since there are more objects resting in the old generation.
 
-在使用`软引用`(soft reference)时,你应该记住,软引用比弱引用更容易被垃圾收集器回收. 它发生的时间点没有确切指定,取决于JVM的实现. 通常软引用的收集只会在即将耗尽内存之前,作为最后的手段. 这意味着,你可能会发现自己面临着更频繁的完全GC, 暂停时间也比预期的时间更长, 因为有更多的对象在老年代。
+其次, `软引用`(soft reference) 比弱引用更难被垃圾收集器回收. 回收软引用没有确切的时间点, 由各个JVM自己决定. 一般只会在即将耗尽可用内存时, 才会回收软引用,作为最后手段。这意味着, 可能会面临更频繁的 full GC, 暂停时间也会比预期更长, 因为老年代中有更多的存活对象。
 
 
 When using phantom references, you have to literally do manual memory management in regards of flagging such references eligible for garbage collection. It is dangerous, as a superficial glance at the javadoc may lead one to believe they are the completely safe to use:
 
-在使用`虚引用`(phantom reference)时,你必须手动进行内存管理,以标记这些引用是否可以进行垃圾收集。这是很危险的,虽然表面上,看一眼javadoc可能会让人相信使用它们是完全安全的:
+最后要注意, 在使用`虚引用`(phantom reference)时, 必须进行手动内存管理, 以标识这些对象是否可以安全地回收。表面上看起来很安全, 但实际上并不是这样。 javadoc 中写道:
 
 
-In order to ensure that a reclaimable object remains so, the referent of a phantom reference may not be retrieved: The get method of a phantom reference always returns null.
+> In order to ensure that a reclaimable object remains so, the referent of a phantom reference may not be retrieved: The get method of a phantom reference always returns null.
 
-为了防止可回收对象的残留, 虚引用不应该被获取到: 虚引用的 get 方法总是返回 null。
+> 为了防止可回收对象的残留, 虚引用对象不应该被获取:  phantom reference 的 `get` 方法总是返回 `null`。
 
 
 Surprisingly, many developers skip the very next paragraph in the same javadoc (emphasis added):
 
-令人惊讶的是,许多开发者忽略了在同一javadoc中的下一段内容(**这是重点**):
+令人惊讶的是, 很多开发者忽略了 javadoc 中的下一段内容(**这才是重点**):
 
 
-Unlike soft and weak references, phantom references are not automatically cleared by the garbage collector as they are enqueued. An object that is reachable via phantom references will remain so until all such references are cleared or themselves become unreachable.
+> Unlike soft and weak references, phantom references are not automatically cleared by the garbage collector as they are enqueued. An object that is reachable via phantom references will remain so until all such references are cleared or themselves become unreachable.
 
-与软引用和弱引用不同, 虚引用不会被垃圾收集器自动清除, 因为他们被放入了队列. 一个通过虚引用可达的对象将会继续留在内存, 直到这些引用被清除, 或者自身变为不可达对象。
+> 与软引用和弱引用不同, 虚引用不会被 GC 自动清除, 因为他们被存放到队列中. 通过虚引用可达的对象会继续留在内存, 除非此引用被清除, 或者自身变为不可达对象。
 
 
 That is right, we have to manually clear() up phantom references or risk facing a situation where the JVM starts dying with an OutOfMemoryError. The reason why the Phantom references are there in the first place is that this is the only way to find out when an object has actually become unreachable via the usual means. Unlike with soft or weak references, you cannot resurrect a phantom-reachable object.
  
 
-也就是说,我们必须手动调用 clear() 来清除虚引用, 否则可能会造成JVM 因为OutOfMemoryError 而挂掉的风险.  使用虚引用的原因是, 通常这是唯一可以用编程来跟踪某个对象真正地变为不可达对象的手段. 和软引用/弱引用不同, 你不能复活虚可达(phantom-reachable)对象。
+也就是说,我们必须手动调用 clear() 来清除虚引用, 否则可能会因为 OutOfMemoryError 而导致 JVM 挂掉.  使用虚引用的理由是, 这是用编程手段来跟踪某个对象何时变为不可达对象的唯一的常规手段。 和软引用/弱引用不同, 我们不能复活虚可达(phantom-reachable)对象。
 
+
+-- 校对到此处 !!!!!
 
 ## 示例
 
