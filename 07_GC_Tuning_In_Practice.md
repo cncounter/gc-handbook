@@ -600,8 +600,6 @@ That is right, we have to manually clear() up phantom references or risk facing 
 也就是说,我们必须手动调用 clear() 来清除虚引用, 否则可能会因为 OutOfMemoryError 而导致 JVM 挂掉.  使用虚引用的理由是, 这是用编程手段来跟踪某个对象何时变为不可达对象的唯一的常规手段。 和软引用/弱引用不同, 我们不能复活虚可达(phantom-reachable)对象。
 
 
--- 校对到此处 !!!!!
-
 ## 示例
 
 
@@ -656,12 +654,12 @@ As we can see, there are now many full collections, and the duration of the coll
 
 The objects are now once again reclaimed during minor garbage collection.
 
-这时候, 对象又在 minor GC中被回收了。
+这时候, 对象在 minor GC 中就被回收了。
 
 
 The situation is even worse when soft references are used as seen in the next demo application. The softly-reachable objects are not reclaimed until the application risks getting an OutOfMemoryError. Replacing weak references with soft references in the demo application immediately surfaces many more Full GC events:
 
-更坏的情况是使用软引用,例如下面的程序。如果程序不面临OutOfMemoryError, 软可达的对象就不会被回收. 在程序中,用软引用代替弱引用和, 立即面临更多的完全GC事件:
+更坏的情况是使用软引用,例如下面的程序。如果程序不面临 `OutOfMemoryError` , 软引用对象就不会被回收. 在示例程序中,用软引用替代弱引用, 立即出现更多的 Full GC 事件:
 
 
 	2.162: [Full GC (Ergonomics)  31561K->12865K(61440K), 0.0181392 secs]
@@ -677,12 +675,12 @@ The situation is even worse when soft references are used as seen in the next de
 
 And the king here is the phantom reference as seen in the third demo application. Running the demo with the same sets of parameters as before would give us results that are pretty similar as the results in the case with weak references. The number of full GC pauses would, in fact, be much smaller because of the difference in the finalization described in the beginning of this section.
 
-最关键的是第三个示例中的虚引用. 使用和之前一样的JVM启动参数,结果与弱引用的示例非常相似。完整的GC暂停的次数,实际上,会小得多,原因在本节开始的地方说过,他们有不同的终结方式。
+最关键的是第三个示例中的虚引用, 使用同样的JVM启动参数,结果和弱引用示例非常相似。实际上, full GC暂停的次数会小得多, 原因前面说过, 他们有不同的终结方式。
 
 
 However, adding one flag that disables phantom reference clearing (-Dno.ref.clearing=true) would quickly give us this:
 
-然而,添加一个 禁用虚引用清理的参数 (-Dno.ref.clearing=true), 则可以看到:
+如果增加一个JVM启动参数 (-Dno.ref.clearing=true), 禁用虚引用清理, 则可以看到:
 
 
 	4.180: [Full GC (Ergonomics)  57343K->57087K(61440K), 0.0879851 secs]
@@ -699,8 +697,10 @@ main 线程中抛出异常 ` java.lang.OutOfMemoryError: Java heap space`.
 
 One must exercise extreme caution when using phantom references and always clear up the phantom reachable objects in a timely manner. Failing to do so will likely end up with an OutOfMemoryError. And trust us when we say that it is quite easy to fail at this: one unexpected exception in the thread that processes the reference queue, and you will have a dead application at your hand.
 
-使用虚引用时必须非常谨慎, 并及时清理虚可达的对象。如果不这样做,可能就会发生 `OutOfMemoryError`. 请相信我们的教训: 如果处理引用队列的线程抛出的 unexpected exception 没处理好, 那你的系统很快就挂了。
+使用虚引用时需要小心谨慎, 并及时清理虚可达对象。如果不清理, 就可能会发生 `OutOfMemoryError`. 请相信我们的经验教训:  处理 reference queue 的 线程没 catch 住 exception , 系统很快就会被整挂了。
 
+
+-- 校对到此处 !!!!!
 
 ### Could my JVMs be Affected?
 
