@@ -774,8 +774,6 @@ When you have verified the application actually is suffering from the mis-, ab- 
 - `软引用`(`Soft references`) ——  如果确定问题的根源是软引用, 唯一的解决办法是修改程序源码, 改变内部逻辑。
 
 
--- 校对到此处 !!!!!
-
 
 
 ## Other Examples
@@ -785,8 +783,10 @@ When you have verified the application actually is suffering from the mis-, ab- 
 
 Previous chapters covered the most common problems related to poorly behaving GC. Unfortunately, there is a long list of more specific cases, where you cannot apply the knowledge from previous chapters. This section describes a few of the more unusual problems that you may face.
 
-前面的章节涵盖了最常见的GC表现不佳的问题。不幸的是, 有很多更具体的情况没有列举出来, 从先前的章节你不能很好地了解。本节描述一些不常发生但你可能会碰到的问题。
+前面介绍了最常见的GC性能问题。但所学的原理很多没有具体的情景示例展现。本节介绍一些不常发生, 但也可能会碰到的问题。
 
+
+-- 校对到此处 !!!!!
 
 ### RMI 与 GC
 
@@ -828,9 +828,7 @@ An alternative solution for the problem would to disable explicit calls to Syste
 另一种解决方式是指定 `-XX:+DisableExplicitGC`, 来禁止显式地调用 `System.gc()`.  然而我们**不推荐**这种解决方式,因为它有其他的副作用。
 
 
-### JVMTI tagging & GC
-
-### JVMTI标签& GC
+### JVMTI tagging 与 GC
 
 
 Whenever the application is run alongside with a Java Agent (-javaagent), there is a chance that the agent can tag the objects in the heap using JVMTI tagging. Agents can use tagging for various reasons that are not in the scope of this handbook, but there is a GC-related performance issue that can start affecting the latency and throughput of your application if tagging is applied to a large subset of objects inside the heap.
@@ -950,18 +948,18 @@ A more time-consuming but potentially better solution would be to understand whe
 
 
 
-### 结论
+### 总结
 
 
 With the enormous number of possible applications that one may run on the JVM, coupled with the hundreds of JVM configuration parameters that one may tweak for GC, there are astoundingly many ways in which the GC may impact your application’s performance.
 
-因为有很多各种各样的程序在JVM上运行, 还有上百个 JVM 参数, 其中很多会影响到 GC, 所以有很多方法可以调优程序的GC性能。
+JVM上运行的程序形形色色, JVM 启动参数也有上百个, 其中有很多参数会影响 GC, 所以调优GC性能的方法也有很多种。
 
 
 Therefore, there is no real silver bullet approach to tuning the JVM to match the performance goals you have to fulfill. What we have tried to do here is walk you through some common (and not so common) examples to give you a general idea of how problems like these can be approached. Coupled with the tooling overview and with a solid understanding of how the GC works, you have all the chances of successfully tuning garbage collection to boost the performance of your application.
 
 
-因此,没有真正的银弹, 能满足所有的JVM性能调优目标. 我们能做的只是介绍一些常见的(和不常见的)示例, 让你在碰到类似的问题时知道是怎么回事. 通过对工具的熟练使用, 以及对GC工作原理的深入理解, 你应该能成功地调优垃圾收集, 来有效提高应用程序的性能。
+还是那句话, 没有真正的银弹, 能满足所有的性能调优指标。 我们能做的只是介绍一些常见的/和不常见的示例, 让你在碰到类似问题的时候知道是怎么回事. 深入理解GC工作原理, 熟练应用各种工具, 你就可以进行GC调优, 以来有效提高程序的性能。
 
 
 原文链接:  [GC Tuning: In Practice](https://plumbr.eu/handbook/gc-tuning-in-practice)
