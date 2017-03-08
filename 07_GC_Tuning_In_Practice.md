@@ -755,14 +755,12 @@ As always, this information should only be analyzed when you have identified tha
 同样, 只有确定 GC 对应用程序的吞吐量和延迟有影响之后, 才应该花心思来分析这些信息. 此时需要查看这部分日志。通常情况下, 每次GC清理的引用数量都是很少的, 大部分情况下都是 `0`。如果GC 花了较多时间来清理这类引用, 或者清除了很多的此类引用, 那就需要进一步分析和调查。
 
 
--- 校对到此处 !!!!!
-
 ### 解决方案
 
 
 When you have verified the application actually is suffering from the mis-, ab- or overuse of either weak, soft or phantom references, the solution often involves changing the application’s intrinsic logic. This is very application specific and generic guidelines are thus hard to offer. However, some generic solutions to bear in mind are:
 
-当你验证程序确实遭受了 `mis-`,  `ab-` 或者是过度使用了 weak, soft or phantom  引用, 解决方案通常是需要修改程序的内部逻辑。每个程序都是不一样的, 因此很难提供通用的指导方针。然而, 应该记住一些通用的解决方式:
+如果确定程序碰到了 `mis-`,  `ab-` 问题或者滥用 weak, soft 及 phantom  引用, 通常是要修改程序的实现逻辑。每个系统都不一样, 因此很难提供通用指南。但有一些常用的办法:
 
 
 - Weak references – if the problem is triggered by increased consumption of a specific memory pool, an increase in the corresponding pool (and possibly the total heap along with it) can help you out. As seen in the example section, increasing the total heap and young generation sizes alleviated the pain.
@@ -771,16 +769,18 @@ When you have verified the application actually is suffering from the mis-, ab- 
 
 <br/>
 
-- `弱引用`(Weak references) —— 如果问题是由于某个特定的内存池使用量的增长触发的, 那么增加相应池的大小(可能也需要增加总的堆内存大小)。正如在示例中所看到的, 增加总的堆内存以及年轻代的大小可以减轻症状。
-- `虚引用`(Phantom references) —— 请确保真正地清除了引用。编程中很容易忽略某些角落的虚引用, 或者在运行时清理线程无法跟上生产者队列的步伐,  或者完全停止清除队列,  就会对GC施加很多压力, 并且可能到最后会引起 `OutOfMemoryError`。
-- `软引用`(Soft references) ——  如果确定问题的根源是软引用, 真正缓解压力的办法就是修改源码,改变应用程序的内部逻辑。
+- `弱引用`(`Weak references`) —— 如果某个内存池的使用量增大, 而引起问题, 那么增加这个内存池的大小(可能也要增加堆内存的最大容量)。如同示例中所看到的, 增加堆内存的大小以及年轻代的大小可以减轻症状。
+- `虚引用`(`Phantom references`) —— 请确保在程序中调用了虚引用的 clear 方法。很容易忽略某些代码中的虚引用, 或者清理的速度跟不上产生的速度, 或者清除引用队列的线程退出, 就会对GC 造成很大压力, 最终有可能引起 `OutOfMemoryError`。
+- `软引用`(`Soft references`) ——  如果确定问题的根源是软引用, 唯一的解决办法是修改程序源码, 改变内部逻辑。
 
+
+-- 校对到此处 !!!!!
 
 
 
 ## Other Examples
 
-## 其他的例子
+## 其他示例
 
 
 Previous chapters covered the most common problems related to poorly behaving GC. Unfortunately, there is a long list of more specific cases, where you cannot apply the knowledge from previous chapters. This section describes a few of the more unusual problems that you may face.
@@ -788,7 +788,7 @@ Previous chapters covered the most common problems related to poorly behaving GC
 前面的章节涵盖了最常见的GC表现不佳的问题。不幸的是, 有很多更具体的情况没有列举出来, 从先前的章节你不能很好地了解。本节描述一些不常发生但你可能会碰到的问题。
 
 
-### RMI & GC
+### RMI 与 GC
 
 
 When your application is publishing or consuming services over RMI, the JVM periodically launches full GC to make sure that locally unused objects are also not taking up space on the other end. Bear in mind that even if you are not explicitly publishing anything over RMI in your code, third party libraries or utilities can still open RMI endpoints. One such common culprit is for example JMX, which, if attached to remotely, will use RMI underneath to publish the data.
