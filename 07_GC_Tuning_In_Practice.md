@@ -786,29 +786,27 @@ Previous chapters covered the most common problems related to poorly behaving GC
 前面介绍了最常见的GC性能问题。但所学的原理很多没有具体的情景示例展现。本节介绍一些不常发生, 但也可能会碰到的问题。
 
 
--- 校对到此处 !!!!!
-
 ### RMI 与 GC
 
 
 When your application is publishing or consuming services over RMI, the JVM periodically launches full GC to make sure that locally unused objects are also not taking up space on the other end. Bear in mind that even if you are not explicitly publishing anything over RMI in your code, third party libraries or utilities can still open RMI endpoints. One such common culprit is for example JMX, which, if attached to remotely, will use RMI underneath to publish the data.
 
-当你的系统通过 RMI 提供或者消费服务, JVM会定期启动 full GC 来确保本地未使用的对象在另一端也不占用空间. 记住, 即使你没有明确地在代码中发布任何 RMI 服务, 但第三方或者工具库仍然可能打开RMI 终端. 最常见的罪魁祸首就是 JMX,  如果通过JMX连接到远端, 则会在底层使用RMI来发布数据。
+如果系统提供或者消费 RMI 服务, 则JVM会定期调用 full GC 来确保本地未使用的对象在另一端也不占用空间. 记住, 即使你的代码中没有发布 RMI 服务, 但第三方或者工具库也可能打开 RMI 终端. 最常见的元凶, 是 JMX, 如果通过JMX连接到远端, 在底层就会使用RMI来发布数据。
 
 
 The problem is exposed by seemingly unnecessary and periodic full GC pauses. When you check the old generation consumption, there is often no pressure to the memory as there is plenty of free space in the old generation, but full GC is triggered, stopping the application threads.
 
-暴露的问题是很多不必要的周期性的GC暂停。如果检查老年代的使用情况, 通常是没有内存压力, 其中还有足够的空闲区域,但 full GC 就是被触发了, 也就暂停了应用程序的线程。
+问题就是有很多不必要的周期性的 full GC暂停。如果查看老年代的使用情况, 一般是没有内存压力, 其中还存在大量的空闲区域, 但 full GC 就是被触发了, 也就暂停了所有的应用线程。
 
 
 This behavior of removing remote references via System.gc() is triggered by the sun.rmi.transport.ObjectTable class requesting garbage collection to be run periodically as specified in the sun.misc.GC.requestLatency() method.
 
-这种删除远程引用的行为, 是由  `sun.rmi.transport.ObjectTable` 类调用  `sun.misc.GC.requestLatency()` 方法, 周期性地通过  `System.gc()`  触发的。
+这种周期性调用 `System.gc()` 删除远程引用的行为, 是在  `sun.rmi.transport.ObjectTable` 类中, 调用  `sun.misc.GC.requestLatency(long gcInterval)` 执行的。
 
 
 For many applications, this is not necessary or outright harmful. To disable such periodic GC runs, you can set up the following for your JVM startup scripts:
 
-对许多应用程序来说, 这是没有必要或完全有害的。禁止执行这种周期性的 GC , 可以使用以下的 JVM 脚本:
+对许多应用来说, 这根本没必要, 甚至对性能有害。 禁止这种周期性的 GC 行为, 可以使用以下 JVM 参数:
 
 
 	java -Dsun.rmi.dgc.server.gcInterval=9223372036854775807L 
@@ -819,14 +817,25 @@ For many applications, this is not necessary or outright harmful. To disable suc
 
 This sets the period after which System.gc() is run to Long.MAX_VALUE; for all practical matters, this equals eternity.
 
-这让 `Long.MAX_VALUE` 之后才触发 `System.gc()` , 对于现实世界来说, 也就是永远不触发。
+这让 `Long.MAX_VALUE` 毫秒之后, 才调用 `System.gc()`, 实际运行的系统可能永远也不会触发。
 
+> ObjectTable.class
+
+	private static final long gcInterval = 
+	((Long)AccessController.doPrivileged(
+		new GetLongAction("sun.rmi.dgc.server.gcInterval", 3600000L)
+		)).longValue();
+
+
+可以看到, 默认值是 `3600000L`,也就是1小时触发一次 Full GC。
 
 
 An alternative solution for the problem would to disable explicit calls to System.gc() by specifying -XX:+DisableExplicitGC in the JVM startup parameters. We do not however recommend this solution as it can have other side effects.
 
-另一种解决方式是指定 `-XX:+DisableExplicitGC`, 来禁止显式地调用 `System.gc()`.  然而我们**不推荐**这种解决方式,因为它有其他的副作用。
+另一种方式是指定JVM参数 `-XX:+DisableExplicitGC`, 禁止显式地调用 `System.gc()`.  但我们**墙裂反对** 这种方式, 因为有大坑。
 
+
+-- 校对到此处 !!!!!
 
 ### JVMTI tagging 与 GC
 
@@ -959,7 +968,7 @@ JVM上运行的程序形形色色, JVM 启动参数也有上百个, 其中有很
 Therefore, there is no real silver bullet approach to tuning the JVM to match the performance goals you have to fulfill. What we have tried to do here is walk you through some common (and not so common) examples to give you a general idea of how problems like these can be approached. Coupled with the tooling overview and with a solid understanding of how the GC works, you have all the chances of successfully tuning garbage collection to boost the performance of your application.
 
 
-还是那句话, 没有真正的银弹, 能满足所有的性能调优指标。 我们能做的只是介绍一些常见的/和不常见的示例, 让你在碰到类似问题的时候知道是怎么回事. 深入理解GC工作原理, 熟练应用各种工具, 你就可以进行GC调优, 以来有效提高程序的性能。
+还是那句话, 没有真正的银弹, 能满足所有的性能调优指标。 我们能做的只是介绍一些常见的/和不常见的示例, 让你在碰到类似问题的时候知道是怎么回事. 深入理解GC工作原理, 熟练应用各种工具, 你就可以进行GC调优, 提高程序性能。
 
 
 原文链接:  [GC Tuning: In Practice](https://plumbr.eu/handbook/gc-tuning-in-practice)
