@@ -835,35 +835,37 @@ An alternative solution for the problem would to disable explicit calls to Syste
 另一种方式是指定JVM参数 `-XX:+DisableExplicitGC`, 禁止显式地调用 `System.gc()`.  但我们**墙裂反对** 这种方式, 因为有大坑。
 
 
--- 校对到此处 !!!!!
-
 ### JVMTI tagging 与 GC
 
 
 Whenever the application is run alongside with a Java Agent (-javaagent), there is a chance that the agent can tag the objects in the heap using JVMTI tagging. Agents can use tagging for various reasons that are not in the scope of this handbook, but there is a GC-related performance issue that can start affecting the latency and throughput of your application if tagging is applied to a large subset of objects inside the heap.
 
-Whenever the application is run alongside with a Java Agent (- javaagent), there is a chance that the Agent can tag the objects in the heap using JVMTI tagging.代理可以使用标签由于种种原因不了本手册的范围,但有一个GC-related性能问题,可以影响应用程序的延迟和吞吐量如果标签应用于大型子集内的对象堆。
+
+如果程序启动时指定了 Java Agent (`-javaagent`), agent 就可以使用 JVMTI tagging 标记堆中的对象。agent 使用tagging的种种原因本手册不进行讲解, 但如果 tagging 标记了堆内存中大量的对象, 很可能会引起 GC 性能问题, 导致延迟增加, 以及吞吐量降低。
+
 
 
 The problem is hidden in the native code where JvmtiTagMap::do_weak_oops iterates over all the tags during each garbage collection event and performs a number of not-so-cheap operations for all of them. To make things worse, this operation is performed sequentially and is not parallelized.
 
-问题是隐藏在本机代码JvmtiTagMap::do_weak_oops遍历所有的标签在每个垃圾收集事件和执行一系列每操作。更糟的是,这个操作是按顺序执行的,而不是并行。
+问题在 native 代码中, `JvmtiTagMap::do_weak_oops` 在每次GC时,遍历所有的标签(tag),并执行一些比较耗时的操作。更坑的是, 这些操作是按顺序串行执行的。
 
 
 With a large number of tags, this implies that a large part of the GC process is now carried out in a single thread and all the benefits of parallelism disappear, potentially increasing the duration of GC pauses by an order of magnitude.
 
-与大量的标签,这意味着现在GC过程的很大一部分是在一个线程并行消失所带来的好处,可能增加GC暂停的时间由一个数量级。
+如果存在大量的标签, 就意味着 GC 中有很大一部分工作是单线程执行的, 可能会增加一个数量级的GC暂停时间。
 
 
 To check whether or not a particular agent can be the reason for extended GC pauses, you would need to turn on the diagnostic option of –XX:+TraceJVMTIObjectTagging. Enabling the trace will allow you to get an estimate of how much native memory the tag map consumes and how much time the heap walks take.
 
-检查是否一个特定的代理可以延长GC暂停的原因,你需要打开的诊断选项- xx:+ TraceJVMTIObjectTagging.启用跟踪会让你得到一个估计的本机内存多少标签映射消耗和堆走多少时间。
+检查是否因为 agent 增加了GC暂停的时间, 可以使用诊断参数 `–XX:+TraceJVMTIObjectTagging`. 启用跟踪之后, 可以估算出内存中 tag 映射了多少 native 内存, 以及遍历所消耗的时间。
 
 
 If you are not the author of the agent yourself, fixing the problem is often out of your reach. Apart from contacting the vendor of a particular agent you cannot do much. In case you do end up in a situation like this, recommend that the vendor clean up the tags that are no longer needed.
 
-如果你没有代理的作者自己,解决问题往往是遥不可达的。除了联系供应商特定的代理你不能做太多.如果你在这种情况下,建议供应商清除不再需要的标签。
+如果你不是 agent 的作者, 那一般是搞不定这种问题的。除了提BUG之外你什么都做不了. 如果面临这种情况, 可以建议厂商清理不必要的标签。
 
+
+-- 校对到此处 !!!!!
 
 
 ### 巨无霸对象的分配(Humongous Allocations)
