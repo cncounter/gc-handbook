@@ -865,20 +865,20 @@ If you are not the author of the agent yourself, fixing the problem is often out
 如果你不是 agent 的作者, 那一般是搞不定这种问题的。除了提BUG之外你什么都做不了. 如果面临这种情况, 可以建议厂商清理不必要的标签。
 
 
--- 校对到此处 !!!!!
-
 
 ### 巨无霸对象的分配(Humongous Allocations)
 
 
 Whenever your application is using the G1 garbage collection algorithm, a phenomenon called humongous allocations can impact your application performance in regards of GC. To recap, humongous allocations are allocations that are larger than 50% of the region size in G1.
 
-如果使用G1算法来进行垃圾收集, 这种被称为巨无霸对象的分配就会因为GC影响程序的性能。回顾一下,  在G1中巨无霸对象是指超过 region size 50% 的空间分配。
+如果使用 G1 垃圾收集算法, 会有一种巨无霸对象引起的 GC 性能问题。
+
+> **说明**: 在G1中, 巨无霸对象是指所占空间超过一个小堆区(region) `50%` 的对象。
 
 
 Having frequent humongous allocations can trigger GC performance issues, considering the way that G1 handles such allocations:
 
-频繁的巨无霸对象分配会引起GC的性能问题, 看看G1处理这种分配的方式:
+频繁的创建巨无霸对象, 无疑会造成GC的性能问题, 看看G1的处理方式:
 
 
 - If the regions contain humongous objects, space between the last humongous object in the region and the end of the region will be unused. If all the humongous objects are just a bit larger than a factor of the region size, this unused space can cause the heap to become fragmented.
@@ -886,15 +886,15 @@ Having frequent humongous allocations can trigger GC performance issues, conside
 
 <br/>
 
-- 如果某个 region 包含巨无霸对象, 则最后一个巨无霸对象到该区域结尾之间的(空闲)空间将不会被使用。如果所有的巨无霸对象都只是比 region size 的某个因子大一点, 则未使用的空间将会导致堆内存碎片问题。
-- 对巨无霸对象的垃圾收集没有被 G1 优化。这在Java 8的早期版本中是特别麻烦的 —— 在 **Java 1.8u40** 之前, 巨无霸对象所在区域的回收都只能在完全GC事件中进行。最新版本的 Hotspot JVM 在marking 阶段的结尾, cleanup phase 释放巨无霸空间, 所以这个问题的影响在新版的JVM中已经大大减小了。
+- 如果某个 region 中含有巨无霸对象, 则巨无霸对象之后的空间将不会被分配。如果所有巨无霸对象都占 region size 的某个比例, 则未使用的空间会引起内存碎片问题。
+- G1 没有对巨无霸对象进行回收优化。这在 JDK 8 以前是个特别棘手的问题 —— 在 **Java 1.8u40** 之前的版本中, 巨无霸对象所在区域的回收只能在 full GC 中进行。最新版本的 Hotspot JVM 在 marking 阶段之后的 cleanup 阶段中释放巨无霸区间, 所以这个问题在新版本JVM中的影响已经大大减小了。
 
 
 
 
 To check whether or not your application is allocating objects in humongous regions, the first step would be to turn on GC logs similar to the following:
 
-要检查是否有对象分配在巨无霸区域, 第一步是打开GC日志， 类似下面这样:
+要监控是否存在巨无霸对象, 可以打开GC日志, 命令如下:
 
 
 	java -XX:+PrintGCDetails -XX:+PrintGCTimeStamps 
@@ -907,7 +907,7 @@ To check whether or not your application is allocating objects in humongous regi
 
 Now, when you check the logs and discover sections like these:
 
-现在, 在检查日志时, 会发现类似这样的部分:
+GC 日志中可能会发现这样的部分:
 
 
 	 0.106: [G1Ergonomics (Concurrent Cycles) 
@@ -939,22 +939,22 @@ Now, when you check the logs and discover sections like these:
 
 you have evidence that the application is indeed allocating humongous objects. The evidence is visible in the cause for a GC pause being identified as G1 Humongous Allocation and in the “allocation request: 1048592 bytes” section, where we can see that the application is trying to allocate an object with the size of 1,048,592 bytes, which is 16 bytes larger than the 50% of the 2 MB size of the humongous region specified for the JVM.
 
-现在有证据表明, 应用程序确实分配了巨无霸对象.  `G1 Humongous Allocation ` 这个GC暂停的原因就是证据, 在 “allocation request: 1048592 bytes” 这一节, 在这里我们可以看到程序试图分配一个 `1,048,592` 字节大小的对象, 这比JVM指定的巨无霸区域大小(`2MB`)的 50% 多出了 16 个字节。
+这样的日志就是证据, 应用程序确实创建了巨无霸对象. 可以看到: `G1 Humongous Allocation ` 是 GC暂停的原因。 再看前面一点的 “allocation request: 1048592 bytes” , 可以看到程序试图分配一个 `1,048,592` 字节的对象, 这要比巨无霸区域(`2MB`)的 `50%` 多出 16 个字节。
 
 
-The first solution for humongous allocation is to change the region size so that (most) of the allocations would not exceed the 50% limit triggering allocations in the humongous regions. The region size is calculated by the JVM during startup based on the size of the heap. You can override the size by specifying -XX:G1HeapRegionSize=XX in the startup script. The specified region size must be between 1 and 32 megabytes and has to be a power of two.
+The first solution for humongous allocation is to change the region size so that (most) of the allocations would not exceed the 50% limit triggering allocations in the humongous regions. The region size is calculated by the JVM during startup based on the size of the heap. You can override the size by specifying `-XX:G1HeapRegionSize=XX` in the startup script. The specified region size must be between 1 and 32 megabytes and has to be a power of two.
 
-处理巨无霸对象分配的第一种方式, 是修改 region size , 使得(大多数的)分配不超过50%的限制, 引起在大对象区域的分配. 区域大小是由JVM在启动期间基于堆的大小计算得出的。你可以通过指定 `-XX:G1HeapRegionSize=XX`  启动参数来覆盖默认设置. 指定的区域大小必须介于 `1~32MB` 之间, 还必须是2的幂。
+第一种解决方式, 是修改 region size , 以使得大多数的对象不超过 `50%`, 也就不进行大对象巨无霸对象区域的分配。 region 的大小在启动时根据堆内存的大小算出。可以指定启动参数来覆盖默认设置, `-XX:G1HeapRegionSize=XX`。 指定的 region size 必须在 `1~32MB` 之间, 还必须是2的幂 【2^10 = 1024 = 1KB; 2^20=1MB; 所以大小只能是: `1m`,`2m`,`4m`,`8m`,`16m`,`32m`;】。
 
 
 This solution can have side effects – increasing the region size reduces the number of regions available so you need to be careful and run extra set of tests to see whether or not you actually improved the throughput or latency of the application.
 
-这个解决方案也有副作用, 增加区域大小也就减少了可用区域的数量, 你需要注意, 最好执行额外的测试来看看是否真的改善了吞吐量和延迟。
+这种方式也有副作用, 增加 region 的大小也就变相地减少了 region 的数量, 所以需要谨慎使用,  最好进行一些测试, 看看是否改善了吞吐量和延迟。
 
 
 A more time-consuming but potentially better solution would be to understand whether or not the application can limit the size of allocations. The best tools for the job in this case are profilers. They can give you information about humongous objects by showing their allocation sources with stack traces.
 
-更耗费时间, 但可能更好的解决方式是了解程序是否可以限制分配的大小。对付这种情况，最好的工具是分析器. 他们可以给你巨无霸对象的信息, 通过堆栈跟踪展示它们是在哪里分配的。
+更好的方式会需要一些工作量, 即在程序中限制对象的大小, 如果可以的话。最好是使用分析器, 可以展示出巨无霸对象的信息, 以及分配所在的堆栈跟踪信息。
 
 
 
