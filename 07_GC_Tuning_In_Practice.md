@@ -22,7 +22,7 @@ An excessively high allocation rate can mean trouble for your application’s pe
 过高的分配速率会严重影响程序性能。在JVM中, 这个问题会导致大量的GC开销。
 
 
-### 如何衡量分配速率?
+### 如何测量分配速率?
 
 
 One way to measure the allocation rate is to turn on GC logging by specifying -XX:+PrintGCDetails -XX:+PrintGCTimeStamps flags for the JVM. The JVM now starts logging the GC pauses similar to the following:
@@ -124,18 +124,18 @@ Having this information allows us to say that this particular piece of software 
 
 
 
-### 为何要关心分配速率?
+### 分配速率的意义
 
 
-After measuring the allocation rate we can understand how the changes in allocation rate affect application throughput by increasing or reducing the frequency of GC pauses. First and foremost, you should notice that only minor GC pauses cleaning the young generation are affected. Neither the frequency nor duration of the GC pauses cleaning the old generation are directly impacted by the allocation rate, but instead by the promotion rate, a term that we will cover separately in the next section.
+After measuring the allocation rate we can understand how the changes in allocation rate affect application throughput by increasing or reducing the frequency of GC pauses. First and foremost, you should notice that only [minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t9) pauses cleaning the young generation are affected. Neither the frequency nor duration of the GC pauses cleaning the old generation are directly impacted by the allocation rate, but instead by the promotion rate, a term that we will cover separately in the next section.
 
 
-计算出分配速率, 就会知道分配速率如何影响吞吐量: 分配速率的变化,会增加或降低GC暂停的频率。 请记住, 只有年轻代的 minor GC 受分配速率的影响。 而老年代GC的频率和持续时间不受分配速率的直接影响, 而是受**提升速率**(`promotion rate`)的影响,我们在下一节中介绍。
+计算出分配速率, 就会知道分配速率如何影响吞吐量: 分配速率的变化,会增加或降低GC暂停的频率。 请记住, 只有年轻代的 [minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t9) 受分配速率的影响。 而老年代GC的频率和持续时间不受 **分配速率**(`allocation rate`)的直接影响, 而是受 **提升速率**(`promotion rate`)的影响,我们在下一节中介绍。
 
 
-Knowing that we can focus only on Minor GC pauses, we should next look into the different memory pools inside the young generation. As the allocation takes place in Eden, we can immediately look into how sizing Eden can impact the allocation rate. So we can hypothesize that increasing the size of Eden will reduce the frequency of minor GC pauses and thus allow the application to sustain faster allocation rates.
+Knowing that we can focus only on [Minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t9) pauses, we should next look into the different memory pools inside the young generation. As the allocation takes place in [Eden](http://blog.csdn.net/renfufei/article/details/54144385#t3), we can immediately look into how sizing Eden can impact the allocation rate. So we can hypothesize that increasing the size of Eden will reduce the frequency of minor GC pauses and thus allow the application to sustain faster allocation rates.
 
-这样我们就只关心 Minor GC 暂停, 接下来看年轻代的这几个内存池。因为对象分配在 Eden 区, 所以我们来审查 Eden 区的大小和分配速率的关系.  看看增加 Eden 区的容量能不能减少 Minor GC 暂停次数, 从而使程序能够维持更快的分配速率。
+这样我们就只关心 [Minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t9) 暂停, 接下来看年轻代的这几个内存池。因为对象分配在 [Eden 区](http://blog.csdn.net/renfufei/article/details/54144385#t3), 所以我们来审查 Eden 区的大小和分配速率的关系.  看看增加 Eden 区的容量能不能减少 Minor GC 暂停次数, 从而使程序能够维持更快的分配速率。
 
 
 And indeed, when running the same application with different Eden sizes using -XX:NewSize -XX:MaxNewSize & -XX:SurvivorRatio parameters, we can see a two-fold difference in allocation rates.
@@ -168,9 +168,9 @@ Now, before you jump to the conclusion that “bigger Eden is better”, you sho
 ### 示例
 
 
-Meet the demo application. Suppose that it works with an external sensor that provides a number. The application continuously updates the value of the sensor in a dedicated thread (to a random value, in this example), and from other threads sometimes uses the most recent value to do something meaningful with it in the processSensorValue() method:
+Meet the [demo application](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java). Suppose that it works with an external sensor that provides a number. The application continuously updates the value of the sensor in a dedicated thread (to a random value, in this example), and from other threads sometimes uses the most recent value to do something meaningful with it in the processSensorValue() method:
 
-为了演示需要。假设系统连接了一个外部的数字传感器。应用通过专有线程, 不断地获取传感器的值,(此处使用随机数模拟), 其他线程会调用 `processSensorValue()` 方法, 传入传感器的值来执行某些操作, :
+参考 [Demo程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java)。假设系统连接了一个外部的数字传感器。应用通过专有线程, 不断地获取传感器的值,(此处使用随机数模拟), 其他线程会调用 `processSensorValue()` 方法, 传入传感器的值来执行某些操作, :
 
 
 	public class BoxingFailure {
@@ -196,7 +196,7 @@ As the name of the class suggests, the problem here is boxing. Possibly to accom
 
 The demo application is impacted by the GC not keeping up with the allocation rate. The ways to verify and solve the issue are given in the next sections.
 
-Demo 程序在运行的过程中, 由于分配速率太大而受GC拖累。下一节将确认问题, 并给出解决办法。
+[Demo 程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java)在运行的过程中, 由于分配速率太大而受GC拖累。下一节将确认问题, 并给出解决办法。
 
 
 ### Could my JVMs be Affected?
@@ -275,7 +275,7 @@ However, just throwing more memory at it is not always a viable solution. Equipp
 
 The simple change (diff) will, in the demo application, almost completely remove GC pauses. In some cases, the JVM may be clever enough to remove excessive allocations itself by using the escape analysis technique. To cut a long story short, the JIT compiler may in some cases prove that a created object never “escapes” the scope it is created in. In such cases, there is no actual need to allocate it on the heap and produce garbage this way, so the JIT compiler does just that: it eliminates the allocation. See this benchmark for an example.
 
-对示例程序进行[简单的改造](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/FixedBoxing.java)( [diff](https://gist.github.com/gvsmirnov/0270f0f15f9498e3b655) ) 之后, GC暂停基本上完全消除。有时候 JVM 也会很智能, 使用 逃逸分析技术(escape analysis technique) 来避免过度分配。简单来说,JIT编译器可以分析得知, 方法创建的某些对象永远都不会“逃出”此方法的作用域。这时候就不需要在堆上分配这些对象, 也就不会产生垃圾, 所以JIT编译器所做的一种优化就是: 消除内存分配。请参考 [基准测试](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/jit/EscapeAnalysis.java) 。
+对示例程序进行[简单的改造](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/FixedBoxing.java)( [查看diff](https://gist.github.com/gvsmirnov/0270f0f15f9498e3b655) ) 之后, GC暂停基本上完全消除。有时候 JVM 也会很智能, 使用 逃逸分析技术(escape analysis technique) 来避免过度分配。简单来说,JIT编译器可以分析得知, 方法创建的某些对象永远都不会“逃出”此方法的作用域。这时候就不需要在堆上分配这些对象, 也就不会产生垃圾, 所以JIT编译器所做的一种优化就是: 消除内存分配。请参考 [基准测试](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/jit/EscapeAnalysis.java) 。
 
 
 
@@ -406,9 +406,9 @@ Notice that you can extract this information only from minor GC pauses. Full GC 
 ### 提升速率的意义
 
 
-Similarly to the allocation rate, the main impact of the promotion rate is the change of frequency in GC pauses. But as opposed to the allocation rate that affects the frequency of minor GC events, the promotion rate affects the frequency of major GC events. Let me explain – the more stuff you promote to the old generation the faster you will fill it up. Filling the old generation faster means that the frequency of the GC events cleaning the old generation will increase.
+Similarly to the allocation rate, the main impact of the promotion rate is the change of frequency in GC pauses. But as opposed to the allocation rate that affects the frequency of [minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t8) events, the promotion rate affects the frequency of [major GC](http://blog.csdn.net/renfufei/article/details/54144385#t8) events. Let me explain – the more stuff you promote to the old generation the faster you will fill it up. Filling the old generation faster means that the frequency of the GC events cleaning the old generation will increase.
 
-和分配速率一样, 提升速率也会影响GC暂停的频率。但分配速率主要影响 minor GC, 而提升速率则影响的是 major GC 的频率。有大量的数据提升,自然很快就会把老年代填满。 老年代填充的越快, 则 major GC 事件的频率将会越快。
+和分配速率一样, 提升速率也会影响GC暂停的频率。但分配速率主要影响 [minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t8), 而提升速率则影响的是 [major GC](http://blog.csdn.net/renfufei/article/details/54144385#t8) 的频率。有大量的数据提升,自然很快就会把老年代填满。 老年代填充的越快, 则 major GC 事件的频率将会越快。
 
 
 
@@ -425,13 +425,13 @@ As we have shown in earlier chapters, full garbage collections typically require
 ### 示例
 
 
-Let us look at a demo application suffering from premature promotion. This app obtains chunks of data, accumulates them, and, when a sufficient number is reached, processes the whole batch at once:
+Let us look at a [demo application](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PrematurePromotion.java) suffering from premature promotion. This app obtains chunks of data, accumulates them, and, when a sufficient number is reached, processes the whole batch at once:
 
-让我们看一个过早提升的示例。 这个程序创建/获取大量的对象/数据,并暂存到集合之中, 累积到一定数量之后,进行批处理:
+让我们看一个[过早提升的示例](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PrematurePromotion.java)。 这个程序创建/获取大量的对象/数据,并暂存到集合之中, 累积到一定数量之后,进行批处理:
 
 
 	public class PrematurePromotion {
-	
+
 	   private static final Collection<byte[]> accumulatedChunks 
 					= new ArrayList<>();
 	
@@ -448,9 +448,9 @@ Let us look at a demo application suffering from premature promotion. This app o
 
 
 
-The demo application is impacted by premature promotion by the GC. The ways to verify and solve the issue are given in the next sections.
+The [demo application](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PrematurePromotion.java) is impacted by premature promotion by the GC. The ways to verify and solve the issue are given in the next sections.
 
-此 Demo 程序受到过早提升的影响。在接下来的部分将进行确认并给出解决办法。
+此 [Demo 程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PrematurePromotion.java)受到过早提升的影响。在接下来的部分将进行确认并给出解决办法。
 
 
 ### Could my JVMs be Affected?
@@ -475,7 +475,7 @@ In general, the symptoms of premature promotion can take any of the following fo
 
 
 
-Showcasing this in a short and easy-to-understand demo application is a bit tricky, so we will cheat a little by making the objects tenure to the old generation a bit earlier than it happens by default. If we ran the demo with a specific set of GC parameters (-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1), we would see this in the garbage collection logs:
+Showcasing this in a short and easy-to-understand [demo application](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PrematurePromotion.java) is a bit tricky, so we will cheat a little by making the objects tenure to the old generation a bit earlier than it happens by default. If we ran the demo with a specific set of GC parameters (-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1), we would see this in the garbage collection logs:
 
 要演示这种情况稍微有点麻烦, 所以我们使用点特殊手段, 让对象提升到老年代的年龄比默认情况小很多。指定GC参数 `-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1`, 运行程序之后,可以看到下面的GC日志:
 
@@ -547,7 +547,7 @@ If neither is a viable option, then perhaps data structures can be optimized to 
 
 Another class of issues affecting GC is linked to the use of non-strong references in the application. While this may help to avoid an unwanted OutOfMemoryError in many cases, heavy usage of such references may significantly impact the way garbage collection affects the performance of your application.
 
-另一类影响GC的问题是程序中的 non-strong 引用。虽然这类引用在很多情况下可以避免出现 `OutOfMemoryError`,  但滥用也会对GC行为造成严重影响, 进而降低系统性能。
+另一类影响GC的问题是程序中的 non-strong 引用。虽然这类引用在很多情况下可以避免出现 [`OutOfMemoryError`](https://plumbr.eu/outofmemory),  但滥用也会对GC行为造成严重影响, 进而降低系统性能。
 
 
 ## 需要关注弱引用的原因
@@ -594,18 +594,18 @@ Surprisingly, many developers skip the very next paragraph in the same javadoc (
 > 与软引用和弱引用不同, 虚引用不会被 GC 自动清除, 因为他们被存放到队列中. 通过虚引用可达的对象会继续留在内存, 除非此引用被清除, 或者自身变为不可达对象。
 
 
-That is right, we have to manually clear() up phantom references or risk facing a situation where the JVM starts dying with an OutOfMemoryError. The reason why the Phantom references are there in the first place is that this is the only way to find out when an object has actually become unreachable via the usual means. Unlike with soft or weak references, you cannot resurrect a phantom-reachable object.
- 
+That is right, we have to manually [clear()](http://docs.oracle.com/javase/7/docs/api/java/lang/ref/Reference.html#clear()) up phantom references or risk facing a situation where the JVM starts dying with an [OutOfMemoryError](https://plumbr.eu/outofmemory). The reason why the Phantom references are there in the first place is that this is the only way to find out when an object has actually become unreachable via the usual means. Unlike with soft or weak references, you cannot resurrect a phantom-reachable object.
 
-也就是说,我们必须手动调用 clear() 来清除虚引用, 否则可能会因为 OutOfMemoryError 而导致 JVM 挂掉.  使用虚引用的理由是, 这是用编程手段来跟踪某个对象何时变为不可达对象的唯一的常规手段。 和软引用/弱引用不同, 我们不能复活虚可达(phantom-reachable)对象。
+
+也就是说,我们必须手动调用 [clear()](http://docs.oracle.com/javase/7/docs/api/java/lang/ref/Reference.html#clear()) 来清除虚引用, 否则可能会因为 [OutOfMemoryError](https://plumbr.eu/outofmemory) 而导致 JVM 挂掉.  使用虚引用的理由是, 这是用编程手段来跟踪某个对象何时变为不可达对象的唯一的常规手段。 和软引用/弱引用不同, 我们不能复活虚可达(phantom-reachable)对象。
 
 
 ## 示例
 
 
-Let us take a look at another demo application that allocates a lot of objects, which are successfully reclaimed during minor garbage collections. Bearing in mind the trick of altering the tenuring threshold from the previous section on promotion rate, we could run this application with -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1 and see this in GC logs:
+Let us take a look at another [demo application](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/WeakReferences.java) that allocates a lot of objects, which are successfully reclaimed during minor garbage collections. Bearing in mind the trick of altering the tenuring threshold from the previous section on promotion rate, we could run this application with -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1 and see this in GC logs:
 
-让我们看另一个示例, 其中创建了大量的对象, 并且在 minor GC 时完成回收. 和前面一样,修改提升阀值。使用的JVM参数为: ` -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1` , GC日志如下所示:
+让我们看[另一个示例](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/WeakReferences.java), 其中创建了大量的对象, 并且在 minor GC 时完成回收. 和前面一样,修改提升阀值。使用的JVM参数为: ` -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1` , GC日志如下所示:
 
 
 	2.330: [GC (Allocation Failure)  20933K->8229K(22528K), 0.0033848 secs]
@@ -659,7 +659,7 @@ The objects are now once again reclaimed during minor garbage collection.
 
 The situation is even worse when soft references are used as seen in the next demo application. The softly-reachable objects are not reclaimed until the application risks getting an OutOfMemoryError. Replacing weak references with soft references in the demo application immediately surfaces many more Full GC events:
 
-更坏的情况是使用软引用,例如下面的程序。如果程序不面临 `OutOfMemoryError` , 软引用对象就不会被回收. 在示例程序中,用软引用替代弱引用, 立即出现更多的 Full GC 事件:
+更坏的情况是使用软引用,例如[下面的程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/SoftReferences.java)。如果程序不面临 `OutOfMemoryError` , 软引用对象就不会被回收. 在示例程序中,用软引用替代弱引用, 立即出现更多的 Full GC 事件:
 
 
 	2.162: [Full GC (Ergonomics)  31561K->12865K(61440K), 0.0181392 secs]
@@ -673,9 +673,9 @@ The situation is even worse when soft references are used as seen in the next de
 
 
 
-And the king here is the phantom reference as seen in the third demo application. Running the demo with the same sets of parameters as before would give us results that are pretty similar as the results in the case with weak references. The number of full GC pauses would, in fact, be much smaller because of the difference in the finalization described in the beginning of this section.
+And the king here is the phantom reference as seen in the [third demo application](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PhantomReferences.java). Running the demo with the same sets of parameters as before would give us results that are pretty similar as the results in the case with weak references. The number of full GC pauses would, in fact, be much smaller because of the difference in the finalization described in the beginning of this section.
 
-最关键的是第三个示例中的虚引用, 使用同样的JVM启动参数,结果和弱引用示例非常相似。实际上, full GC暂停的次数会小得多, 原因前面说过, 他们有不同的终结方式。
+最关键的是[第三个示例](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PhantomReferences.java)中的虚引用, 使用同样的JVM启动参数,结果和弱引用示例非常相似。实际上, full GC暂停的次数会小得多, 原因前面说过, 他们有不同的终结方式。
 
 
 However, adding one flag that disables phantom reference clearing (-Dno.ref.clearing=true) would quickly give us this:
@@ -695,9 +695,9 @@ Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
 main 线程中抛出异常 ` java.lang.OutOfMemoryError: Java heap space`.
 
 
-One must exercise extreme caution when using phantom references and always clear up the phantom reachable objects in a timely manner. Failing to do so will likely end up with an OutOfMemoryError. And trust us when we say that it is quite easy to fail at this: one unexpected exception in the thread that processes the reference queue, and you will have a dead application at your hand.
+One must exercise extreme caution when using phantom references and always clear up the phantom reachable objects in a timely manner. Failing to do so will likely end up with an [OutOfMemoryError](https://plumbr.eu/outofmemory). And trust us when we say that it is quite easy to fail at this: one unexpected exception in the thread that processes the reference queue, and you will have a dead application at your hand.
 
-使用虚引用时需要小心谨慎, 并及时清理虚可达对象。如果不清理, 就可能会发生 `OutOfMemoryError`. 请相信我们的经验教训:  处理 reference queue 的 线程没 catch 住 exception , 系统很快就会被整挂了。
+使用虚引用时需要小心谨慎, 并及时清理虚可达对象。如果不清理, 就可能会发生 [`OutOfMemoryError`](https://plumbr.eu/outofmemory). 请相信我们的经验教训:  处理 reference queue 的 线程没 catch 住 exception , 系统很快就会被整挂了。
 
 
 ### Could my JVMs be Affected?
@@ -764,13 +764,13 @@ When you have verified the application actually is suffering from the mis-, ab- 
 
 
 - Weak references – if the problem is triggered by increased consumption of a specific memory pool, an increase in the corresponding pool (and possibly the total heap along with it) can help you out. As seen in the example section, increasing the total heap and young generation sizes alleviated the pain.
-- Phantom references – make sure you are actually clearing the references. It is easy to dismiss certain corner cases and have the clearing thread to not being able to keep up with the pace the queue is filled or to stop clearing the queue altogether, putting a lot of pressure to GC and creating a risk of ending up with an OutOfMemoryError.
+- Phantom references – make sure you are actually clearing the references. It is easy to dismiss certain corner cases and have the clearing thread to not being able to keep up with the pace the queue is filled or to stop clearing the queue altogether, putting a lot of pressure to GC and creating a risk of ending up with an [OutOfMemoryError](http://www.oracle.com/technetwork/articles/javaee/index-jsp-136424.html).
 - Soft references – when soft references are identified as the source of the problem, the only real way to alleviate the pressure is to change the application’s intrinsic logic.
 
 <br/>
 
 - `弱引用`(`Weak references`) —— 如果某个内存池的使用量增大, 而引起问题, 那么增加这个内存池的大小(可能也要增加堆内存的最大容量)。如同示例中所看到的, 增加堆内存的大小以及年轻代的大小可以减轻症状。
-- `虚引用`(`Phantom references`) —— 请确保在程序中调用了虚引用的 clear 方法。很容易忽略某些代码中的虚引用, 或者清理的速度跟不上产生的速度, 或者清除引用队列的线程退出, 就会对GC 造成很大压力, 最终有可能引起 `OutOfMemoryError`。
+- `虚引用`(`Phantom references`) —— 请确保在程序中调用了虚引用的 clear 方法。很容易忽略某些代码中的虚引用, 或者清理的速度跟不上产生的速度, 或者清除引用队列的线程退出, 就会对GC 造成很大压力, 最终有可能引起 [`OutOfMemoryError`](http://www.oracle.com/technetwork/articles/javaee/index-jsp-136424.html)。
 - `软引用`(`Soft references`) ——  如果确定问题的根源是软引用, 唯一的解决办法是修改程序源码, 改变内部逻辑。
 
 
@@ -789,9 +789,9 @@ Previous chapters covered the most common problems related to poorly behaving GC
 ### RMI 与 GC
 
 
-When your application is publishing or consuming services over RMI, the JVM periodically launches full GC to make sure that locally unused objects are also not taking up space on the other end. Bear in mind that even if you are not explicitly publishing anything over RMI in your code, third party libraries or utilities can still open RMI endpoints. One such common culprit is for example JMX, which, if attached to remotely, will use RMI underneath to publish the data.
+When your application is publishing or consuming services over [RMI](http://www.oracle.com/technetwork/articles/javaee/index-jsp-136424.html), the JVM periodically launches full GC to make sure that locally unused objects are also not taking up space on the other end. Bear in mind that even if you are not explicitly publishing anything over RMI in your code, third party libraries or utilities can still open RMI endpoints. One such common culprit is for example JMX, which, if attached to remotely, will use RMI underneath to publish the data.
 
-如果系统提供或者消费 RMI 服务, 则JVM会定期调用 full GC 来确保本地未使用的对象在另一端也不占用空间. 记住, 即使你的代码中没有发布 RMI 服务, 但第三方或者工具库也可能打开 RMI 终端. 最常见的元凶, 是 JMX, 如果通过JMX连接到远端, 在底层就会使用RMI来发布数据。
+如果系统提供或者消费 [RMI](http://www.oracle.com/technetwork/articles/javaee/index-jsp-136424.html) 服务, 则JVM会定期调用 full GC 来确保本地未使用的对象在另一端也不占用空间. 记住, 即使你的代码中没有发布 RMI 服务, 但第三方或者工具库也可能打开 RMI 终端. 最常见的元凶, 是 JMX, 如果通过JMX连接到远端, 在底层就会使用RMI来发布数据。
 
 
 The problem is exposed by seemingly unnecessary and periodic full GC pauses. When you check the old generation consumption, there is often no pressure to the memory as there is plenty of free space in the old generation, but full GC is triggered, stopping the application threads.
@@ -815,9 +815,9 @@ For many applications, this is not necessary or outright harmful. To disable suc
 
 
 
-This sets the period after which System.gc() is run to Long.MAX_VALUE; for all practical matters, this equals eternity.
+This sets the period after which [System.gc()](http://docs.oracle.com/javase/7/docs/api/java/lang/System.html#gc()) is run to Long.MAX_VALUE; for all practical matters, this equals eternity.
 
-这让 `Long.MAX_VALUE` 毫秒之后, 才调用 `System.gc()`, 实际运行的系统可能永远也不会触发。
+这让 `Long.MAX_VALUE` 毫秒之后, 才调用 [`System.gc()`](http://docs.oracle.com/javase/7/docs/api/java/lang/System.html#gc()), 实际运行的系统可能永远也不会触发。
 
 > ObjectTable.class
 
@@ -838,10 +838,10 @@ An alternative solution for the problem would to disable explicit calls to Syste
 ### JVMTI tagging 与 GC
 
 
-Whenever the application is run alongside with a Java Agent (-javaagent), there is a chance that the agent can tag the objects in the heap using JVMTI tagging. Agents can use tagging for various reasons that are not in the scope of this handbook, but there is a GC-related performance issue that can start affecting the latency and throughput of your application if tagging is applied to a large subset of objects inside the heap.
+Whenever the application is run alongside with a Java Agent (-javaagent), there is a chance that the agent can tag the objects in the heap using [JVMTI tagging](http://docs.oracle.com/javase/7/docs/platform/jvmti/jvmti.html#Heap). Agents can use tagging for various reasons that are not in the scope of this handbook, but there is a GC-related performance issue that can start affecting the latency and throughput of your application if tagging is applied to a large subset of objects inside the heap.
 
 
-如果程序启动时指定了 Java Agent (`-javaagent`), agent 就可以使用 JVMTI tagging 标记堆中的对象。agent 使用tagging的种种原因本手册不进行讲解, 但如果 tagging 标记了堆内存中大量的对象, 很可能会引起 GC 性能问题, 导致延迟增加, 以及吞吐量降低。
+如果程序启动时指定了 Java Agent (`-javaagent`), agent 就可以使用 [JVMTI tagging](http://docs.oracle.com/javase/7/docs/platform/jvmti/jvmti.html#Heap) 标记堆中的对象。agent 使用tagging的种种原因本手册不进行讲解, 但如果 tagging 标记了堆内存中大量的对象, 很可能会引起 GC 性能问题, 导致延迟增加, 以及吞吐量降低。
 
 
 
@@ -882,12 +882,12 @@ Having frequent humongous allocations can trigger GC performance issues, conside
 
 
 - If the regions contain humongous objects, space between the last humongous object in the region and the end of the region will be unused. If all the humongous objects are just a bit larger than a factor of the region size, this unused space can cause the heap to become fragmented.
-- Collection of the humongous objects is not as optimized by the G1 as with regular objects. It was especially troublesome with early Java 8 releases – until Java 1.8u40 the reclamation of humongous regions was only done during full GC events. More recent releases of the Hotspot JVM free the humongous regions at the end of the marking cycle during the cleanup phase, so the impact of the issue has been reduced significantly for newer JVMs.
+- Collection of the humongous objects is not as optimized by the G1 as with regular objects. It was especially troublesome with early Java 8 releases – [until Java 1.8u40](https://bugs.openjdk.java.net/browse/JDK-8027959) the reclamation of humongous regions was only done during full GC events. More recent releases of the Hotspot JVM free the humongous regions at the end of the marking cycle during the cleanup phase, so the impact of the issue has been reduced significantly for newer JVMs.
 
 <br/>
 
 - 如果某个 region 中含有巨无霸对象, 则巨无霸对象之后的空间将不会被分配。如果所有巨无霸对象都占 region size 的某个比例, 则未使用的空间会引起内存碎片问题。
-- G1 没有对巨无霸对象进行回收优化。这在 JDK 8 以前是个特别棘手的问题 —— 在 **Java 1.8u40** 之前的版本中, 巨无霸对象所在区域的回收只能在 full GC 中进行。最新版本的 Hotspot JVM 在 marking 阶段之后的 cleanup 阶段中释放巨无霸区间, 所以这个问题在新版本JVM中的影响已经大大减小了。
+- G1 没有对巨无霸对象进行回收优化。这在 JDK 8 以前是个特别棘手的问题 —— 在 [**Java 1.8u40**](https://bugs.openjdk.java.net/browse/JDK-8027959) 之前的版本中, 巨无霸对象所在区域的回收只能在 full GC 中进行。最新版本的 Hotspot JVM 在 marking 阶段之后的 cleanup 阶段中释放巨无霸区间, 所以这个问题在新版本JVM中的影响已经大大减小了。
 
 
 
