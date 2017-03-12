@@ -407,55 +407,53 @@ major GC 不是为频繁回收而设计的, 但 major GC 现在也要清理这�
 
 如果都不可行, 就只能优化数据结构, 减少内存消耗。但总体目标依然是一致的: 让临时数据能够在年轻代存放得下。
 
-=======================校对到此处
 
 
 
-
-## Weak, Soft 以及 Phantom 引用
-
-
-另一类影响GC的问题是程序中的 non-strong 引用。虽然这类引用在很多情况下可以避免出现 [`OutOfMemoryError`](https://plumbr.eu/outofmemory),  但滥用也会对GC行为造成严重影响, 进而降低系统性能。
+## Weak, Soft 及 Phantom 引用
 
 
-## 需要关注弱引用的原因
+另一类影响GC的问题是程序中的 `non-strong 引用`。虽然这类引用在很多情况下可以避免出现 [`OutOfMemoryError`](https://plumbr.eu/outofmemory),  但过量使用也会对GC造成严重的影响, 反而降低系统性能。
 
 
-首先, 你应该知道, `弱引用`(weak reference) 是可以被垃圾收集器强制回收的。当GC发现一个弱可达对象(weakly reachable),即指向该对象的引用只剩下弱引用时, 则会将其置入相应的ReferenceQueue 中, 成为可终结的对象. 之后可能会遍历这个 reference queue, 并执行相应的清理。典型的示例是清除缓存中不再引用的KEY。
+## 弱引用的缺点
 
 
-当然, 在这个时候, 我们还可以将该对象赋值给新的强引用, 在最后终结和回收前, GC会再次确认是否可以回收。因此, 弱引用对象的回收过程是横跨多个GC周期的。
+首先, `弱引用`(`weak reference`) 是可以被GC强制回收的。当垃圾收集器发现一个弱可达对象(`weakly reachable`,即指向该对象的引用只剩下弱引用) 时, 就会将其置入相应的`ReferenceQueue` 中, 变成可终结的对象. 之后可能会遍历这个 reference queue, 并执行相应的清理。典型的示例是清除缓存中不再引用的KEY。
 
 
-弱引用实际上使用的很多。大部分缓存框架(caching solution)都是基于弱引用来实现的, 所以我们虽然没有直接编写弱引用代码, 但程序中依然会存在大量的弱引用对象。
+当然, 在这个时候, 我们还可以将该对象赋值给新的强引用, 在最后终结和回收前, GC会再次确认该对象是否可以安全回收。因此, 弱引用对象的回收过程是横跨多个GC周期的。
 
 
-其次, `软引用`(soft reference) 比弱引用更难被垃圾收集器回收. 回收软引用没有确切的时间点, 由各个JVM自己决定. 一般只会在即将耗尽可用内存时, 才会回收软引用,作为最后手段。这意味着, 可能会面临更频繁的 full GC, 暂停时间也会比预期更长, 因为老年代中有更多的存活对象。
+实际上弱引用使用的很多。大部分缓存框架(**caching solution**)都是基于弱引用实现的, 所以虽然业务代码中没有直接使用弱引用, 但程序中依然会大量存在。
 
 
-最后要注意, 在使用`虚引用`(phantom reference)时, 必须进行手动内存管理, 以标识这些对象是否可以安全地回收。表面上看起来很安全, 但实际上并不是这样。 javadoc 中写道:
+其次, `软引用`(soft reference) 比弱引用更难被垃圾收集器回收. 回收软引用没有确切的时间点, 由JVM自己决定. 一般只会在即将耗尽可用内存时, 才会回收软引用,以作最后手段。这意味着, 可能会有更频繁的 full GC, 暂停时间也比预期更长, 因为老年代中的存活对象会很多。
+
+
+最后,  使用`虚引用`(phantom reference)时, 必须手动进行内存管理, 以标识这些对象是否可以安全地回收。表面上看起来很正常, 但实际上并不是这样。 javadoc 中写道:
 
 
 > In order to ensure that a reclaimable object remains so, the referent of a phantom reference may not be retrieved: The get method of a phantom reference always returns null.
 
-> 为了防止可回收对象的残留, 虚引用对象不应该被获取:  phantom reference 的 `get` 方法总是返回 `null`。
+> 为了防止可回收对象的残留, 虚引用对象不应该被获取:  `phantom reference` 的 `get` 方法返回值永远是 `null`。
 
 
-令人惊讶的是, 很多开发者忽略了 javadoc 中的下一段内容(**这才是重点**):
+令人惊讶的是, 很多开发者忽略了下一段内容(**这才是重点**):
 
 
 > Unlike soft and weak references, phantom references are not automatically cleared by the garbage collector as they are enqueued. An object that is reachable via phantom references will remain so until all such references are cleared or themselves become unreachable.
 
-> 与软引用和弱引用不同, 虚引用不会被 GC 自动清除, 因为他们被存放到队列中. 通过虚引用可达的对象会继续留在内存, 除非此引用被清除, 或者自身变为不可达对象。
+> 与软引用和弱引用不同, 虚引用不会被 GC 自动清除, 因为他们被存放到队列中. 通过虚引用可达的对象会继续留在内存中, 直到调用此引用的 clear 方法, 或者引用自身变为不可达。
 
 
-也就是说,我们必须手动调用 [clear()](http://docs.oracle.com/javase/7/docs/api/java/lang/ref/Reference.html#clear()) 来清除虚引用, 否则可能会因为 [OutOfMemoryError](https://plumbr.eu/outofmemory) 而导致 JVM 挂掉.  使用虚引用的理由是, 这是用编程手段来跟踪某个对象何时变为不可达对象的唯一的常规手段。 和软引用/弱引用不同, 我们不能复活虚可达(phantom-reachable)对象。
+也就是说,我们必须手动调用 [clear()](http://docs.oracle.com/javase/7/docs/api/java/lang/ref/Reference.html#clear()) 来清除虚引用, 否则可能会造成 [OutOfMemoryError](https://plumbr.eu/outofmemory) 而导致 JVM 挂掉.  使用虚引用的理由是, 对于用编程手段来跟踪某个对象何时变为不可达对象, 这是唯一的常规手段。 和软引用/弱引用不同的是, 我们不能复活虚可达(phantom-reachable)对象。
 
 
 ## 示例
 
 
-让我们看[另一个示例](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/WeakReferences.java), 其中创建了大量的对象, 并且在 minor GC 时完成回收. 和前面一样,修改提升阀值。使用的JVM参数为: ` -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1` , GC日志如下所示:
+让我们看[一个弱引用示例](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/WeakReferences.java), 其中创建了大量的对象, 并在 minor GC 中完成回收。和前面一样, 修改提升阀值。使用的JVM参数为: ` -Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1` , GC日志如下所示:
 
 
 	2.330: [GC (Allocation Failure)  20933K->8229K(22528K), 0.0033848 secs]
@@ -471,7 +469,7 @@ major GC 不是为频繁回收而设计的, 但 major GC 现在也要清理这�
 
 
 
-可以看到, Full GC 的次数很少。但假如程序使用弱引用来指向创建的对象, 使用JVM参数 `-Dweak.refs=true`, 则情况会发生明显变化. 使用弱引用的原因很多, 比如在 weak hash map 中使用对象作为Key, 最后进行分配分析。在任何情况下, 使用弱引用都可能会导致以下情形:
+可以看到, Full GC 的次数很少。但如果使用弱引用来指向创建的对象, 使用JVM参数 `-Dweak.refs=true`, 则情况会发生明显变化. 使用弱引用的原因很多, 比如在 weak hash map 中将对象作为Key的情况。在任何情况下, 使用弱引用都可能会导致以下情形:
 
 
 	2.059: [Full GC (Ergonomics)  20365K->19611K(22528K), 0.0654090 secs]
@@ -483,7 +481,7 @@ major GC 不是为频繁回收而设计的, 但 major GC 现在也要清理这�
 
 
 
-可以看到, 发生了多次 full GC, 比起前一节的示例, GC时间增加了一个数量级! 这是过早提升的另一个例子, 但这次情况更加棘手. 当然,问题的根源在于弱引用。这些临死的对象, 在添加弱引用之后, 被提升到老年代. 但是, 他们现在陷入另一个GC循环之中, 所以需要对其做一些适当的清理。像之前一样, 最简单的解决办法是增加年轻代的大小, 例如指定JVM参数: `-Xmx64m -XX:NewSize=32m`:
+可以看到, 发生了多次 full GC, 比起前一节的示例, GC时间增加了一个数量级!  这是过早提升的另一个例子, 但这次情况更加棘手. 当然,问题的根源在于弱引用。这些临死的对象, 在添加弱引用之后, 被提升到了老年代。 但是, 他们现在陷入另一次GC循环之中, 所以需要对其做一些适当的清理。像之前一样, 最简单的办法是增加年轻代的大小, 例如指定JVM参数: `-Xmx64m -XX:NewSize=32m`:
 
 
 	2.328: [GC (Allocation Failure)  38940K->13596K(61440K), 0.0012818 secs]
@@ -498,7 +496,7 @@ major GC 不是为频繁回收而设计的, 但 major GC 现在也要清理这�
 这时候, 对象在 minor GC 中就被回收了。
 
 
-更坏的情况是使用软引用,例如[下面的程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/SoftReferences.java)。如果程序不面临 `OutOfMemoryError` , 软引用对象就不会被回收. 在示例程序中,用软引用替代弱引用, 立即出现更多的 Full GC 事件:
+更坏的情况是使用软引用,例如这个[软引用示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/SoftReferences.java)。如果程序不是即将发生 `OutOfMemoryError` , 软引用对象就不会被回收. 在示例程序中,用软引用替代弱引用, 立即出现了更多的 Full GC 事件:
 
 
 	2.162: [Full GC (Ergonomics)  31561K->12865K(61440K), 0.0181392 secs]
@@ -511,10 +509,10 @@ major GC 不是为频繁回收而设计的, 但 major GC 现在也要清理这�
 
 
 
-最关键的是[第三个示例](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PhantomReferences.java)中的虚引用, 使用同样的JVM启动参数,结果和弱引用示例非常相似。实际上, full GC暂停的次数会小得多, 原因前面说过, 他们有不同的终结方式。
+最有趣的是[虚引用示例](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PhantomReferences.java)中的虚引用, 使用同样的JVM参数启动, 其结果和弱引用示例非常相似。实际上, full GC 暂停的次数会小得多, 原因前面说过, 他们有不同的终结方式。
 
 
-如果增加一个JVM启动参数 (-Dno.ref.clearing=true), 禁用虚引用清理, 则可以看到:
+如果禁用虚引用清理, 增加JVM启动参数 (`-Dno.ref.clearing=true`), 则可以看到:
 
 
 	4.180: [Full GC (Ergonomics)  57343K->57087K(61440K), 0.0879851 secs]
@@ -526,13 +524,13 @@ major GC 不是为频繁回收而设计的, 但 major GC 现在也要清理这�
 main 线程中抛出异常 ` java.lang.OutOfMemoryError: Java heap space`.
 
 
-使用虚引用时需要小心谨慎, 并及时清理虚可达对象。如果不清理, 就可能会发生 [`OutOfMemoryError`](https://plumbr.eu/outofmemory). 请相信我们的经验教训:  处理 reference queue 的 线程没 catch 住 exception , 系统很快就会被整挂了。
+使用虚引用时要小心谨慎, 并及时清理虚可达对象。如果不清理, 很可能会发生 [`OutOfMemoryError`](https://plumbr.eu/outofmemory). 请相信我们的经验教训:  处理 reference queue 的线程中如果没 catch 住 exception , 系统很快就会被整挂了。
 
 
-### 对JVM会造成什么影响?
+### 使用非强引用的影响
 
 
-建议使用JVM参数 `-XX:+PrintReferenceGC` 来看看各种引用对GC的影响. 如将这个参数用于 WeakReference 的例子, 将会看到:
+建议使用JVM参数 `-XX:+PrintReferenceGC` 来看看各种引用对GC的影响.  如果将此参数用于启动 [弱引用示例](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/WeakReferences.java) , 将会看到:
 
 
 	2.173: [Full GC (Ergonomics) 
@@ -574,39 +572,39 @@ main 线程中抛出异常 ` java.lang.OutOfMemoryError: Java heap space`.
 
 
 
-同样, 只有确定 GC 对应用程序的吞吐量和延迟有影响之后, 才应该花心思来分析这些信息. 此时需要查看这部分日志。通常情况下, 每次GC清理的引用数量都是很少的, 大部分情况下都是 `0`。如果GC 花了较多时间来清理这类引用, 或者清除了很多的此类引用, 那就需要进一步分析和调查。
+只有确定 GC 对应用的吞吐量和延迟造成影响之后, 才应该花心思来分析这些信息, 审查这部分日志。通常情况下, 每次GC清理的引用数量都是很少的, 大部分情况下为 `0`。如果GC 花了较多时间来清理这类引用, 或者清除了很多的此类引用,  就需要进一步观察和分析了。
 
 
 ### 解决方案
 
 
-如果确定程序碰到了 `mis-`,  `ab-` 问题或者滥用 weak, soft 及 phantom  引用, 通常是要修改程序的实现逻辑。每个系统都不一样, 因此很难提供通用指南。但有一些常用的办法:
+如果程序确实碰到了 `mis-`,  `ab-` 问题或者滥用 weak, soft, phantom  引用,  一般都要修改程序的实现逻辑。每个系统不一样, 因此很难提供通用的指导建议, 但有一些常用的办法:
 
 
-- `弱引用`(`Weak references`) —— 如果某个内存池的使用量增大, 而引起问题, 那么增加这个内存池的大小(可能也要增加堆内存的最大容量)。如同示例中所看到的, 增加堆内存的大小以及年轻代的大小可以减轻症状。
-- `虚引用`(`Phantom references`) —— 请确保在程序中调用了虚引用的 clear 方法。很容易忽略某些代码中的虚引用, 或者清理的速度跟不上产生的速度, 或者清除引用队列的线程退出, 就会对GC 造成很大压力, 最终有可能引起 [`OutOfMemoryError`](http://www.oracle.com/technetwork/articles/javaee/index-jsp-136424.html)。
-- `软引用`(`Soft references`) ——  如果确定问题的根源是软引用, 唯一的解决办法是修改程序源码, 改变内部逻辑。
+- `弱引用`(`Weak references`) —— 如果某个内存池的使用量增大, 造成了性能问题, 那么增加这个内存池的大小(可能也要增加堆内存的最大容量)。如同示例中所看到的, 增加堆内存的大小, 以及年轻代的大小, 可以减轻症状。
+- `虚引用`(`Phantom references`) —— 请确保在程序中调用了虚引用的 `clear` 方法。编程中很容易忽略某些虚引用, 或者清理的速度跟不上生产的速度, 又或者清除引用队列的线程挂了, 就会对GC 造成很大压力, 最终可能引起 [`OutOfMemoryError`](http://www.oracle.com/technetwork/articles/javaee/index-jsp-136424.html)。
+- `软引用`(`Soft references`) ——  如果确定问题的根源是软引用,  唯一的解决办法是修改程序源码, 改变内部实现逻辑。
 
 
 ## 其他示例
 
 
-前面介绍了最常见的GC性能问题。但所学的原理很多没有具体的情景示例展现。本节介绍一些不常发生, 但也可能会碰到的问题。
+前面介绍了最常见的GC性能问题。但我们学到的很多原理都没有具体的场景来展现。本节介绍一些不常发生, 但也可能会碰到的问题。
 
 
 ### RMI 与 GC
 
 
-如果系统提供或者消费 [RMI](http://www.oracle.com/technetwork/articles/javaee/index-jsp-136424.html) 服务, 则JVM会定期调用 full GC 来确保本地未使用的对象在另一端也不占用空间. 记住, 即使你的代码中没有发布 RMI 服务, 但第三方或者工具库也可能打开 RMI 终端. 最常见的元凶, 是 JMX, 如果通过JMX连接到远端, 在底层就会使用RMI来发布数据。
+如果系统提供或者消费 [RMI](http://www.oracle.com/technetwork/articles/javaee/index-jsp-136424.html) 服务, 则JVM会定期执行 full GC 来确保本地未使用的对象在另一端也不占用空间. 记住, 即使你的代码中没有发布 RMI 服务, 但第三方或者工具库也可能会打开 RMI 终端. 最常见的元凶是 JMX, 如果通过JMX连接到远端, 底层则会使用 RMI 发布数据。
 
 
-问题就是有很多不必要的周期性的 full GC暂停。如果查看老年代的使用情况, 一般是没有内存压力, 其中还存在大量的空闲区域, 但 full GC 就是被触发了, 也就暂停了所有的应用线程。
+问题是有很多不必要的周期性 full GC。查看老年代的使用情况, 一般是没有内存压力, 其中还存在大量的空闲区域, 但 full GC 就是被触发了, 也就会暂停所有的应用线程。
 
 
-这种周期性调用 `System.gc()` 删除远程引用的行为, 是在  `sun.rmi.transport.ObjectTable` 类中, 调用  `sun.misc.GC.requestLatency(long gcInterval)` 执行的。
+这种周期性调用 `System.gc()` 删除远程引用的行为, 是在  `sun.rmi.transport.ObjectTable` 类中, 通过  `sun.misc.GC.requestLatency(long gcInterval)` 调用的。
 
 
-对许多应用来说, 这根本没必要, 甚至对性能有害。 禁止这种周期性的 GC 行为, 可以使用以下 JVM 参数:
+对许多应用来说, 根本没必要, 甚至对性能有害。 禁止这种周期性的 GC 行为, 可以使用以下 JVM 参数:
 
 
 	java -Dsun.rmi.dgc.server.gcInterval=9223372036854775807L 
@@ -615,7 +613,7 @@ main 线程中抛出异常 ` java.lang.OutOfMemoryError: Java heap space`.
 
 
 
-这让 `Long.MAX_VALUE` 毫秒之后, 才调用 [`System.gc()`](http://docs.oracle.com/javase/7/docs/api/java/lang/System.html#gc()), 实际运行的系统可能永远也不会触发。
+这让 `Long.MAX_VALUE` 毫秒之后, 才调用 [`System.gc()`](http://docs.oracle.com/javase/7/docs/api/java/lang/System.html#gc()), 实际运行的系统可能永远都不会触发。
 
 > ObjectTable.class
 
@@ -625,34 +623,34 @@ main 线程中抛出异常 ` java.lang.OutOfMemoryError: Java heap space`.
 		)).longValue();
 
 
-可以看到, 默认值是 `3600000L`,也就是1小时触发一次 Full GC。
+可以看到, 默认值为 `3600000L`,也就是1小时触发一次 Full GC。
 
 
-另一种方式是指定JVM参数 `-XX:+DisableExplicitGC`, 禁止显式地调用 `System.gc()`.  但我们**墙裂反对** 这种方式, 因为有大坑。
+另一种方式是指定JVM参数 `-XX:+DisableExplicitGC`, 禁止显式地调用 `System.gc()`.  但我们**强烈反对** 这种方式, 因为埋有地雷。
 
 
 ### JVMTI tagging 与 GC
 
 
-如果程序启动时指定了 Java Agent (`-javaagent`), agent 就可以使用 [JVMTI tagging](http://docs.oracle.com/javase/7/docs/platform/jvmti/jvmti.html#Heap) 标记堆中的对象。agent 使用tagging的种种原因本手册不进行讲解, 但如果 tagging 标记了堆内存中大量的对象, 很可能会引起 GC 性能问题, 导致延迟增加, 以及吞吐量降低。
+如果在程序启动时指定了 Java Agent (`-javaagent`), agent 就可以使用 [JVMTI tagging](http://docs.oracle.com/javase/7/docs/platform/jvmti/jvmti.html#Heap) 标记堆中的对象。agent 使用tagging的种种原因本手册不详细讲解, 但如果 tagging 标记了大量的对象, 很可能会引起 GC 性能问题, 导致延迟增加, 以及吞吐量降低。
 
 
-问题在 native 代码中, `JvmtiTagMap::do_weak_oops` 在每次GC时,遍历所有的标签(tag),并执行一些比较耗时的操作。更坑的是, 这些操作是按顺序串行执行的。
+问题发生在 native 代码中, `JvmtiTagMap::do_weak_oops` 在每次GC时, 都会遍历所有标签(tag),并执行一些比较耗时的操作。更坑的是, 这种操作是串行执行的。
 
 
-如果存在大量的标签, 就意味着 GC 中有很大一部分工作是单线程执行的, 可能会增加一个数量级的GC暂停时间。
+如果存在大量的标签, 就意味着 GC 时有很大一部分工作是单线程执行的, GC暂停时间可能会增加一个数量级。
 
 
-检查是否因为 agent 增加了GC暂停的时间, 可以使用诊断参数 `–XX:+TraceJVMTIObjectTagging`. 启用跟踪之后, 可以估算出内存中 tag 映射了多少 native 内存, 以及遍历所消耗的时间。
+检查是否因为 agent 增加了GC暂停时间, 可以使用诊断参数 `–XX:+TraceJVMTIObjectTagging`. 启用跟踪之后, 可以估算出内存中 tag 映射了多少 native 内存, 以及遍历所消耗的时间。
 
 
-如果你不是 agent 的作者, 那一般是搞不定这种问题的。除了提BUG之外你什么都做不了. 如果面临这种情况, 可以建议厂商清理不必要的标签。
+如果你不是 agent 的作者, 那一般是搞不定这类问题的。除了提BUG之外你什么都做不了. 如果发生了这种情况, 请建议厂商清理不必要的标签。
 
 
 ### 巨无霸对象的分配(Humongous Allocations)
 
 
-如果使用 G1 垃圾收集算法, 会有一种巨无霸对象引起的 GC 性能问题。
+如果使用 G1 垃圾收集算法, 会产生一种巨无霸对象引起的 GC 性能问题。
 
 > **说明**: 在G1中, 巨无霸对象是指所占空间超过一个小堆区(region) `50%` 的对象。
 
@@ -660,11 +658,11 @@ main 线程中抛出异常 ` java.lang.OutOfMemoryError: Java heap space`.
 频繁的创建巨无霸对象, 无疑会造成GC的性能问题, 看看G1的处理方式:
 
 
-- 如果某个 region 中含有巨无霸对象, 则巨无霸对象之后的空间将不会被分配。如果所有巨无霸对象都占 region size 的某个比例, 则未使用的空间会引起内存碎片问题。
-- G1 没有对巨无霸对象进行回收优化。这在 JDK 8 以前是个特别棘手的问题 —— 在 [**Java 1.8u40**](https://bugs.openjdk.java.net/browse/JDK-8027959) 之前的版本中, 巨无霸对象所在区域的回收只能在 full GC 中进行。最新版本的 Hotspot JVM 在 marking 阶段之后的 cleanup 阶段中释放巨无霸区间, 所以这个问题在新版本JVM中的影响已经大大减小了。
+- 如果某个 region 中含有巨无霸对象, 则巨无霸对象后面的空间将不会被分配。如果所有巨无霸对象都超过某个比例, 则未使用的空间就会引发内存碎片问题。
+- G1 没有对巨无霸对象进行优化。这在 JDK 8 以前是个特别棘手的问题 —— 在 [**Java 1.8u40**](https://bugs.openjdk.java.net/browse/JDK-8027959) 之前的版本中, 巨无霸对象所在 region 的回收只能在 full GC 中进行。最新版本的 Hotspot JVM, 在 marking 阶段之后的 cleanup 阶段中释放巨无霸区间, 所以这个问题在新版本JVM中的影响已大大降低。
 
 
-要监控是否存在巨无霸对象, 可以打开GC日志, 命令如下:
+要监控是否存在巨无霸对象, 可以打开GC日志, 使用的命令如下:
 
 
 	java -XX:+PrintGCDetails -XX:+PrintGCTimeStamps 
@@ -702,26 +700,26 @@ GC 日志中可能会发现这样的部分:
 
 
 
-这样的日志就是证据, 应用程序确实创建了巨无霸对象. 可以看到: `G1 Humongous Allocation ` 是 GC暂停的原因。 再看前面一点的 “allocation request: 1048592 bytes” , 可以看到程序试图分配一个 `1,048,592` 字节的对象, 这要比巨无霸区域(`2MB`)的 `50%` 多出 16 个字节。
+这样的日志就是证据, 表明程序中确实创建了巨无霸对象. 可以看到: `G1 Humongous Allocation ` 是 GC暂停的原因。 再看前面一点的 `allocation request: 1048592 bytes` , 可以发现程序试图分配一个 `1,048,592` 字节的对象, 这要比巨无霸区域(`2MB`)的 `50%` 多出 16 个字节。
 
 
 
-第一种解决方式, 是修改 region size , 以使得大多数的对象不超过 `50%`, 也就不进行大对象巨无霸对象区域的分配。 region 的大小在启动时根据堆内存的大小算出。可以指定启动参数来覆盖默认设置, `-XX:G1HeapRegionSize=XX`。 指定的 region size 必须在 `1~32MB` 之间, 还必须是2的幂 【2^10 = 1024 = 1KB; 2^20=1MB; 所以大小只能是: `1m`,`2m`,`4m`,`8m`,`16m`,`32m`;】。
+第一种解决方式, 是修改 region size , 以使得大多数的对象不超过 `50%`, 也就不进行巨无霸对象区域的分配。 region 的默认大小在启动时根据堆内存的大小算出。但也可以指定参数来覆盖默认设置, `-XX:G1HeapRegionSize=XX`。 指定的 region size 必须在 `1~32MB` 之间, 还必须是2的幂 【2^10 = 1024 = 1KB; 2^20=1MB; 所以 region size 只能是: `1m`,`2m`,`4m`,`8m`,`16m`,`32m`】。
 
 
 这种方式也有副作用, 增加 region 的大小也就变相地减少了 region 的数量, 所以需要谨慎使用,  最好进行一些测试, 看看是否改善了吞吐量和延迟。
 
 
-更好的方式会需要一些工作量, 即在程序中限制对象的大小, 如果可以的话。最好是使用分析器, 可以展示出巨无霸对象的信息, 以及分配所在的堆栈跟踪信息。
+更好的方式需要一些工作量, 如果可以的话, 在程序中限制对象的大小。最好是使用分析器,  展示出巨无霸对象的信息, 以及分配时所在的堆栈跟踪信息。
 
 
 ### 总结
 
 
-JVM上运行的程序形形色色, JVM 启动参数也有上百个, 其中有很多参数会影响 GC, 所以调优GC性能的方法也有很多种。
+JVM上运行的程序多种多样, 启动参数也有上百个, 其中有很多会影响到 GC, 所以调优GC性能的方法也有很多种。
 
 
-还是那句话, 没有真正的银弹, 能满足所有的性能调优指标。 我们能做的只是介绍一些常见的/和不常见的示例, 让你在碰到类似问题的时候知道是怎么回事. 深入理解GC工作原理, 熟练应用各种工具, 你就可以进行GC调优, 提高程序性能。
+还是那句话, 没有真正的银弹, 能满足所有的性能调优指标。 我们能做的只是介绍一些常见的/和不常见的示例, 让你在碰到类似问题时知道是怎么回事。深入理解GC的工作原理, 熟练应用各种工具, 就可以进行GC调优, 提高程序性能。
 
 
 原文链接:  [GC Tuning: In Practice](https://plumbr.eu/handbook/gc-tuning-in-practice)
