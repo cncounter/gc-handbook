@@ -1,22 +1,27 @@
 # 7. GC 调优(实战篇)
 
+本章介绍导致GC性能问题的典型情况。相关示例都来源于生产环境, 为演示需要做了一定长度的精简。
 
-本章介绍会导致GC性能问题的典型情况。相关示例都来源于生产环境, 为了演示的需要,做了一定简化。
+> **说明**:  `Allocation Rate`, 翻译为`分配速率`, 而不是分配率; 因为不是百分比,而是单位时间内分配的量;
+>
+> 同理, `Promotion Rate` 翻译为 `提升速率`;
+
+
 
 
 ## 高分配速率(High Allocation Rate)
 
 
-分配速率(`Allocation rate`)用来表示单位时间内分配的内存总量。单位通常是 `MB/sec`, 也可以使用 `PB/year` 等。这很容易理解, 通过一段时间来衡量Java代码创建的内存总量。
+分配速率(`Allocation rate`)表示单位时间内分配的内存量。通常使用 `MB/sec`作为单位, 也可以使用 `PB/year` 等。
 
 
-过高的分配速率会严重影响程序性能。在JVM中, 这个问题会导致大量的GC开销。
+分配速率过高就会严重影响程序的性能。在JVM中会导致巨大的GC开销。
 
 
 ### 如何测量分配速率?
 
 
-通过指定JVM参数: `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` ,记录GC日志, 可以用来测量分配速率. GC日志类似这样:
+指定JVM参数: `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` , 通过GC日志来计算分配速率.  GC日志如下所示:
 
 
 	0.291: [GC (Allocation Failure) 
@@ -34,7 +39,7 @@
 
 
 
-根据GC日志就可以计算出分配速率。 计算 `上一次垃圾收集之后`,与`下一次GC开始之前`的年轻代使用量的差值。 比如上面的日志中, 可以获取以下信息:
+计算 `上一次垃圾收集之后`,与`下一次GC开始之前`的年轻代使用量, 两者的差值除以时间,就是分配速率。 通过上面的日志, 可以计算出以下信息:
 
 
 - JVM启动之后 `291ms`, 共创建了 `33,280 KB` 的对象。 第一次 Minor GC(小型GC) 完成后, 年轻代中还有 `5,088 KB` 的对象存活。
@@ -100,23 +105,23 @@
 ### 分配速率的意义
 
 
-计算出分配速率, 就会知道分配速率如何影响吞吐量: 分配速率的变化,会增加或降低GC暂停的频率。 请记住, 只有年轻代的 [minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t9) 受分配速率的影响。 而老年代GC的频率和持续时间不受 **分配速率**(`allocation rate`)的直接影响, 而是受 **提升速率**(`promotion rate`)的影响,我们在下一节中介绍。
+分配速率的变化,会增加或降低GC暂停的频率, 从而影响吞吐量。 但只有年轻代的 [minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t9) 受分配速率的影响,  老年代GC的频率和持续时间不受 **分配速率**(`allocation rate`)的直接影响, 而是受到 **提升速率**(`promotion rate`)的影响, 请参见下文。
 
 
-这样我们就只关心 [Minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t9) 暂停, 接下来看年轻代的这几个内存池。因为对象分配在 [Eden 区](http://blog.csdn.net/renfufei/article/details/54144385#t3), 所以我们来审查 Eden 区的大小和分配速率的关系.  看看增加 Eden 区的容量能不能减少 Minor GC 暂停次数, 从而使程序能够维持更快的分配速率。
+现在我们只关心 [Minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t9) 暂停, 查看年轻代的3个内存池。因为对象在 [Eden区](http://blog.csdn.net/renfufei/article/details/54144385#t3)分配, 所以我们一起来看 Eden 区的大小和分配速率的关系.  看看增加 Eden 区的容量, 能不能减少 Minor GC 暂停次数, 从而使程序能够维持更高的分配速率。
 
 
-事实上, 通过参数 `-XX:NewSize`、 `-XX:MaxNewSize` 以及 `-XX:SurvivorRatio` 设置不同的 Eden 空间来运行同一程序时, 可以看到:
+经过我们的实验, 通过参数 `-XX:NewSize`、 `-XX:MaxNewSize` 以及 `-XX:SurvivorRatio` 设置不同的 Eden 空间, 运行同一程序时, 可以发现:
 
 
 - Eden 空间为 `100 MB` 时, 分配速率低于 `100 MB/秒`。
 - 将 Eden 区增大为 `1 GB`, 分配速率也随之增长,大约等于 `200 MB/秒`。
 
 
-为什么会这样? —— 因为减少GC暂停,就等价于减少任务线程的停顿，就可以做更多工作, 也就创建了更多对象, 所以对同一应用程序, 分配速率越高越好。
+为什么会这样? —— 因为减少GC暂停,就等价于减少了任务线程的停顿，就可以做更多工作, 也就创建了更多对象, 所以对同一应用来说, 分配速率越高越好。
 
 
-在得出 “Eden去越大越好” 这种结论前, 我们注意到, 分配速率可能会,也可能不会直接影响程序的实际吞吐量。 吞吐量和分配速率有一定关系, 分配速率会影响 minor GC 暂停, 但对总体吞吐量的影响, 还要考虑 Major GC(大型GC)暂停, 而且吞吐量的单位不是 `MB/秒`， 而是应用所处理的业务量。
+在得出 “Eden区越大越好” 这个结论前, 我们注意到, 分配速率可能会,也可能不会影响程序的实际吞吐量。 吞吐量和分配速率有一定关系, 因为分配速率会影响 minor GC 暂停, 但对于总体吞吐量的影响, 还要考虑 Major GC(大型GC)暂停, 而且吞吐量的单位不是 `MB/秒`， 而是系统所处理的业务量。
 
 
 ### 示例
@@ -140,19 +145,19 @@
 	}
 
 
-如同类名所示, 这个Demo是模拟 boxing 的。为了判断 null 值, 使用的是包装类型 `Double`。 基于传感器的最新值进行计算, 但从传感器取值是一个耗时操作, 所以采用了异步方式： 一个线程不断获取新值, 计算线程则直接使用暂存的最新值, 从而避免同步获取。
+如同类名所示, 这个Demo是模拟 boxing 的。为了 null 值判断, 使用的是包装类型 `Double`。 程序基于传感器的最新值进行计算, 但从传感器取值是一个重量级操作, 所以采用了异步方式： 一个线程不断获取新值, 计算线程则直接使用暂存的最新值, 从而避免同步等待。
 
 
-[Demo 程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java)在运行的过程中, 由于分配速率太大而受GC拖累。下一节将确认问题, 并给出解决办法。
+[Demo 程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java)在运行的过程中, 由于分配速率太大而受到GC的影响。下一节将确认问题, 并给出解决办法。
 
 
-### 对JVM会造成什么影响?
+### 高分配速率对JVM的影响
 
 
-首先，我们应该检查程序的吞吐量是否降低。如果创建了过多的临时对象, 小型GC的次数就会增加。如果并发较大, 则GC很可能会严重影响吞吐量。
+首先，我们应该检查程序的吞吐量是否降低。如果创建了过多的临时对象, minor GC的次数就会增加。如果并发较大, 则GC可能会严重影响吞吐量。
 
 
-遇到这种情况时, GC日志将会像下面这样，当然这是从上一节的[示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) 产生的GC日志中提取的。 JVM启动参数为 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m`:
+遇到这种情况时, GC日志将会像下面这样，当然这是上面的[示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) 产生的GC日志。 JVM启动参数为 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xmx32m`:
 
 
 	2.808: [GC (Allocation Failure) 
@@ -175,17 +180,17 @@
 			[PSYoungGen: 9760K->32K(10240K)], 0.0003588 secs]
 
 
-很显然 minor GC 的频率太高了。这说明创建了大量的对象。另外, 年轻代在 GC 之后的使用量又很低, 也没有 full GC 发生。 这种症状表明, GC对吞吐量有严重的影响。
+很显然 minor GC 的频率太高了。这说明创建了大量的对象。另外, 年轻代在 GC 之后的使用量又很低, 也没有 full GC 发生。 种种迹象表明, GC对吞吐量造成了严重的影响。
 
 
 
 ### 解决方案
 
 
-在某些情况下,只要增加年轻代空间的大小, 即可降低分配速率过高的影响。增加年轻代空间并不会降低分配速率, 但是会减少GC的频率。如果每次GC后只有少量对象存活, minor GC 的暂停时间就不会明显增加。
+在某些情况下,只要增加年轻代的大小, 即可降低分配速率过高所造成的影响。增加年轻代空间并不会降低分配速率, 但是会减少GC的频率。如果每次GC后只有少量对象存活, minor GC 的暂停时间就不会明显增加。
 
 
-运行 [示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) , 增加堆内存大小,(同时也就增大了年轻代的大小), 使用的JVM参数为 `-Xmx64m`:
+运行 [示例程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/Boxing.java) 时, 增加堆内存大小,(同时也就增大了年轻代的大小), 使用的JVM参数为 `-Xmx64m`:
 
 
 	2.808: [GC (Allocation Failure) 
@@ -199,28 +204,28 @@
 
 
 
-但只增加堆内存的大小,有时候并不能解决问题。通过前面学习的知识, 我们可以通过分配分析器找出大部分垃圾产生的位置。实际上在此示例中, 99%的对象是 `Double` 包装类, 在`readSensor` 方法中创建。可以进行简单的优化, 将创建的 `Double` 对象替换为原生类型 `double`, 而 null 值的判断, 可以使用  [Double.NaN](https://docs.oracle.com/javase/7/docs/api/java/lang/Double.html#NaN) 来进行。由于原生类型不算是对象, 也就不会产生垃圾, 不容易产生GC事件。优化之后, 不在堆内存中分配新对象, 而是直接覆盖一个属性域即可。
+但有时候增加堆内存的大小,并不能解决问题。通过前面学到的知识, 我们可以通过分配分析器找出大部分垃圾产生的位置。实际上在此示例中, 99%的对象属于 `Double` 包装类, 在`readSensor` 方法中创建。最简单的优化, 将创建的 `Double` 对象替换为原生类型 `double`, 而针对 null 值的检测, 可以使用  [Double.NaN](https://docs.oracle.com/javase/7/docs/api/java/lang/Double.html#NaN) 来进行。由于原生类型不算是对象, 也就不会产生垃圾, 导致GC事件。优化之后, 不在堆中分配新对象, 而是直接覆盖一个属性域即可。
 
 
-对示例程序进行[简单的改造](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/FixedBoxing.java)( [查看diff](https://gist.github.com/gvsmirnov/0270f0f15f9498e3b655) ) 之后, GC暂停基本上完全消除。有时候 JVM 也会很智能, 使用 逃逸分析技术(escape analysis technique) 来避免过度分配。简单来说,JIT编译器可以分析得知, 方法创建的某些对象永远都不会“逃出”此方法的作用域。这时候就不需要在堆上分配这些对象, 也就不会产生垃圾, 所以JIT编译器所做的一种优化就是: 消除内存分配。请参考 [基准测试](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/jit/EscapeAnalysis.java) 。
+对示例程序进行[简单的改造](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/FixedBoxing.java)( [查看diff](https://gist.github.com/gvsmirnov/0270f0f15f9498e3b655) ) 后, GC暂停基本上完全消除。有时候 JVM 也很智能, 会使用 逃逸分析技术(escape analysis technique) 来避免过度分配。简单来说,JIT编译器可以通过分析得知, 方法创建的某些对象永远都不会“逃出”此方法的作用域。这时候就不需要在堆上分配这些对象, 也就不会产生垃圾, 所以JIT编译器的一种优化手段就是: 消除内存分配。请参考 [基准测试](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/jit/EscapeAnalysis.java) 。
 
 
 ## 过早提升(Premature Promotion)
 
 
-先介绍一个基本概念 —— **提升速率**(`premature promotion`)。提升速率用于衡量单位时间内从年轻代提升到老年代的数据量。一般使用 `MB/sec` 作为单位, 和分配速率类似。
+**提升速率**(`promotion rate`), 用于衡量单位时间内从年轻代提升到老年代的数据量。一般使用 `MB/sec` 作为单位, 和`分配速率`类似。
 
 
-JVM会将长时间存活的对象从年轻代提升到老年代。根据分代假设, 可能存在一种情况, 老年代中不仅有存活时间长的对象,也可能有存活时间短的对象。这就是过早提升：存活时间还不长的对象被提升到了老年代。
+JVM会将长时间存活的对象从年轻代提升到老年代。根据分代假设, 可能存在一种情况, 老年代中不仅有存活时间长的对象,也可能有存活时间短的对象。这就是过早提升：对象存活时间还不够长的时候就被提升到了老年代。
 
 
-major GC 不是为这种频繁回收而设计的, 但现在 major GC 也要清理这些生命短暂的对象, 所以会导致GC暂停时间过长。这就严重影响了系统吞吐量。
+major GC 不是为频繁回收而设计的, 但 major GC 现在也要清理这些生命短暂的对象, 就会导致GC暂停时间过长。这会严重影响系统的吞吐量。
 
 
 ### 如何测量提升速率
 
 
-可以指定JVM参数 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` , 通过GC日志来测量提升速率. JVM记录的GC停顿信息如下所示:
+可以指定JVM参数 `-XX:+PrintGCDetails -XX:+PrintGCTimeStamps` , 通过GC日志来测量提升速率. JVM记录的GC暂停信息如下所示:
 
 
 	0.291: [GC (Allocation Failure) 
@@ -238,7 +243,7 @@ major GC 不是为这种频繁回收而设计的, 但现在 major GC 也要清�
 
 
 
-从上面的信息可以得知, GC前和GC之后,年轻代的使用量,以及堆内存使用的总量。这样就很可以算出, 老年代的使用量就是是两者的差值。GC日志中的信息可以表示为:
+从上面的日志可以得知： GC之前和之后的 年轻代使用量以及堆内存使用量。这样就可以通过差值算出老年代的使用量。GC日志中的信息可以表述为:
 
 
 <table class="data compact">
@@ -298,28 +303,28 @@ major GC 不是为这种频繁回收而设计的, 但现在 major GC 也要清�
 
 
 
-根据这些信息, 就可以得出观察周期内的提升速率。平均提升速率为 `92 MB/秒`, 峰值为 `140.95 MB/秒`。
+根据这些信息, 就可以计算出观测周期内的提升速率。平均提升速率为 `92 MB/秒`, 峰值为 `140.95 MB/秒`。
 
 
-请注意, 只能根据 minor GC 计算这些信息. Full GC 暂停的日志,不能用于计算提升速率, 因为 major GC 会清理老年代中的一部分对象。
+请注意, **只能根据 minor GC 计算提升速率**。 Full GC 的日志不能用于计算提升速率, 因为 major GC 会清理掉老年代中的一部分对象。
 
 
 ### 提升速率的意义
 
 
-和分配速率一样, 提升速率也会影响GC暂停的频率。但分配速率主要影响 [minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t8), 而提升速率则影响的是 [major GC](http://blog.csdn.net/renfufei/article/details/54144385#t8) 的频率。有大量的数据提升,自然很快就会把老年代填满。 老年代填充的越快, 则 major GC 事件的频率将会越快。
+和分配速率一样, 提升速率也会影响GC暂停的频率。但分配速率主要影响 [minor GC](http://blog.csdn.net/renfufei/article/details/54144385#t8), 而提升速率则影响 [major GC](http://blog.csdn.net/renfufei/article/details/54144385#t8) 的频率。有大量的对象提升,自然很快将老年代填满。 老年代填充的越快, 则 major GC 事件的频率就会越高。
 
 
 ![](07_01_how-java-garbage-collection-works.png)
 
 
-此前我们说过, full GC 通常需要更多的时间, 因为需要处理更多的对象, 还要额外执行碎片整理等复杂的过程。
+此前说过, full GC 通常需要更多的时间, 因为需要处理更多的对象, 还要执行碎片整理等额外的复杂过程。
 
 
 ### 示例
 
 
-让我们看一个[过早提升的示例](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PrematurePromotion.java)。 这个程序创建/获取大量的对象/数据,并暂存到集合之中, 累积到一定数量之后,进行批处理:
+让我们看一个[过早提升的示例](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PrematurePromotion.java)。 这个程序创建/获取大量的对象/数据,并暂存到集合之中, 达到一定数量后进行批处理:
 
 
 	public class PrematurePromotion {
@@ -338,21 +343,21 @@ major GC 不是为这种频繁回收而设计的, 但现在 major GC 也要清�
 	}
 
 
-此 [Demo 程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PrematurePromotion.java)受到过早提升的影响。在接下来的部分将进行确认并给出解决办法。
+此 [Demo 程序](https://github.com/gvsmirnov/java-perv/blob/master/labs-8/src/main/java/ru/gvsmirnov/perv/labs/gc/PrematurePromotion.java) 受到过早提升的影响。下文将进行验证并给出解决办法。
 
 
-### 对JVM会造成什么影响?
+### 过早提升的影响
 
 
 一般来说,过早提升的症状表现为以下形式:
 
 
-- 在很短的时间内频繁地执行 full GC。
+- 短时间内频繁地执行 full GC。
 - 每次 full GC 后老年代的使用率都很低, 在10-20%或以下。
-- 提升速率约等于分配速率。
+- 提升速率接近于分配速率。
 
 
-要演示这种情况稍微有点麻烦, 所以我们使用点特殊手段, 让对象提升到老年代的年龄比默认情况小很多。指定GC参数 `-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1`, 运行程序之后,可以看到下面的GC日志:
+要演示这种情况稍微有点麻烦, 所以我们使用特殊手段, 让对象提升到老年代的年龄比默认情况小很多。指定GC参数 `-Xmx24m -XX:NewSize=16m -XX:MaxTenuringThreshold=1`, 运行程序之后,可以看到下面的GC日志:
 
 
 	2.176: [Full GC (Ergonomics) 
@@ -374,18 +379,18 @@ major GC 不是为这种频繁回收而设计的, 但现在 major GC 也要清�
 
 
 
-乍一看似乎不是过早提升的问题。事实上,在每次GC之后老年代的使用率似乎在减少。但反过来想, 要是没有对象提升或者提升率很小, 也就不会看到这么多的 Full GC。
+乍一看似乎不是过早提升的问题。事实上,在每次GC之后老年代的使用率似乎在减少。但反过来想, 要是没有对象提升或者提升率很小, 也就不会看到这么多的 Full GC 了。
 
 
-简单解释一下这种GC行为: 有很多对象提升到老年代的同时, 也有很多老年代中的对象被回收了, 这就造成了老年代使用量减少的假象. 但事实是大量的对象被不断地提升到老年代, 触发 full GC。
+简单解释一下这里的GC行为: 有很多对象提升到老年代, 同时老年代中也有很多对象被回收了, 这就造成了老年代使用量减少的假象. 但事实是大量的对象不断地被提升到老年代, 并触发 full GC。
 
 
 ### 解决方案
 
 
-简单点, 要解决这类问题, 需要让年轻代存放得下暂存的数据。有两种简单的方法:
+简单来说, 要解决这类问题, 需要让年轻代存放得下暂存的数据。有两种简单的方法:
 
-一是增加年轻代的大小, 设置JVM启动参数, 类似这样: ` -Xmx64m -XX:NewSize=32m`, 程序在执行时, Full GC 自然会减少很多, 只影响 minor GC的持续时间:
+一是增加年轻代的大小, 设置JVM启动参数, 类似这样: ` -Xmx64m -XX:NewSize=32m`, 程序在执行时, Full GC 的次数自然会减少很多, 只会对 minor GC的持续时间产生影响:
 
 
 
@@ -398,10 +403,13 @@ major GC 不是为这种频繁回收而设计的, 但现在 major GC 也要清�
 
 
 
-二是减少每批次处理的数量, 也能得到类似的结果. 至于哪种方案更好, 很大程度上取决于应用程序中真正执行的逻辑。在某些情况下, 业务逻辑不允许减少批处理的数量, 就只能增加可用内存,或者重新指定年轻代的大小。
+二是减少每次批处理的数量, 也能得到类似的结果. 至于选用哪个方案, 要根据业务需求决定。在某些情况下, 业务逻辑不允许减少批处理的数量, 那就只能增加堆内存,或者重新指定年轻代的大小。
+
+如果都不可行, 就只能优化数据结构, 减少内存消耗。但总体目标依然是一致的: 让临时数据能够在年轻代存放得下。
+
+=======================校对到此处
 
 
-如果都不可行, 那就优化数据结构, 减少内存消耗。但总体目标依然是一致的: 让临时数据能够在年轻代存放得下。
 
 
 ## Weak, Soft 以及 Phantom 引用
