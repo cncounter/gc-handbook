@@ -3,9 +3,9 @@
 
 > Github项目地址: [https://github.com/cncounter/gc-handbook](https://github.com/cncounter/gc-handbook)
 >
-> 时间: 2016年5月10日
+> 时间: 2017年3月15日
 >
-> 版本: <V0.01>
+> 版本: V0.2
 >
 > 状态: 未校对
 
@@ -24,7 +24,7 @@
 
 [6. GC 调优(工具篇)](06_GC_Tuning_Tooling_CN.md)
 
-[7. GC 调优(实战篇)](07_GC_Tuning_In_Practice.md)
+[7. GC 调优(实战篇)](07_GC_Tuning_In_Practice_CN.md)
 
 
 ## 下载
@@ -37,7 +37,7 @@
 
 翻译人员: [铁锚 http://blog.csdn.net/renfufei](http://blog.csdn.net/renfufei)
 
-加入【[CNC开源组件交流群: 316630025](http://jq.qq.com/?_wv=1027&k=2FzyKg3)】
+加入【[CNC开源技术交流群: 316630025](http://jq.qq.com/?_wv=1027&k=2FzyKg3)】
 
 
 
