@@ -1,4 +1,5 @@
-#  Java垃圾收集指南
+Java垃圾收集必备手册
+==
 
 
 > Github项目地址: [https://github.com/cncounter/gc-handbook](https://github.com/cncounter/gc-handbook)
@@ -7,7 +8,8 @@
 >
 > 版本: V0.2
 >
-> 状态: 未校对
+> 状态: 第2次校对
+
 
 
 ## 目录
@@ -30,7 +32,9 @@
 ## 下载
 
 
-<a target="_blank" href="https://github.com/cncounter/gc-handbook/raw/master/Plumbr_Handbook_Java_Garbage_Collection.pdf">Plumbr_Java_GC手册_英文版.pdf</a>
+<a target="_blank" href="https://github.com/cncounter/gc-handbook/raw/master/Java_GC_Hanbook_CN.pdf">Java垃圾收集必备手册_中文版.pdf</a>
+
+
 
 
 ## 相关链接
@@ -40,5 +44,3 @@
 加入【[CNC开源技术交流群: 316630025](http://jq.qq.com/?_wv=1027&k=2FzyKg3)】
 
 
-
-<div style="page-break-after : always;"> </div>
