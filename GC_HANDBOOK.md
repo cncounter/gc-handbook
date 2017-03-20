@@ -31,7 +31,7 @@ Java垃圾收集指南
 ## 下载
 
 
-<a target="_blank" href="https://github.com/cncounter/gc-handbook/raw/master/Plumbr_Handbook_Java_Garbage_Collection.pdf">Plumbr_Java_GC手册_英文版.pdf</a>
+<a target="_blank" href="https://github.com/cncounter/gc-handbook/raw/master/Java_GC_Hanbook_CN.pdf">Java垃圾收集指南_中文版.pdf</a>
 
 
 <div style="page-break-after : always;"> </div>
