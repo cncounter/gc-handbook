@@ -531,69 +531,69 @@ Eden 区的旁边是两个**存活区**, 称为 `from 空间`和 `to 空间`。�
 
 
 <table>
-	<thead>
-		<tr>
-			<th><b>Young</b></th>
-			<th><b>Tenured</b></th>
-			<th><b>JVM options</b></th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td>Incremental(增量GC)</td>
-			<td>Incremental</td>
-			<td>-Xincgc</td>
-		</tr>
-		<tr>
-			<td><b>Serial</b></td>
-			<td><b>Serial</b></td>
-			<td><b>-XX:+UseSerialGC</b></td>
-		</tr>
-		<tr>
-			<td>Parallel Scavenge</td>
-			<td>Serial</td>
-			<td>-XX:+UseParallelGC -XX:-UseParallelOldGC</td>
-		</tr>
-		<tr>
-			<td>Parallel New</td>
-			<td>Serial</td>
-			<td>N/A</td>
-		</tr>
-		<tr>
-			<td>Serial</td>
-			<td>Parallel Old</td>
-			<td>N/A</td>
-		</tr>
-		<tr>
-			<td><b>Parallel Scavenge</b></td>
-			<td><b>Parallel Old</b></td>
-			<td><b>-XX:+UseParallelGC -XX:+UseParallelOldGC</b></td>
-		</tr>
-		<tr>
-			<td>Parallel New</td>
-			<td>Parallel Old</td>
-			<td>N/A</td>
-		</tr>
-		<tr>
-			<td>Serial</td>
-			<td>CMS</td>
-			<td>-XX:-UseParNewGC -XX:+UseConcMarkSweepGC</td>
-		</tr>
-		<tr>
-			<td>Parallel Scavenge</td>
-			<td>CMS</td>
-			<td>N/A</td>
-		</tr>
-		<tr>
-			<td><b>Parallel New</b></td>
-			<td><b>CMS</b></td>
-			<td><b>-XX:+UseParNewGC -XX:+UseConcMarkSweepGC</b></td>
-		</tr>
-		<tr>
-			<td colspan="2" align="middle"><b>G1</b></td>
-			<td><b>-XX:+UseG1GC</b></td>
-		</tr>
-	</tbody>
+<thead>
+<tr>
+<th><b>Young</b></th>
+<th><b>Tenured</b></th>
+<th><b>JVM options</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Incremental(增量GC)</td>
+<td>Incremental</td>
+<td>-Xincgc</td>
+</tr>
+<tr>
+<td><b>Serial</b></td>
+<td><b>Serial</b></td>
+<td><b>-XX:+UseSerialGC</b></td>
+</tr>
+<tr>
+<td>Parallel Scavenge</td>
+<td>Serial</td>
+<td>-XX:+UseParallelGC -XX:-UseParallelOldGC</td>
+</tr>
+<tr>
+<td>Parallel New</td>
+<td>Serial</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Serial</td>
+<td>Parallel Old</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><b>Parallel Scavenge</b></td>
+<td><b>Parallel Old</b></td>
+<td><b>-XX:+UseParallelGC -XX:+UseParallelOldGC</b></td>
+</tr>
+<tr>
+<td>Parallel New</td>
+<td>Parallel Old</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Serial</td>
+<td>CMS</td>
+<td>-XX:-UseParNewGC -XX:+UseConcMarkSweepGC</td>
+</tr>
+<tr>
+<td>Parallel Scavenge</td>
+<td>CMS</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td><b>Parallel New</b></td>
+<td><b>CMS</b></td>
+<td><b>-XX:+UseParNewGC -XX:+UseConcMarkSweepGC</b></td>
+</tr>
+<tr>
+<td colspan="2" align="middle"><b>G1</b></td>
+<td><b>-XX:+UseG1GC</b></td>
+</tr>
+</tbody>
 </table>
 
 
@@ -1707,34 +1707,34 @@ GC的延迟指标由一般的延迟需求决定。延迟指标通常如下所述
 
 
 <table>
-	<thead>
-		<tr>
-			<th><b>堆内存大小(Heap)</b></th>
-			<th><b>GC算法(GC Algorithm)</b></th>
-			<th><b>有效时间比(Useful work)</b></th>
-			<th><b>最长停顿时间(Longest pause)</b></th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td>-Xmx12g</td>
-			<td>-XX:+UseConcMarkSweepGC</td>
-			<td>89.8%</td>
-			<td><strong>560 ms</strong></td>
-		</tr>
-		<tr>
-			<td>-Xmx12g</td>
-			<td>-XX:+UseParallelGC</td>
-			<td>91.5%</td>
-			<td>1,104 ms</td>
-		</tr>
-		<tr>
-			<td>-Xmx8g</td>
-			<td>-XX:+UseConcMarkSweepGC</td>
-			<td>66.3%</td>
-			<td>1,610 ms</td>
-		</tr>
-	</tbody>
+<thead>
+<tr>
+<th><b>堆内存大小(Heap)</b></th>
+<th><b>GC算法(GC Algorithm)</b></th>
+<th><b>有效时间比(Useful work)</b></th>
+<th><b>最长停顿时间(Longest pause)</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-Xmx12g</td>
+<td>-XX:+UseConcMarkSweepGC</td>
+<td>89.8%</td>
+<td><strong>560 ms</strong></td>
+</tr>
+<tr>
+<td>-Xmx12g</td>
+<td>-XX:+UseParallelGC</td>
+<td>91.5%</td>
+<td>1,104 ms</td>
+</tr>
+<tr>
+<td>-Xmx8g</td>
+<td>-XX:+UseConcMarkSweepGC</td>
+<td>66.3%</td>
+<td>1,610 ms</td>
+</tr>
+</tbody>
 </table>
 
 
@@ -1756,34 +1756,34 @@ GC的延迟指标由一般的延迟需求决定。延迟指标通常如下所述
 
 
 <table>
-	<thead>
-		<tr>
-			<th><b>堆内存大小(Heap)</b></th>
-			<th><b>GC算法(GC Algorithm)</b></th>
-			<th><b>有效时间比(Useful work)</b></th>
-			<th><b>最长停顿时间(Longest pause)</b></th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td>-Xmx12g</td>
-			<td>-XX:+UseConcMarkSweepGC</td>
-			<td>89.8%</td>
-			<td><strong>560 ms</strong></td>
-		</tr>
-		<tr>
-			<td>-Xmx12g</td>
-			<td>-XX:+UseParallelGC</td>
-			<td>91.5%</td>
-			<td>1,104 ms</td>
-		</tr>
-		<tr>
-			<td>-Xmx8g</td>
-			<td>-XX:+UseConcMarkSweepGC</td>
-			<td>66.3%</td>
-			<td>1,610 ms</td>
-		</tr>
-	</tbody>
+<thead>
+<tr>
+<th><b>堆内存大小(Heap)</b></th>
+<th><b>GC算法(GC Algorithm)</b></th>
+<th><b>有效时间比(Useful work)</b></th>
+<th><b>最长停顿时间(Longest pause)</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-Xmx12g</td>
+<td>-XX:+UseConcMarkSweepGC</td>
+<td>89.8%</td>
+<td><strong>560 ms</strong></td>
+</tr>
+<tr>
+<td>-Xmx12g</td>
+<td>-XX:+UseParallelGC</td>
+<td>91.5%</td>
+<td>1,104 ms</td>
+</tr>
+<tr>
+<td>-Xmx8g</td>
+<td>-XX:+UseConcMarkSweepGC</td>
+<td>66.3%</td>
+<td>1,610 ms</td>
+</tr>
+</tbody>
 </table>
 
 
@@ -1805,34 +1805,34 @@ GC的延迟指标由一般的延迟需求决定。延迟指标通常如下所述
 
 
 <table>
-	<thead>
-		<tr>
-			<th><b>堆内存大小(Heap)</b></th>
-			<th><b>GC算法(GC Algorithm)</b></th>
-			<th><b>有效时间比(Useful work)</b></th>
-			<th><b>最长停顿时间(Longest pause)</b></th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td>-Xmx12g</td>
-			<td>-XX:+UseConcMarkSweepGC</td>
-			<td>89.8%</td>
-			<td>560 ms</td>
-		</tr>
-		<tr>
-			<td>-Xmx12g</td>
-			<td>-XX:+UseParallelGC</td>
-			<td><strong>91.5%</strong></td>
-			<td>1,104 ms</td>
-		</tr>
-		<tr>
-			<td>-Xmx8g</td>
-			<td>-XX:+UseConcMarkSweepGC</td>
-			<td>66.3%</td>
-			<td>1,610 ms</td>
-		</tr>
-	</tbody>
+<thead>
+<tr>
+<th><b>堆内存大小(Heap)</b></th>
+<th><b>GC算法(GC Algorithm)</b></th>
+<th><b>有效时间比(Useful work)</b></th>
+<th><b>最长停顿时间(Longest pause)</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-Xmx12g</td>
+<td>-XX:+UseConcMarkSweepGC</td>
+<td>89.8%</td>
+<td>560 ms</td>
+</tr>
+<tr>
+<td>-Xmx12g</td>
+<td>-XX:+UseParallelGC</td>
+<td><strong>91.5%</strong></td>
+<td>1,104 ms</td>
+</tr>
+<tr>
+<td>-Xmx8g</td>
+<td>-XX:+UseConcMarkSweepGC</td>
+<td>66.3%</td>
+<td>1,610 ms</td>
+</tr>
+</tbody>
 </table>
 
 
@@ -1866,34 +1866,34 @@ GC的延迟指标由一般的延迟需求决定。延迟指标通常如下所述
 
 
 <table>
-	<thead>
-		<tr>
-			<th><b>堆内存大小(Heap)</b></th>
-			<th><b>GC算法(GC Algorithm)</b></th>
-			<th><b>有效时间比(Useful work)</b></th>
-			<th><b>最长停顿时间(Longest pause)</b></th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr>
-			<td>-Xmx12g</td>
-			<td>-XX:+UseConcMarkSweepGC</td>
-			<td>89.8%</td>
-			<td>560 ms</td>
-		</tr>
-		<tr>
-			<td>-Xmx12g</td>
-			<td>-XX:+UseParallelGC</td>
-			<td>91.5%</td>
-			<td>1,104 ms</td>
-		</tr>
-		<tr>
-			<td><strong>-Xmx8g</strong></td>
-			<td>-XX:+UseConcMarkSweepGC</td>
-			<td>66.3%</td>
-			<td>1,610 ms</td>
-		</tr>
-	</tbody>
+<thead>
+<tr>
+<th><b>堆内存大小(Heap)</b></th>
+<th><b>GC算法(GC Algorithm)</b></th>
+<th><b>有效时间比(Useful work)</b></th>
+<th><b>最长停顿时间(Longest pause)</b></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-Xmx12g</td>
+<td>-XX:+UseConcMarkSweepGC</td>
+<td>89.8%</td>
+<td>560 ms</td>
+</tr>
+<tr>
+<td>-Xmx12g</td>
+<td>-XX:+UseParallelGC</td>
+<td>91.5%</td>
+<td>1,104 ms</td>
+</tr>
+<tr>
+<td><strong>-Xmx8g</strong></td>
+<td>-XX:+UseConcMarkSweepGC</td>
+<td>66.3%</td>
+<td>1,610 ms</td>
+</tr>
+</tbody>
 </table>
 
 
