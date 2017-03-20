@@ -1,4 +1,5 @@
-Java垃圾收集指南
+
+Java垃圾收集必备手册
 ==
 
 
@@ -31,7 +32,7 @@ Java垃圾收集指南
 ## 下载
 
 
-<a target="_blank" href="https://github.com/cncounter/gc-handbook/raw/master/Java_GC_Hanbook_CN.pdf">Java垃圾收集指南_中文版.pdf</a>
+<a target="_blank" href="https://github.com/cncounter/gc-handbook/raw/master/Java_GC_Hanbook_CN.pdf">Java垃圾收集必备手册_中文版.pdf</a>
 
 
 <div style="page-break-after : always;"> </div>
